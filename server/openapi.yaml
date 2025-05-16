@@ -1,0 +1,564 @@
+openapi: 3.0.3
+info:
+  title: LMS Authentication and Course API
+  version: 1.0.0
+  description: APIs for authentication, course, and lecturer management in the Learning Management System (LMS)
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with name, email, and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  example: john@example.com
+                password:
+                  type: string
+                  example: password123
+              required: [name, email, password]
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  token:
+                    type: string
+                example:
+                  _id: 1234567890abcdef
+                  name: John Doe
+                  email: john@example.com
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Bad request (e.g., user already exists, invalid input)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: User already exists
+  /api/auth/login:
+    post:
+      summary: Login a user
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: john@example.com
+                password:
+                  type: string
+                  example: password123
+              required: [email, password]
+      responses:
+        '200':
+          description: User authenticated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  token:
+                    type: string
+                example:
+                  _id: 1234567890abcdef
+                  name: John Doe
+                  email: john@example.com
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Unauthorized (invalid credentials)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Invalid email or password
+  /api/courses:
+    post:
+      summary: Create a new course
+      description: Creates a new course with required fields. Requires admin/lecturer access.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseCode:
+                  type: string
+                  example: CS101
+                title:
+                  type: string
+                  example: Introduction to Programming
+                description:
+                  type: string
+                  example: Basics of programming using Python
+                credits:
+                  type: number
+                  example: 3
+                department:
+                  type: string
+                  example: Computer Science
+                faculty:
+                  type: string
+                  example: Engineering
+                semester:
+                  type: string
+                  example: Semester 1
+                year:
+                  type: number
+                  example: 1
+                lecturer:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a789
+                status:
+                  type: string
+                  example: Active
+              required: [courseCode, title, credits, department, faculty, semester, year, lecturer]
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  courseCode:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  credits:
+                    type: number
+                  department:
+                    type: string
+                  faculty:
+                    type: string
+                  semester:
+                    type: string
+                  year:
+                    type: number
+                  lecturer:
+                    type: string
+                  status:
+                    type: string
+                example:
+                  _id: 1234567890abcdef
+                  courseCode: CS101
+                  title: Introduction to Programming
+                  description: Basics of programming using Python
+                  credits: 3
+                  department: Computer Science
+                  faculty: Engineering
+                  semester: Semester 1
+                  year: 1
+                  lecturer: 64f7c9b2a1b2c3d4e5f6a789
+                  status: Active
+        '400':
+          description: Bad request (e.g., missing fields, invalid lecturer ID)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Course code already exists
+    get:
+      summary: Get all courses
+      description: Retrieves all active courses with optional filters (semester, department, faculty, year).
+      parameters:
+        - in: query
+          name: semester
+          schema:
+            type: string
+          description: Filter by semester (e.g., Semester 1)
+        - in: query
+          name: department
+          schema:
+            type: string
+          description: Filter by department (e.g., Computer Science)
+        - in: query
+          name: faculty
+          schema:
+            type: string
+          description: Filter by faculty (e.g., Engineering)
+        - in: query
+          name: year
+          schema:
+            type: number
+          description: Filter by year (e.g., 1)
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    courseCode:
+                      type: string
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    credits:
+                      type: number
+                    department:
+                      type: string
+                    faculty:
+                      type: string
+                    semester:
+                      type: string
+                    year:
+                      type: number
+                    lecturer:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                    status:
+                      type: string
+  /api/courses/{id}:
+    get:
+      summary: Get a single course
+      description: Retrieves a course by ID or courseCode.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID or courseCode
+      responses:
+        '200':
+          description: Course details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  courseCode:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  credits:
+                    type: number
+                  department:
+                    type: string
+                  faculty:
+                    type: string
+                  semester:
+                    type: string
+                  year:
+                    type: number
+                  lecturer:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                  status:
+                    type: string
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Course not found
+    put:
+      summary: Update a course
+      description: Updates an existing course. Requires admin/lecturer access.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                courseCode:
+                  type: string
+                  example: CS101
+                title:
+                  type: string
+                  example: Introduction to Programming
+                description:
+                  type: string
+                  example: Basics of programming using Python
+                credits:
+                  type: number
+                  example: 3
+                department:
+                  type: string
+                  example: Computer Science
+                faculty:
+                  type: string
+                  example: Engineering
+                semester:
+                  type: string
+                  example: Semester 1
+                year:
+                  type: number
+                  example: 1
+                lecturer:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a789
+                status:
+                  type: string
+                  example: Active
+      responses:
+        '200':
+          description: Course updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  courseCode:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  credits:
+                    type: number
+                  department:
+                    type: string
+                  faculty:
+                    type: string
+                  semester:
+                    type: string
+                  year:
+                    type: number
+                  lecturer:
+                    type: string
+                  status:
+                    type: string
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Course not found
+    delete:
+      summary: Delete a course
+      description: Deactivates a course by setting status to Inactive. Requires admin access.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Course ID
+      responses:
+        '200':
+          description: Course deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Course deactivated
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Course not found
+  /api/courses/lecturer/{lecturerId}:
+    get:
+      summary: Get courses by lecturer
+      description: Retrieves all active courses assigned to a specific lecturer.
+      parameters:
+        - in: path
+          name: lecturerId
+          required: true
+          schema:
+            type: string
+          description: Lecturer ID
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    courseCode:
+                      type: string
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    credits:
+                      type: number
+                    department:
+                      type: string
+                    faculty:
+                      type: string
+                    semester:
+                      type: string
+                    year:
+                      type: number
+                    lecturer:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                    status:
+                      type: string
+        '404':
+          description: Lecturer not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Lecturer not found
+  /api/lecturers:
+    post:
+      summary: Create a new lecturer
+      description: Creates a new lecturer for testing purposes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Dr. Jane Smith
+                email:
+                  type: string
+                  example: jane.smith@university.com
+                department:
+                  type: string
+                  example: Computer Science
+              required: [name, email, department]
+      responses:
+        '201':
+          description: Lecturer created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  department:
+                    type: string
+                example:
+                  _id: 64f7c9b2a1b2c3d4e5f6a789
+                  name: Dr. Jane Smith
+                  email: jane.smith@university.com
+                  department: Computer Science
+        '400':
+          description: Bad request (e.g., missing fields, email exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Lecturer with this email already exists
