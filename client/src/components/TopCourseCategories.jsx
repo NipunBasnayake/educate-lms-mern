@@ -25,7 +25,32 @@ const categories = [
     courses: 3,
     color: "yellow",
   },
+  
 ];
+
+const colorMap = {
+  indigo: {
+    bg: "bg-indigo-100",
+    text: "text-indigo-600",
+    button: "bg-indigo-600 hover:bg-indigo-700",
+  },
+  green: {
+    bg: "bg-green-100",
+    text: "text-green-600",
+    button: "bg-green-600 hover:bg-green-700",
+  },
+  pink: {
+    bg: "bg-pink-100",
+    text: "text-pink-600",
+    button: "bg-pink-600 hover:bg-pink-700",
+  },
+  yellow: {
+    bg: "bg-yellow-100",
+    text: "text-yellow-600",
+    button: "bg-yellow-600 hover:bg-yellow-700",
+  },
+ 
+};
 
 const TopCourseCategories = () => {
   return (
@@ -39,31 +64,35 @@ const TopCourseCategories = () => {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {categories.map((item, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition"
-            >
-              <div className="mb-4">
-                <div
-                  className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl font-bold bg-${item.color}-100 text-${item.color}-600`}
-                >
-                  {item.icon}
-                </div>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800">
-                {item.title}
-              </h3>
-              <p className="text-gray-500 mt-1 mb-4">
-                {item.courses} courses
-              </p>
-              <button
-                className={`text-sm text-white bg-${item.color}-600 hover:bg-${item.color}-700 px-4 py-2 rounded-md`}
+          {categories.map((item, i) => {
+            const styles = colorMap[item.color] || colorMap.indigo;
+
+            return (
+              <div
+                key={i}
+                className="bg-white rounded-xl p-6 shadow hover:shadow-lg transition"
               >
-                View
-              </button>
-            </div>
-          ))}
+                <div className="mb-4">
+                  <div
+                    className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl font-bold ${styles.bg} ${styles.text}`}
+                  >
+                    {item.icon}
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {item.title}
+                </h3>
+                <p className="text-gray-500 mt-1 mb-4">
+                  {item.courses} courses
+                </p>
+                <button
+                  className={`text-sm text-white px-4 py-2 rounded-md ${styles.button}`}
+                >
+                  View
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
