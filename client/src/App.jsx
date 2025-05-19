@@ -11,6 +11,12 @@ import Institution from "./pages/Institution";
 import Profile from "./pages/profile"; // Assuming you have a Profile page
 import Goals from "./pages/goals"; // Assuming you have a Goals page
 import Units from "./pages/units"; // Assuming you have a Unit page
+import Organization from "./pages/organization"; // Assuming you have a Organization page
+import Calendar from "./pages/calendar"; // Assuming you have a Calendar page
+import Messenger from "./pages/messages"; // Assuming you have a Messenger page
+import Marks from "./pages/Marks"; // Assuming you have a Marks page
+import Tool from "./pages/Tool"; // Assuming you have a Tool page
+import Logout from "./pages/logout"; // Assuming you have a Logout page
 
 
 function App() {
@@ -29,6 +35,14 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/Activity" element={<Goals />} />
         <Route path="/units" element={<Units />} />
+        <Route path="/organization" element={<Organization />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/messages" element={<Messenger />} />
+        <Route path="/marks" element={<Marks />} />
+        <Route path="/tools" element={<Tool />} />
+        <Route path="/logout" element={<Logout />} />
+
+
 
 
         {/* Add more routes as needed */}
@@ -36,5 +50,6 @@ function App() {
     </Router>
   );
 }
+import { Import } from "lucide-react";
 
 export default App;
