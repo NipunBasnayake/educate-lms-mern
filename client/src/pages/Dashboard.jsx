@@ -2,6 +2,7 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
+import RecentActivity from "../components/RecentActivity";
 import {
   LineChart,
   Line,
@@ -102,6 +103,9 @@ const Dashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             </Card>
+
+            
+
           </div>
         </main>
 
