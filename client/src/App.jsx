@@ -17,7 +17,9 @@ import Messenger from "./pages/messages"; // Assuming you have a Messenger page
 import Marks from "./pages/Marks"; // Assuming you have a Marks page
 import Tool from "./pages/Tool"; // Assuming you have a Tool page
 import Logout from "./pages/logout"; // Assuming you have a Logout page
-
+import Privacy from "./pages/privacy"; // Assuming you have a Privacy Policy page
+import Terms from "./pages/Terms"; // Assuming you have a Terms of Service page
+import Accessibility from "./pages/Accessibility"; // Assuming you have an Accessibility page
 
 function App() {
   return (
@@ -41,6 +43,13 @@ function App() {
         <Route path="/marks" element={<Marks />} />
         <Route path="/tools" element={<Tool />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/accessibility" element={<Accessibility />} />
+
+
+
+        
 
 
 

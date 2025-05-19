@@ -15,9 +15,7 @@ import {
   Accessibility,
   Users,
   Landmark,
-
 } from "lucide-react";
-
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -138,18 +136,27 @@ const Sidebar = () => {
 
         {/* Footer Links */}
         <div className="mt-10 text-sm space-y-3 text-white/80">
-          <div className="flex items-center gap-2">
+          <Link
+            to="/privacy"
+            className="flex items-center gap-2 hover:text-white transition"
+          >
             <ShieldCheck size={16} />
             Privacy
-          </div>
-          <div className="flex items-center gap-2">
+          </Link>
+          <Link
+            to="/terms"
+            className="flex items-center gap-2 hover:text-white transition"
+          >
             <ScrollText size={16} />
             Terms
-          </div>
-          <div className="flex items-center gap-2">
+          </Link>
+          <Link
+            to="/accessibility"
+            className="flex items-center gap-2 hover:text-white transition"
+          >
             <Accessibility size={16} />
             Accessibility
-          </div>
+          </Link>
         </div>
       </aside>
     </>
