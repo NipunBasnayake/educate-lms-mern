@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
-import RecentActivity from "../components/RecentActivity";
+
 import {
   LineChart,
   Line,
@@ -57,28 +57,28 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardContent>
-                  <h4 className="text-sm font-semibold">Total Students</h4>
+                  <h4 className="text-sm font-semibold">Enrolled Courses</h4>
                   <p className="text-xl font-bold">8,532</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent>
-                  <h4 className="text-sm font-semibold">Courses Active</h4>
+                  <h4 className="text-sm font-semibold">Courses Completed</h4>
                   <p className="text-xl font-bold">132</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent>
-                  <h4 className="text-sm font-semibold">Instructors</h4>
+                  <h4 className="text-sm font-semibold">Certificates Earned</h4>
                   <p className="text-xl font-bold">47</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent>
-                  <h4 className="text-sm font-semibold">New Signups</h4>
+                  <h4 className="text-sm font-semibold">New Messages</h4>
                   <p className="text-xl font-bold">285</p>
                 </CardContent>
               </Card>
@@ -103,13 +103,10 @@ const Dashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             </Card>
-
-            
-
           </div>
         </main>
 
-        <Footer />
+        
       </div>
     </motion.div>
   );

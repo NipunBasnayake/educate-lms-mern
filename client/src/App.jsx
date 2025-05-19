@@ -24,9 +24,7 @@ import Accessibility from "./pages/Accessibility"; // Assuming you have an Acces
 function App() {
   return (
     <Router>
-      {/* Optional: Global Navbar */}
       <Navbar />
-
       <Routes>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
@@ -46,10 +44,6 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/accessibility" element={<Accessibility />} />
-
-
-
-        {/* Add more routes as needed */}
       </Routes>
     </Router>
   );

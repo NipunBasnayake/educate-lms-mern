@@ -40,7 +40,11 @@ const Sidebar = () => {
         ${isOpen ? "translate-x-0" : "-translate-x-full"} 
         md:translate-x-0 md:static md:block`}
       >
-        <h2 className="text-lg font-semibold mb-10 mt-16">Dashboard</h2>
+        <h2 className="text-lg font-semibold mb-10 mt-16">
+          <Link to="/dashboard" className="flex items-center gap-3 hover:font-bold">
+            Dashboard
+          </Link>
+        </h2>
         <ul className="space-y-6 text-smbold">
           <li>
             <Link
