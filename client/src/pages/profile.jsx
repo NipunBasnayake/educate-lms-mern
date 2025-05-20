@@ -4,7 +4,6 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import Card, { CardContent } from "../components/Card";
 
-// Custom toggle switch
 const CustomSwitch = ({ defaultChecked = false }) => (
   <input
     type="checkbox"
@@ -17,24 +16,25 @@ const CustomSwitch = ({ defaultChecked = false }) => (
 );
 
 const Institution = () => {
-  const cardOffset = 120; // Change this value to move the cards further down
+  const cardOffset = 120;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <div className="flex flex-1">
-        <aside className="w-64 bg-gray-100 dark:bg-gray-900">
+      <div className="flex flex-col md:flex-row flex-1">
+        {/* Sidebar - hidden on mobile, shown on md and up */}
+        <aside className="w-full md:w-64 bg-gray-100 dark:bg-gray-900">
           <Sidebar />
         </aside>
 
-        <main className="flex-1 p-12 bg-gray-50 dark:bg-gray-950 overflow-auto mt-1">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-12 bg-gray-50 dark:bg-gray-950 overflow-auto">
           {/* Profile Card */}
-          <Card className="relative overflow-visible p-0 mt-20">
-            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center mt-1">
-              <div className="w-32 h-32 rounded-full bg-white flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-md">
+          <Card className="relative overflow-visible p-0 mt-16 md:mt-20">
+            <div className="absolute top-16 md:top-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white flex items-center justify-center border-4 border-white dark:border-gray-800 shadow-md">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-10 h-10 text-gray-700 dark:text-gray-800"
+                  className="w-8 h-8 md:w-10 md:h-10 text-gray-700 dark:text-gray-800"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -48,44 +48,44 @@ const Institution = () => {
                 </svg>
               </div>
 
-              <div className="mt-3 text-center">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <div className="mt-2 md:mt-3 text-center">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                   Narayanan Prabharan
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300">2422367</p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300">2422367</p>
               </div>
             </div>
 
-            <div className="pt-36 pb-6" />
+            <div className="pt-28 md:pt-36 pb-4 md:pb-6" />
           </Card>
 
           {/* Cards Section */}
-          <div className="space-y-10" style={{ marginTop: `${cardOffset}px` }}>
+          <div className="space-y-6 md:space-y-10" style={{ marginTop: `${cardOffset}px` }}>
             {/* Basic Information */}
             <Card title="Basic Information">
-              <CardContent className="space-y-4 mt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <CardContent className="space-y-4 mt-4 md:mt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Full Name
                     </p>
-                    <p className="text-gray-900 dark:text-white">
+                    <p className="text-sm md:text-base text-gray-900 dark:text-white">
                       Narayanan Prabharan
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Email
                     </p>
-                    <p className="text-gray-900 dark:text-white">
+                    <p className="text-sm md:text-base text-gray-900 dark:text-white">
                       narayanan@example.com
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <p className="text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Student ID
                     </p>
-                    <p className="text-gray-900 dark:text-white">20251234</p>
+                    <p className="text-sm md:text-base text-gray-900 dark:text-white">20251234</p>
                   </div>
                 </div>
               </CardContent>
@@ -95,7 +95,7 @@ const Institution = () => {
             <Card title="Privacy Settings">
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">
                     Only instructors can view my profile information
                   </p>
                   <CustomSwitch defaultChecked />
@@ -105,21 +105,21 @@ const Institution = () => {
 
             {/* Notification Settings */}
             <Card title="Global Notification Settings">
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">
                     Stream Notifications
                   </p>
                   <CustomSwitch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">
                     Email Notifications
                   </p>
                   <CustomSwitch />
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">
                     Push Notifications
                   </p>
                   <CustomSwitch defaultChecked />
@@ -129,8 +129,6 @@ const Institution = () => {
           </div>
         </main>
       </div>
-
-    
     </div>
   );
 };
