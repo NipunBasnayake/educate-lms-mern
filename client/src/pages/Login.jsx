@@ -1,10 +1,33 @@
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
-import bubblesVideo from "../video/bubble.mp4"; // Adjust the path if needed
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import bubblesVideo from '../video/bubble.mp4'; 
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email,
+        password,
+      });
+      const { _id, name, email: userEmail, token } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({ _id, name, email: userEmail }));
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please try again.');
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -20,23 +43,11 @@ const Login = () => {
               Login to access your account
             </p>
 
-            {/* Google Login */}
-            <button
-              type="button"
-              className="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 px-4 rounded-lg hover:bg-gray-50 transition mb-4"
-            >
-              <FcGoogle className="text-xl" />
-              <span className="text-sm font-medium">Sign in with Google</span>
-            </button>
-
-            <div className="flex items-center gap-2 my-4">
-              <hr className="flex-grow border-gray-300" />
-              <span className="text-xs text-gray-400">or</span>
-              <hr className="flex-grow border-gray-300" />
-            </div>
+            {/* Error Message */}
+            {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
 
             {/* Email Login Form */}
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label
                   htmlFor="email"
@@ -49,6 +60,9 @@ const Login = () => {
                   id="email"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
               <div className="mb-4">
@@ -63,6 +77,9 @@ const Login = () => {
                   id="password"
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </div>
               <button
@@ -76,7 +93,7 @@ const Login = () => {
             {/* Register Link */}
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
-                Don’t have an account?{" "}
+                Don’t have an account?{' '}
                 <Link to="/register" className="text-blue-600 hover:underline">
                   Create one
                 </Link>
