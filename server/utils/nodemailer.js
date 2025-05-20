@@ -24,4 +24,19 @@ const sendResetPasswordEmail = async (email, token) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendResetPasswordEmail };
+const sendResetPasswordOtp = async (email, otp) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Password Reset OTP',
+    html: `
+      <p>You requested a password reset. Use the following OTP to reset your password:</p>
+      <h3>${otp}</h3>
+      <p>This OTP will expire in 10 minutes.</p>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendResetPasswordEmail, sendResetPasswordOtp };
