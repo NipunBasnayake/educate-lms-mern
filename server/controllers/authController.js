@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
-const { sendResetPasswordEmail } = require('../utils/nodemailer');
+const { sendResetPasswordEmail, sendResetPasswordOtp } = require('../utils/nodemailer');
 
 const registerUser = async (req, res, next) => {
   try {
@@ -84,7 +84,6 @@ const resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
 
-    // Hash the incoming token to match the stored hashed token
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
@@ -96,7 +95,6 @@ const resetPassword = async (req, res, next) => {
       throw new Error('Invalid or expired token');
     }
 
-    // Update password
     user.password = newPassword;
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
@@ -108,4 +106,53 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-module.exports = { registerUser, loginUser, forgotPassword, resetPassword };
+const forgotPasswordOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    await sendResetPasswordOtp(user.email, otp);
+
+    res.json({ message: 'OTP sent to email' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPasswordOtp = async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const user = await User.findOne({
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      res.status(400);
+      throw new Error('Invalid or expired OTP');
+    }
+
+    user.password = newPassword;
+    user.resetPasswordOtp = null;
+    user.resetPasswordOtpExpires = null;
+    await user.save();
+
+    res.json({ message: 'Password reset successful' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { registerUser, loginUser, forgotPassword, resetPassword, forgotPasswordOtp, resetPasswordOtp };

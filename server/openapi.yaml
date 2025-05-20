@@ -22,8 +22,8 @@ paths:
                 email: { type: string }
                 password: { type: string }
       responses:
-        "201": { description: User created }
-        "400": { description: User already exists }
+        '201': { description: User created }
+        '400': { description: User already exists }
   /api/auth/login:
     post:
       summary: Login a user
@@ -37,11 +37,11 @@ paths:
                 email: { type: string }
                 password: { type: string }
       responses:
-        "200": { description: Login successful }
-        "401": { description: Invalid credentials }
+        '200': { description: Login successful }
+        '401': { description: Invalid credentials }
   /api/auth/forgot-password:
     post:
-      summary: Request password reset
+      summary: Request password reset (token-based)
       requestBody:
         required: true
         content:
@@ -51,11 +51,11 @@ paths:
               properties:
                 email: { type: string }
       responses:
-        "200": { description: Password reset email sent }
-        "404": { description: User not found }
+        '200': { description: Password reset email sent }
+        '404': { description: User not found }
   /api/auth/reset-password:
     post:
-      summary: Reset password
+      summary: Reset password (token-based)
       requestBody:
         required: true
         content:
@@ -66,8 +66,38 @@ paths:
                 token: { type: string }
                 newPassword: { type: string }
       responses:
-        "200": { description: Password reset successful }
-        "400": { description: Invalid or expired token }
+        '200': { description: Password reset successful }
+        '400': { description: Invalid or expired token }
+  /api/auth/forgot-password-otp:
+    post:
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+      responses:
+        '200': { description: OTP sent to email }
+        '404': { description: User not found }
+  /api/auth/reset-password-otp:
+    post:
+      summary: Reset password using OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                otp: { type: string }
+                newPassword: { type: string }
+      responses:
+        '200': { description: Password reset successful }
+        '400': { description: Invalid or expired OTP }
 
   /api/courses:
     post:
