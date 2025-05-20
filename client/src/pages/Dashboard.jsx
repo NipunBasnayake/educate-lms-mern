@@ -11,7 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import Card, { CardContent } from "../components/card";
+import Card, { CardContent } from "../components/Card";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import "swiper/css";
@@ -30,7 +30,7 @@ const data = [
 const Dashboard = () => {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-white">
         <Navbar />
 
         <main className="flex">

@@ -1,7 +1,7 @@
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
-import Card from "../components/card";
+import Card from "../components/Card";
 import Section from "../components/Section";
 
 const Institution = () => {
@@ -9,9 +9,9 @@ const Institution = () => {
     <div className="flex flex-col h-screen">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 bg-gray-100 dark:bg-gray-900 h-full">
+        
           <Sidebar />
-        </aside>
+        
         <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-950 overflow-y-auto">
           <div className="max-w-7xl mx-auto space-y-12 mt-28">
             <Section title="Institution">
