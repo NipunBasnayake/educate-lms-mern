@@ -1,15 +1,37 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import registerVideo from "../video/Register.mp4"; // ✅ Ensure this path is correct
+import registerVideo from "../video/Register.mp4";
 
 const Register = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isRegistered, setIsRegistered] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsRegistered(true); // Simulate success
+    setError("");
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        name,
+        email,
+        password,
+      });
+
+      const { _id, name: userName, email: userEmail, token } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify({ _id, name: userName, email: userEmail }));
+      setIsRegistered(true);
+      setTimeout(() => navigate('/dashboard'), 2000); // Redirect after 2 seconds
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    }
   };
 
   return (
@@ -36,10 +58,16 @@ const Register = () => {
         {/* Right: Registration Form */}
         <div className="w-full lg:w-1/2 flex justify-center">
           <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-lg">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account </h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
             <p className="text-sm text-gray-500 mb-6">
               Register to get started with your learning journey
             </p>
+
+            {error && (
+              <div className="mb-4 text-red-500 text-sm text-center">
+                {error}
+              </div>
+            )}
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
@@ -49,6 +77,8 @@ const Register = () => {
                 <input
                   type="text"
                   id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                   disabled={isRegistered}
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -63,6 +93,8 @@ const Register = () => {
                 <input
                   type="email"
                   id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isRegistered}
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -77,6 +109,8 @@ const Register = () => {
                 <input
                   type="password"
                   id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isRegistered}
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -87,11 +121,10 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={isRegistered}
-                className={`w-full py-2 rounded-lg transition font-semibold ${
-                  isRegistered
+                className={`w-full py-2 rounded-lg transition font-semibold ${isRegistered
                     ? "bg-green-500 text-white cursor-not-allowed"
                     : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
+                  }`}
               >
                 {isRegistered ? "✅ Registered" : "Register"}
               </button>

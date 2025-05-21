@@ -22,7 +22,7 @@ const Login = () => {
       const { _id, name, email: userEmail, token } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify({ _id, name, email: userEmail }));
-      navigate('/dashboard');
+      navigate('/#home');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     }
