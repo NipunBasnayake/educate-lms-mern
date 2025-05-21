@@ -6,7 +6,7 @@ const CalendarEventSchema = new Schema({
   description: { type: String },
   date: { type: Date, required: true },
   type: { type: String, enum: ['exam', 'assessment', 'event', 'class'], required: true },
-  relatedId: { type: Schema.Types.ObjectId, refPath: 'relatedType' }, // Could reference Exam, Assessment, etc.
+  relatedId: { type: Schema.Types.ObjectId, refPath: 'relatedType' },
   relatedType: { type: String, enum: ['Exam', 'Assessment', 'Course'] },
   recipients: [{ type: Schema.Types.ObjectId, refPath: 'recipientType' }],
   recipientType: { type: String, enum: ['Student', 'Instructor'] },
