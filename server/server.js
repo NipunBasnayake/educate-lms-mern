@@ -13,6 +13,7 @@ const calendarRoutes = require('./routes/calendarRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
 const examRoutes = require('./routes/examRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/lessons', lessonRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
