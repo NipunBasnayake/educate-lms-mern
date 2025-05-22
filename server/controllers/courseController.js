@@ -1,218 +1,121 @@
 const Course = require('../models/Course');
-const Lecturer = require('../models/Lecturer');
-const asyncHandler = require('express-async-handler');
+const AuditLog = require('../models/AuditLog');
+const Instructor = require('../models/Instructor');
 
-const createCourse = asyncHandler(async (req, res) => {
-  const {
-    courseCode,
-    title,
-    description,
-    credits,
-    department,
-    faculty,
-    semester,
-    year,
-    lecturer,
-    status,
-  } = req.body;
-
-  if (!courseCode || !title || !credits || !department || !faculty || !semester || !year || !lecturer) {
-    res.status(400);
-    throw new Error('Please provide all required fields');
-  }
-
-  const courseExists = await Course.findOne({ courseCode: courseCode.toUpperCase() });
-  if (courseExists) {
-    res.status(400);
-    throw new Error('Course code already exists');
-  }
-
+exports.createCourse = async (req, res) => {
   try {
-    const lecturerExists = await Lecturer.findById(lecturer);
-    if (!lecturerExists) {
-      res.status(400);
-      throw new Error('Invalid lecturer ID: Lecturer not found');
+    const { title, description } = req.body;
+    const instructorId = req.user.id;
+
+    if (req.user.role !== 'Instructor') {
+      return res.status(403).json({ message: 'Only instructors can create courses' });
     }
+
+    const instructor = await Instructor.findById(instructorId);
+    if (!instructor) {
+      return res.status(404).json({ message: 'Instructor not found' });
+    }
+
+    const course = new Course({
+      title,
+      description,
+      instructor: instructorId,
+    });
+
+    await course.save();
+
+    await AuditLog.create({
+      action: 'course_created',
+      user: instructorId,
+      userType: req.user.role,
+      details: `Course ${title} created by ${instructor.name}`,
+    });
+
+    res.status(201).json({ message: 'Course created successfully', course });
   } catch (error) {
-    if (error.name === 'CastError') {
-      res.status(400);
-      throw new Error('Invalid lecturer ID format');
-    }
-    throw error;
+    res.status(500).json({ message: 'Error creating course', error: error.message });
   }
+};
 
-  const course = await Course.create({
-    courseCode: courseCode.toUpperCase(),
-    title,
-    description,
-    credits,
-    department,
-    faculty,
-    semester,
-    year,
-    lecturer,
-    status: status || 'Active',
-  });
-
-  res.status(201).json({
-    _id: course._id,
-    courseCode: course.courseCode,
-    title: course.title,
-    description: course.description,
-    credits: course.credits,
-    department: course.department,
-    faculty: course.faculty,
-    semester: course.semester,
-    year: course.year,
-    lecturer: course.lecturer,
-    status: course.status,
-  });
-});
-
-const getCourses = asyncHandler(async (req, res) => {
-  const { semester, department, faculty, year } = req.query;
-
-  // Build query object
-  const query = {};
-  if (semester) query.semester = semester;
-  if (department) query.department = department;
-  if (faculty) query.faculty = faculty;
-  if (year) query.year = Number(year);
-  query.status = 'Active'; // Only return active courses
-
-  const courses = await Course.find(query).populate('lecturer', 'name email');
-  res.json(courses);
-});
-
-const getCourseById = asyncHandler(async (req, res) => {
-  const course = await Course.findOne({
-    $or: [{ _id: req.params.id }, { courseCode: req.params.id }],
-    status: 'Active',
-  }).populate('lecturer', 'name email');
-
-  if (!course) {
-    res.status(404);
-    throw new Error('Course not found');
-  }
-
-  res.json(course);
-});
-
-const updateCourse = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id);
-
-  if (!course) {
-    res.status(404);
-    throw new Error('Course not found');
-  }
-
-  const {
-    courseCode,
-    title,
-    description,
-    credits,
-    department,
-    faculty,
-    semester,
-    year,
-    lecturer,
-    status,
-  } = req.body;
-
-  if (courseCode && courseCode.toUpperCase() !== course.courseCode) {
-    const courseExists = await Course.findOne({ courseCode: courseCode.toUpperCase() });
-    if (courseExists) {
-      res.status(400);
-      throw new Error('Course code already exists');
-    }
-  }
-
-  if (lecturer) {
-    try {
-      const lecturerExists = await Lecturer.findById(lecturer);
-      if (!lecturerExists) {
-        res.status(400);
-        throw new Error('Invalid lecturer ID: Lecturer not found');
-      }
-    } catch (error) {
-      if (error.name === 'CastError') {
-        res.status(400);
-        throw new Error('Invalid lecturer ID format');
-      }
-      throw error;
-    }
-  }
-
-  course.courseCode = courseCode ? courseCode.toUpperCase() : course.courseCode;
-  course.title = title || course.title;
-  course.description = description || course.description;
-  course.credits = credits || course.credits;
-  course.department = department || course.department;
-  course.faculty = faculty || course.faculty;
-  course.semester = semester || course.semester;
-  course.year = year || course.year;
-  course.lecturer = lecturer || course.lecturer;
-  course.status = status || course.status;
-
-  const updatedCourse = await course.save();
-
-  res.json({
-    _id: updatedCourse._id,
-    courseCode: updatedCourse.courseCode,
-    title: updatedCourse.title,
-    description: updatedCourse.description,
-    credits: updatedCourse.credits,
-    department: updatedCourse.department,
-    faculty: updatedCourse.faculty,
-    semester: updatedCourse.semester,
-    year: updatedCourse.year,
-    lecturer: updatedCourse.lecturer,
-    status: updatedCourse.status,
-  });
-});
-
-const deleteCourse = asyncHandler(async (req, res) => {
-  const course = await Course.findById(req.params.id);
-
-  if (!course) {
-    res.status(404);
-    throw new Error('Course not found');
-  }
-
-  course.status = 'Inactive';
-  await course.save();
-
-  res.json({ message: 'Course deactivated' });
-});
-
-const getCoursesByLecturer = asyncHandler(async (req, res) => {
+exports.getAllCourses = async (req, res) => {
   try {
-    const lecturer = await Lecturer.findById(req.params.lecturerId);
-    if (!lecturer) {
-      res.status(404);
-      throw new Error('Lecturer not found');
-    }
-
-    const courses = await Course.find({
-      lecturer: req.params.lecturerId,
-      status: 'Active',
-    }).populate('lecturer', 'name email');
-
-    res.json(courses);
+    const courses = await Course.find()
+      .populate('instructor', 'name email')
+      .populate('students', 'name email');
+    res.status(200).json(courses);
   } catch (error) {
-    if (error.name === 'CastError') {
-      res.status(400);
-      throw new Error('Invalid lecturer ID format');
-    }
-    throw error;
+    res.status(500).json({ message: 'Error fetching courses', error: error.message });
   }
-});
+};
 
-module.exports = {
-  createCourse,
-  getCourses,
-  getCourseById,
-  updateCourse,
-  deleteCourse,
-  getCoursesByLecturer,
+exports.getCourseById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id)
+      .populate('instructor', 'name email')
+      .populate('students', 'name email');
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.status(200).json(course);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching course', error: error.message });
+  }
+};
+
+exports.updateCourse = async (req, res) => {
+  try {
+    const { title, description, status } = req.body;
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to update this course' });
+    }
+
+    course.title = title || course.title;
+    course.description = description || course.description;
+    course.status = status || course.status;
+    course.updatedAt = Date.now();
+
+    await course.save();
+
+    await AuditLog.create({
+      action: 'course_updated',
+      user: req.user.id,
+      userType: req.user.role,
+      details: `Course ${course.title} updated by ${req.user.role}`,
+    });
+
+    res.status(200).json({ message: 'Course updated successfully', course });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating course', error: error.message });
+  }
+};
+
+exports.deleteCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
+    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this course' });
+    }
+
+    await course.deleteOne();
+
+    await AuditLog.create({
+      action: 'course_deleted',
+      user: req.user.id,
+      userType: req.user.role,
+      details: `Course ${course.title} deleted by ${req.user.role}`,
+    });
+
+    res.status(200).json({ message: 'Course deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting course', error: error.message });
+  }
 };

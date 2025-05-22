@@ -1,16 +1,19 @@
 openapi: 3.0.3
 info:
-  title: LMS Authentication and Course API
+  title: LMS API
   version: 1.0.0
-  description: APIs for authentication, course, and lecturer management in the Learning Management System (LMS)
+  description: APIs for authentication, user management, course management, assessments, and notifications in the Learning Management System (LMS)
 servers:
   - url: http://localhost:5000
-    description: Local development server
-    
+    description: Local development server with MongoDB Atlas integration
+
 paths:
   /api/auth/register:
     post:
       summary: Register a new user
+      description: Creates a new user (Student, Instructor, or SuperAdmin) by Super Admin only.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -18,153 +21,60 @@ paths:
             schema:
               type: object
               properties:
-                name: { type: string }
-                email: { type: string }
-                password: { type: string }
-      responses:
-        "201": { description: User created }
-        "400": { description: User already exists }
-  /api/auth/login:
-    post:
-      summary: Login a user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email: { type: string }
-                password: { type: string }
-      responses:
-        "200": { description: Login successful }
-        "401": { description: Invalid credentials }
-  /api/auth/forgot-password:
-    post:
-      summary: Request password reset
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email: { type: string }
-      responses:
-        "200": { description: Password reset email sent }
-        "404": { description: User not found }
-  /api/auth/reset-password:
-    post:
-      summary: Reset password
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                token: { type: string }
-                newPassword: { type: string }
-      responses:
-        "200": { description: Password reset successful }
-        "400": { description: Invalid or expired token }
-
-  /api/courses:
-    post:
-      summary: Create a new course
-      description: Creates a new course with required fields. Requires admin/lecturer access.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                courseCode:
+                name:
                   type: string
-                  example: CS101
-                title:
+                  example: John Doe
+                email:
                   type: string
-                  example: Introduction to Programming
-                description:
+                  example: john.doe@example.com
+                password:
                   type: string
-                  example: Basics of programming using Python
-                credits:
-                  type: number
-                  example: 3
-                department:
+                  example: secure123
+                role:
                   type: string
-                  example: Computer Science
-                faculty:
+                  enum: [student, instructor, superadmin]
+                  example: student
+                phone:
                   type: string
-                  example: Engineering
-                semester:
+                  example: 1234567890
+                address:
                   type: string
-                  example: Semester 1
-                year:
-                  type: number
-                  example: 1
-                lecturer:
-                  type: string
-                  example: 64f7c9b2a1b2c3d4e5f6a789
-                status:
-                  type: string
-                  example: Active
+                  example: 123 Main St
               required:
-                [
-                  courseCode,
-                  title,
-                  credits,
-                  department,
-                  faculty,
-                  semester,
-                  year,
-                  lecturer,
-                ]
+                - name
+                - email
+                - password
+                - role
       responses:
-        "201":
-          description: Course created successfully
+        '201':
+          description: User created
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  _id:
+                  message:
                     type: string
-                  courseCode:
-                    type: string
-                  title:
-                    type: string
-                  description:
-                    type: string
-                  credits:
-                    type: number
-                  department:
-                    type: string
-                  faculty:
-                    type: string
-                  semester:
-                    type: string
-                  year:
-                    type: number
-                  lecturer:
-                    type: string
-                  status:
-                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      role:
+                        type: string
                 example:
-                  _id: 1234567890abcdef
-                  courseCode: CS101
-                  title: Introduction to Programming
-                  description: Basics of programming using Python
-                  credits: 3
-                  department: Computer Science
-                  faculty: Engineering
-                  semester: Semester 1
-                  year: 1
-                  lecturer: 64f7c9b2a1b2c3d4e5f6a789
-                  status: Active
-        "400":
-          description: Bad request (e.g., missing fields, invalid lecturer ID)
+                  message: student created
+                  user:
+                    id: 64f7c9b2a1b2c3d4e5f6a789
+                    name: John Doe
+                    email: john.doe@example.com
+                    role: student
+        '400':
+          description: Bad request (e.g., email already exists)
           content:
             application/json:
               schema:
@@ -173,33 +83,887 @@ paths:
                   message:
                     type: string
                 example:
-                  message: Course code already exists
+                  message: Email already exists
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+
+  /api/auth/login:
+    post:
+      summary: Login a user
+      description: Authenticates a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: secure123
+                role:
+                  type: string
+                  enum: [student, instructor, superadmin]
+                  example: student
+              required:
+                - email
+                - password
+                - role
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  role:
+                    type: string
+                example:
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  role: student
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Invalid credentials
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: User not found
+
+  /api/auth/forgot-password:
+    post:
+      summary: Request password reset (token-based)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: john.doe@example.com
+              required:
+                - email
+      responses:
+        '200':
+          description: Password reset email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Password reset email sent
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: User not found
+
+  /api/auth/reset-password:
+    post:
+      summary: Reset password (token-based)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: abc123xyz
+                newPassword:
+                  type: string
+                  example: newsecure123
+              required:
+                - token
+                - newPassword
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Password reset successful
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Invalid or expired token
+
+  /api/auth/forgot-password-otp:
+    post:
+      summary: Request password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: john.doe@example.com
+              required:
+                - email
+      responses:
+        '200':
+          description: OTP sent to email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: OTP sent to email
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: User not found
+
+  /api/auth/reset-password-otp:
+    post:
+      summary: Reset password using OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: john.doe@example.com
+                otp:
+                  type: string
+                  example: 123456
+                newPassword:
+                  type: string
+                  example: newsecure123
+              required:
+                - email
+                - otp
+                - newPassword
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Password reset successful
+        '400':
+          description: Invalid or expired OTP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Invalid or expired OTP
+
+  /api/students:
+    post:
+      summary: Create a new student
+      description: Creates a new student by Super Admin only.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  example: secure123
+                phone:
+                  type: string
+                  example: 1234567890
+                address:
+                  type: string
+                  example: 123 Main St
+              required:
+                - name
+                - email
+                - password
+      responses:
+        '201':
+          description: Student created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  student:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                example:
+                  message: Student created
+                  student:
+                    id: 64f7c9b2a1b2c3d4e5f6a789
+                    name: John Doe
+                    email: john.doe@example.com
+        '400':
+          description: Bad request (e.g., email already exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Email already exists
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+    get:
+      summary: List all students
+      description: Retrieves all students (Super Admin only).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    email:
+                      type: string
+                    phone:
+                      type: string
+                example:
+                  - name: John Doe
+                    email: john.doe@example.com
+                    phone: 1234567890
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+
+  /api/students/{id}:
+    get:
+      summary: Get student details
+      description: Retrieves details of a specific student (self or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Student ID
+      responses:
+        '200':
+          description: Student details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  phone:
+                    type: string
+                  enrolledCourses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                example:
+                  name: John Doe
+                  email: john.doe@example.com
+                  phone: 1234567890
+                  enrolledCourses:
+                    - title: Introduction to Programming
+        '403':
+          description: Access denied (not self or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Can only access own profile
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Student not found
+    put:
+      summary: Update student profile
+      description: Updates the profile of a specific student (self or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        description: Student ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Updated
+                phone:
+                  type: string
+                  example: 0987654321
+                password:
+                  type: string
+                  example: newsecure123
+                preferences:
+                  type: object
+                  properties:
+                    notifications:
+                      type: boolean
+                      example: true
+                    language:
+                      type: string
+                      example: en
+      responses:
+        '200':
+          description: Student profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  student:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                example:
+                  message: Student updated
+                  student:
+                    name: John Updated
+                    email: john.doe@example.com
+        '403':
+          description: Access denied (not self or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Can only access own profile
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Student not found
+    delete:
+      summary: Delete a student
+      description: Deletes a specific student (Super Admin only).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Student ID
+      responses:
+        '200':
+          description: Student deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Student deleted
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+        '404':
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Student not found
+
+  /api/instructors:
+    post:
+      summary: Create a new instructor
+      description: Creates a new instructor by Super Admin only.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Jane Smith
+                email:
+                  type: string
+                  example: jane.smith@example.com
+                password:
+                  type: string
+                  example: secure123
+              required:
+                - name
+                - email
+                - password
+      responses:
+        '201':
+          description: Instructor created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  instructor:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                example:
+                  message: Instructor created
+                  instructor:
+                    id: 64f7c9b2a1b2c3d4e5f6a780
+                    name: Jane Smith
+                    email: jane.smith@example.com
+        '400':
+          description: Bad request (e.g., email already exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Email already exists
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+
+  /api/instructors/{id}:
+    get:
+      summary: Get instructor details
+      description: Retrieves details of a specific instructor (self or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Instructor ID
+      responses:
+        '200':
+          description: Instructor details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  courses:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                example:
+                  name: Jane Smith
+                  email: jane.smith@example.com
+                  courses:
+                    - title: Introduction to Programming
+        '403':
+          description: Access denied (not self or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Can only access own profile
+        '404':
+          description: Instructor not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Instructor not found
+    put:
+      summary: Update instructor profile
+      description: Updates the profile of a specific instructor (self or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Instructor ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Jane Updated
+                password:
+                  type: string
+                  example: newsecure123
+      responses:
+        '200':
+          description: Instructor profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  instructor:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                example:
+                  message: Instructor updated
+                  instructor:
+                    name: Jane Updated
+                    email: jane.smith@example.com
+        '403':
+          description: Access denied (not self or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Can only access own profile
+        '404':
+          description: Instructor not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Instructor not found
+    delete:
+      summary: Delete an instructor
+      description: Deletes a specific instructor (Super Admin only).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Instructor ID
+      responses:
+        '200':
+          description: Instructor deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Instructor deleted
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+        '404':
+          description: Instructor not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Instructor not found
+
+  /api/courses:
+    post:
+      summary: Create a new course
+      description: Creates a new course by Instructor or Super Admin.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Introduction to Programming
+                description:
+                  type: string
+                  example: Basics of programming using Python
+                instructorId:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a780
+              required:
+                - title
+                - instructorId
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  course:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                      description:
+                        type: string
+                      instructor:
+                        type: string
+                example:
+                  message: Course created
+                  course:
+                    _id: 64f7c9b2a1b2c3d4e5f6a781
+                    title: Introduction to Programming
+                    description: Basics of programming using Python
+                    instructor: 64f7c9b2a1b2c3d4e5f6a780
+        '400':
+          description: Bad request (e.g., invalid instructor ID)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Instructor not found
+        '403':
+          description: Access denied (non-Instructor/SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Instructor or Super Admin only
     get:
       summary: Get all courses
-      description: Retrieves all active courses with optional filters (semester, department, faculty, year).
-      parameters:
-        - in: query
-          name: semester
-          schema:
-            type: string
-          description: Filter by semester (e.g., Semester 1)
-        - in: query
-          name: department
-          schema:
-            type: string
-          description: Filter by department (e.g., Computer Science)
-        - in: query
-          name: faculty
-          schema:
-            type: string
-          description: Filter by faculty (e.g., Engineering)
-        - in: query
-          name: year
-          schema:
-            type: number
-          description: Filter by year (e.g., 1)
+      description: Retrieves all courses (visible to enrolled students).
+      security:
+        - bearerAuth: []
       responses:
-        "200":
+        '200':
           description: List of courses
           content:
             application/json:
@@ -210,46 +974,33 @@ paths:
                   properties:
                     _id:
                       type: string
-                    courseCode:
-                      type: string
                     title:
                       type: string
                     description:
                       type: string
-                    credits:
-                      type: number
-                    department:
+                    instructor:
                       type: string
-                    faculty:
-                      type: string
-                    semester:
-                      type: string
-                    year:
-                      type: number
-                    lecturer:
-                      type: object
-                      properties:
-                        _id:
-                          type: string
-                        name:
-                          type: string
-                        email:
-                          type: string
-                    status:
-                      type: string
+                example:
+                  - _id: 64f7c9b2a1b2c3d4e5f6a781
+                    title: Introduction to Programming
+                    description: Basics of programming using Python
+                    instructor: 64f7c9b2a1b2c3d4e5f6a780
+
   /api/courses/{id}:
     get:
       summary: Get a single course
-      description: Retrieves a course by ID or courseCode.
+      description: Retrieves details of a specific course.
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: Course ID or courseCode
+          description: Course ID
       responses:
-        "200":
+        '200':
           description: Course details
           content:
             application/json:
@@ -258,34 +1009,38 @@ paths:
                 properties:
                   _id:
                     type: string
-                  courseCode:
-                    type: string
                   title:
                     type: string
                   description:
                     type: string
-                  credits:
-                    type: number
-                  department:
+                  instructor:
                     type: string
-                  faculty:
+                  units:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                example:
+                  _id: 64f7c9b2a1b2c3d4e5f6a781
+                  title: Introduction to Programming
+                  description: Basics of programming using Python
+                  instructor: 64f7c9b2a1b2c3d4e5f6a780
+                  units:
+                    - title: Unit 1
+        '403':
+          description: Access denied (not enrolled or authorized)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-                  semester:
-                    type: string
-                  year:
-                    type: number
-                  lecturer:
-                    type: object
-                    properties:
-                      _id:
-                        type: string
-                      name:
-                        type: string
-                      email:
-                        type: string
-                  status:
-                    type: string
-        "404":
+                example:
+                  message: Access denied: Not enrolled in this course
+        '404':
           description: Course not found
           content:
             application/json:
@@ -298,7 +1053,9 @@ paths:
                   message: Course not found
     put:
       summary: Update a course
-      description: Updates an existing course. Requires admin/lecturer access.
+      description: Updates an existing course (course owner or Super Admin).
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -313,67 +1070,49 @@ paths:
             schema:
               type: object
               properties:
-                courseCode:
-                  type: string
-                  example: CS101
                 title:
                   type: string
-                  example: Introduction to Programming
+                  example: Updated Programming Course
                 description:
                   type: string
-                  example: Basics of programming using Python
-                credits:
-                  type: number
-                  example: 3
-                department:
-                  type: string
-                  example: Computer Science
-                faculty:
-                  type: string
-                  example: Engineering
-                semester:
-                  type: string
-                  example: Semester 1
-                year:
-                  type: number
-                  example: 1
-                lecturer:
-                  type: string
-                  example: 64f7c9b2a1b2c3d4e5f6a789
-                status:
-                  type: string
-                  example: Active
+                  example: Updated basics of programming
       responses:
-        "200":
+        '200':
           description: Course updated successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  _id:
+                  message:
                     type: string
-                  courseCode:
+                  course:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                      description:
+                        type: string
+                example:
+                  message: Course updated
+                  course:
+                    _id: 64f7c9b2a1b2c3d4e5f6a781
+                    title: Updated Programming Course
+                    description: Updated basics of programming
+        '403':
+          description: Access denied (not owner or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
                     type: string
-                  title:
-                    type: string
-                  description:
-                    type: string
-                  credits:
-                    type: number
-                  department:
-                    type: string
-                  faculty:
-                    type: string
-                  semester:
-                    type: string
-                  year:
-                    type: number
-                  lecturer:
-                    type: string
-                  status:
-                    type: string
-        "404":
+                example:
+                  message: Access denied: Not the course owner
+        '404':
           description: Course not found
           content:
             application/json:
@@ -386,7 +1125,9 @@ paths:
                   message: Course not found
     delete:
       summary: Delete a course
-      description: Deactivates a course by setting status to Inactive. Requires admin access.
+      description: Deletes an existing course (course owner or Super Admin).
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
@@ -395,8 +1136,8 @@ paths:
             type: string
           description: Course ID
       responses:
-        "200":
-          description: Course deactivated
+        '200':
+          description: Course deleted
           content:
             application/json:
               schema:
@@ -405,8 +1146,19 @@ paths:
                   message:
                     type: string
                 example:
-                  message: Course deactivated
-        "404":
+                  message: Course deleted
+        '403':
+          description: Access denied (not owner or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not the course owner
+        '404':
           description: Course not found
           content:
             application/json:
@@ -417,71 +1169,13 @@ paths:
                     type: string
                 example:
                   message: Course not found
-  /api/courses/lecturer/{lecturerId}:
-    get:
-      summary: Get courses by lecturer
-      description: Retrieves all active courses assigned to a specific lecturer.
-      parameters:
-        - in: path
-          name: lecturerId
-          required: true
-          schema:
-            type: string
-          description: Lecturer ID
-      responses:
-        "200":
-          description: List of courses
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _id:
-                      type: string
-                    courseCode:
-                      type: string
-                    title:
-                      type: string
-                    description:
-                      type: string
-                    credits:
-                      type: number
-                    department:
-                      type: string
-                    faculty:
-                      type: string
-                    semester:
-                      type: string
-                    year:
-                      type: number
-                    lecturer:
-                      type: object
-                      properties:
-                        _id:
-                          type: string
-                        name:
-                          type: string
-                        email:
-                          type: string
-                    status:
-                      type: string
-        "404":
-          description: Lecturer not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                example:
-                  message: Lecturer not found
-  /api/lecturers:
+
+  /api/assessments:
     post:
-      summary: Create a new lecturer
-      description: Creates a new lecturer for testing purposes.
+      summary: Create a new assessment
+      description: Creates a new assessment by Instructor or Super Admin.
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -489,39 +1183,59 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                title:
                   type: string
-                  example: Dr. Jane Smith
-                email:
+                  example: Programming Assignment
+                description:
                   type: string
-                  example: jane.smith@university.com
-                department:
+                  example: Complete a Python program
+                dueDate:
                   type: string
-                  example: Computer Science
-              required: [name, email, department]
+                  format: date-time
+                  example: 2025-06-01T12:00:00Z
+                maxScore:
+                  type: number
+                  example: 100
+                unitId:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a782
+                courseId:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a781
+              required:
+                - title
+                - dueDate
+                - maxScore
+                - unitId
+                - courseId
       responses:
-        "201":
-          description: Lecturer created successfully
+        '201':
+          description: Assessment created
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  _id:
+                  message:
                     type: string
-                  name:
-                    type: string
-                  email:
-                    type: string
-                  department:
-                    type: string
+                  assessment:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                      dueDate:
+                        type: string
+                        format: date-time
                 example:
-                  _id: 64f7c9b2a1b2c3d4e5f6a789
-                  name: Dr. Jane Smith
-                  email: jane.smith@university.com
-                  department: Computer Science
-        "400":
-          description: Bad request (e.g., missing fields, email exists)
+                  message: Assessment created
+                  assessment:
+                    _id: 64f7c9b2a1b2c3d4e5f6a783
+                    title: Programming Assignment
+                    dueDate: 2025-06-01T12:00:00Z
+        '400':
+          description: Bad request (e.g., invalid course/unit ID)
           content:
             application/json:
               schema:
@@ -530,4 +1244,436 @@ paths:
                   message:
                     type: string
                 example:
-                  message: Lecturer with this email already exists
+                  message: Course not found
+        '403':
+          description: Access denied (non-Instructor/SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Instructor or Super Admin only
+
+  /api/assessments/{id}:
+    get:
+      summary: Get an assessment
+      description: Retrieves details of a specific assessment.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Assessment ID
+      responses:
+        '200':
+          description: Assessment details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  title:
+                    type: string
+                  dueDate:
+                    type: string
+                    format: date-time
+                  course:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                example:
+                  _id: 64f7c9b2a1b2c3d4e5f6a783
+                  title: Programming Assignment
+                  dueDate: 2025-06-01T12:00:00Z
+                  course:
+                    title: Introduction to Programming
+        '403':
+          description: Access denied (not enrolled)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not enrolled in this course
+        '404':
+          description: Assessment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Assessment not found
+    put:
+      summary: Update an assessment
+      description: Updates an existing assessment (course owner or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Assessment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Updated Assignment
+                dueDate:
+                  type: string
+                  format: date-time
+                  example: 2025-06-02T12:00:00Z
+                maxScore:
+                  type: number
+                  example: 150
+      responses:
+        '200':
+          description: Assessment updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  assessment:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      title:
+                        type: string
+                example:
+                  message: Assessment updated
+                  assessment:
+                    _id: 64f7c9b2a1b2c3d4e5f6a783
+                    title: Updated Assignment
+        '403':
+          description: Access denied (not owner or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not the course owner
+        '404':
+          description: Assessment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Assessment not found
+    delete:
+      summary: Delete an assessment
+      description: Deletes an existing assessment (course owner or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Assessment ID
+      responses:
+        '200':
+          description: Assessment deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Assessment deleted
+        '403':
+          description: Access denied (not owner or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not the course owner
+        '404':
+          description: Assessment not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Assessment not found
+
+  /api/notifications:
+    post:
+      summary: Create a new notification
+      description: Creates a new notification by Instructor or Super Admin.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipientId:
+                  type: string
+                  example: 64f7c9b2a1b2c3d4e5f6a789
+                recipientType:
+                  type: string
+                  enum: [Student, Instructor, SuperAdmin]
+                  example: Student
+                message:
+                  type: string
+                  example: Your assignment is due tomorrow
+                type:
+                  type: string
+                  enum: [announcement, grade, deadline, message]
+                  example: deadline
+              required:
+                - recipientId
+                - recipientType
+                - message
+                - type
+      responses:
+        '201':
+          description: Notification created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  notification:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      message:
+                        type: string
+                example:
+                  message: Notification created
+                  notification:
+                    _id: 64f7c9b2a1b2c3d4e5f6a784
+                    message: Your assignment is due tomorrow
+        '400':
+          description: Bad request (e.g., invalid recipient)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Invalid recipient type
+        '403':
+          description: Access denied (non-Instructor/SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Instructor or Super Admin only
+
+  /api/notifications/{id}:
+    get:
+      summary: Get a notification
+      description: Retrieves details of a specific notification (recipient or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Notification ID
+      responses:
+        '200':
+          description: Notification details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  message:
+                    type: string
+                  read:
+                    type: boolean
+                example:
+                  _id: 64f7c9b2a1b2c3d4e5f6a784
+                  message: Your assignment is due tomorrow
+                  read: false
+        '403':
+          description: Access denied (not recipient or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not the recipient
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Notification not found
+    put:
+      summary: Mark notification as read
+      description: Marks a notification as read (recipient or Super Admin).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Notification ID
+      responses:
+        '200':
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  notification:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                      read:
+                        type: boolean
+                example:
+                  message: Notification marked as read
+                  notification:
+                    _id: 64f7c9b2a1b2c3d4e5f6a784
+                    read: true
+        '403':
+          description: Access denied (not recipient or SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Not the recipient
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Notification not found
+    delete:
+      summary: Delete a notification
+      description: Deletes a specific notification (Super Admin only).
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Notification ID
+      responses:
+        '200':
+          description: Notification deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Notification deleted
+        '403':
+          description: Access denied (non-SuperAdmin)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Access denied: Super Admin only
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Notification not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
