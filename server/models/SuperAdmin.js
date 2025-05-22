@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { mod } = require('three/tsl');
 const Schema = mongoose.Schema;
 
 const SuperAdminSchema = new Schema({
