@@ -11,6 +11,7 @@ const unitRoutes = require('./routes/unitRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const examRoutes = require('./routes/examRoutes');
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use('/api/units', unitRoutes);
 app.use('/api/auditLogs', auditLogRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/exams', examRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
