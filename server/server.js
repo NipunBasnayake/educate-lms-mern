@@ -9,6 +9,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const assessmentRoutes = require('./routes/assessmentRoutes');
 const unitRoutes = require('./routes/unitRoutes');
 const auditLogRoutes = require('./routes/auditLogRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/assessments', assessmentRoutes);
 app.use('/api/units', unitRoutes);
 app.use('/api/auditLogs', auditLogRoutes);
+app.use('/api/calendar', calendarRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
