@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const SubmissionSchema = new Schema({
   student: { type: Schema.Types.ObjectId, ref: 'Student', required: true },
   assessment: { type: Schema.Types.ObjectId, ref: 'Assessment', required: true },
-  content: { type: String }, // URL or text for submission
+  content: { type: String },
   score: { type: Number },
   feedback: { type: String },
   submittedAt: { type: Date, default: Date.now },

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const AuditLogSchema = new Schema({
-  action: { type: String, required: true }, // e.g., 'login', 'course_approved'
+  action: { type: String, required: true },
   user: { type: Schema.Types.ObjectId, refPath: 'userType', required: true },
   userType: { type: String, enum: ['Student', 'Instructor', 'SuperAdmin'], required: true },
   details: { type: String },
