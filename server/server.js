@@ -14,6 +14,9 @@ const certificateRoutes = require('./routes/certificateRoutes');
 const examRoutes = require('./routes/examRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const submissionRoutes = require('./routes/submissionRoutes');
+const superAdminRoutes = require('./routes/superAdminRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 
 dotenv.config();
 
@@ -36,6 +39,9 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/superadmin', superAdminRoutes);
+app.use('/api/students', studentRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
