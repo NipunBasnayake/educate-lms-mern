@@ -1,18 +1,15 @@
 const Instructor = require('../models/Instructor');
 const bcrypt = require('bcryptjs');
 
-// Create a new instructor (restricted to SuperAdmin)
 exports.createInstructor = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if instructor already exists
     const existingInstructor = await Instructor.findOne({ email });
     if (existingInstructor) {
       return res.status(400).json({ message: 'Instructor with this email already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const instructor = new Instructor({
@@ -28,7 +25,6 @@ exports.createInstructor = async (req, res) => {
   }
 };
 
-// Get all instructors (accessible to SuperAdmin and Instructor)
 exports.getAllInstructors = async (req, res) => {
   try {
     const instructors = await Instructor.find()
@@ -42,7 +38,6 @@ exports.getAllInstructors = async (req, res) => {
   }
 };
 
-// Get instructor by ID (accessible to SuperAdmin or the instructor themselves)
 exports.getInstructorById = async (req, res) => {
   try {
     const instructor = await Instructor.findById(req.params.id)
@@ -55,7 +50,6 @@ exports.getInstructorById = async (req, res) => {
       return res.status(404).json({ message: 'Instructor not found' });
     }
 
-    // Ensure Instructor can only access their own profile unless SuperAdmin
     if (req.user.role !== 'SuperAdmin' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -66,7 +60,6 @@ exports.getInstructorById = async (req, res) => {
   }
 };
 
-// Update instructor (accessible to SuperAdmin or the instructor themselves)
 exports.updateInstructor = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -85,7 +78,6 @@ exports.updateInstructor = async (req, res) => {
       return res.status(404).json({ message: 'Instructor not found' });
     }
 
-    // Ensure Instructor can only update their own profile unless SuperAdmin
     if (req.user.role !== 'SuperAdmin' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -107,7 +99,6 @@ exports.updateInstructor = async (req, res) => {
   }
 };
 
-// Delete instructor (restricted to SuperAdmin)
 exports.deleteInstructor = async (req, res) => {
   try {
     const instructor = await Instructor.findByIdAndDelete(req.params.id);
@@ -122,7 +113,6 @@ exports.deleteInstructor = async (req, res) => {
   }
 };
 
-// Add course to instructor (accessible to SuperAdmin or the instructor themselves)
 exports.addCourse = async (req, res) => {
   try {
     const instructor = await Instructor.findById(req.params.id);
@@ -130,7 +120,6 @@ exports.addCourse = async (req, res) => {
       return res.status(404).json({ message: 'Instructor not found' });
     }
 
-    // Ensure Instructor can only modify their own courses unless SuperAdmin
     if (req.user.role !== 'SuperAdmin' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -147,7 +136,6 @@ exports.addCourse = async (req, res) => {
   }
 };
 
-// Add notification to instructor (accessible to SuperAdmin or the instructor themselves)
 exports.addNotification = async (req, res) => {
   try {
     const instructor = await Instructor.findById(req.params.id);
@@ -155,7 +143,6 @@ exports.addNotification = async (req, res) => {
       return res.status(404).json({ message: 'Instructor not found' });
     }
 
-    // Ensure Instructor can only modify their own notifications unless SuperAdmin
     if (req.user.role !== 'SuperAdmin' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -172,7 +159,6 @@ exports.addNotification = async (req, res) => {
   }
 };
 
-// Add calendar event to instructor (accessible to SuperAdmin or the instructor themselves)
 exports.addCalendarEvent = async (req, res) => {
   try {
     const instructor = await Instructor.findById(req.params.id);
@@ -180,7 +166,6 @@ exports.addCalendarEvent = async (req, res) => {
       return res.status(404).json({ message: 'Instructor not found' });
     }
 
-    // Ensure Instructor can only modify their own calendar events unless SuperAdmin
     if (req.user.role !== 'SuperAdmin' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
