@@ -252,7 +252,6 @@ exports.filterCalendarEvents = async (req, res) => {
       return res.status(400).json({ message: 'Invalid event type' });
     }
 
-
     if (recipient) {
       if (!mongoose.isValidObjectId(recipient)) {
         return res.status(400).json({ message: 'Invalid recipient ID' });

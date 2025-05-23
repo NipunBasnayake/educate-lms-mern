@@ -3,29 +3,24 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 
-// Register a new Student
 exports.registerStudent = async (req, res) => {
   try {
     const { name, email, password, profile } = req.body;
 
-    // Validate required fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    // Check if email already exists
     const existingStudent = await Student.findOne({ email });
     if (existingStudent) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -55,29 +50,24 @@ exports.registerStudent = async (req, res) => {
   }
 };
 
-// Login a Student
 exports.loginStudent = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate required fields
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Find Student
     const student = await Student.findOne({ email });
     if (!student) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, student.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       { id: student._id, role: 'Student', courses: student.enrolledCourses },
       process.env.JWT_SECRET,
@@ -99,10 +89,8 @@ exports.loginStudent = async (req, res) => {
   }
 };
 
-// Get all Students (restricted to SuperAdmin or Instructor)
 exports.getAllStudents = async (req, res) => {
   try {
-    // Check if user is SuperAdmin or Instructor
     if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -117,14 +105,12 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
-// Get Student by ID (SuperAdmin/Instructor; Student for self)
 exports.getStudentById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid Student ID' });
     }
 
-    // Check access
     if (req.user.role === 'Student' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -153,12 +139,10 @@ exports.getStudentById = async (req, res) => {
   }
 };
 
-// Update Student (SuperAdmin/Instructor; Student for self)
 exports.updateStudent = async (req, res) => {
   try {
     const { name, email, password, profile, enrolledCourses, completedCourses, assessments, exams, certificates, notifications, calendarEvents, performance } = req.body;
 
-    // Validate email format if provided
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -166,7 +150,6 @@ exports.updateStudent = async (req, res) => {
       }
     }
 
-    // Check access
     if (req.user.role === 'Student' && req.user.id !== req.params.id) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -174,7 +157,6 @@ exports.updateStudent = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Students can only update name, email, password, profile
     if (req.user.role === 'Student' && (enrolledCourses || completedCourses || assessments || exams || certificates || notifications || calendarEvents || performance)) {
       return res.status(403).json({ message: 'Students can only update name, email, password, or profile' });
     }
@@ -188,7 +170,6 @@ exports.updateStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Check for email conflict
     if (email && email !== student.email) {
       const existingStudent = await Student.findOne({ email });
       if (existingStudent) {

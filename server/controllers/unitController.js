@@ -388,7 +388,6 @@ exports.addStudyMaterial = async (req, res) => {
 
 exports.addDiscussion = async (req, res) => {
   try {
-    // Check if user is SuperAdmin or Instructor
     if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
       return res.status(403).json({ message: 'Access denied' });
     }

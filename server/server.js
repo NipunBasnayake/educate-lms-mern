@@ -1,8 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const courseRoutes = require('./routes/courseRoutes');
+
+// Routes
+const courseRoutes = require('./routes/assessmentRoutes');
 const authRoutes = require('./routes/authRoutes');
 const instructorRoutes = require('./routes/instructorRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
@@ -19,14 +23,15 @@ const superAdminRoutes = require('./routes/superAdminRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 
 dotenv.config();
-
 const app = express();
-
 connectDB();
 
 app.use(cors());
+app.use(helmet()); // Security headers
+app.use(morgan('dev')); // Logging
 app.use(express.json());
 
+// Routes
 app.use('/api/courses', courseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/instructors', instructorRoutes);
@@ -43,9 +48,10 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/superadmin', superAdminRoutes);
 app.use('/api/students', studentRoutes);
 
+// Centralized error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({ message: 'Server error', error: err.message });
 });
 
 const PORT = process.env.PORT || 5000;
