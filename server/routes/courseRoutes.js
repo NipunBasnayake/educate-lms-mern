@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const authMiddleware = require('../middleware/auth');
 const {
   createCourse,
   getAllCourses,
   getCourseById,
   updateCourse,
-  deleteCourse,
+  deleteCourse
 } = require('../controllers/courseController');
 
-router.post('/', auth(['Instructor', 'SuperAdmin']), createCourse);
-router.get('/', auth(['Student', 'Instructor', 'SuperAdmin']), getAllCourses);
-router.get('/:id', auth(['Student', 'Instructor', 'SuperAdmin']), getCourseById);
-router.put('/:id', auth(['Instructor', 'SuperAdmin']), updateCourse);
-router.delete('/:id', auth(['Instructor', 'SuperAdmin']), deleteCourse);
+router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), createCourse);
+router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), getAllCourses);
+router.get('/:id', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), getCourseById);
+router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), updateCourse);
+router.delete('/:id', authMiddleware(['Instructor', 'SuperAdmin']), deleteCourse);
 
 module.exports = router;
