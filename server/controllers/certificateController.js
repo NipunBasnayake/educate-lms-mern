@@ -1,76 +1,96 @@
 const mongoose = require('mongoose');
+const sanitize = require('mongo-sanitize');
+const validator = require('validator');
 const Certificate = require('../models/Certificate');
 
+// Utility function for standardized error responses
+const sendError = (res, status, message, error = null) => {
+  res.status(status).json({ success: false, message, error: error?.message });
+};
+
+// Create a new certificate
 exports.createCertificate = async (req, res) => {
   try {
     const { student, course, issueDate, pdfUrl } = req.body;
 
     if (!student || !course) {
-      return res.status(400).json({ message: 'Student and course are required' });
+      return sendError(res, 400, 'Student and course are required');
     }
 
     if (!mongoose.isValidObjectId(student)) {
-      return res.status(400).json({ message: 'Invalid student ID' });
+      return sendError(res, 400, 'Invalid student ID');
     }
     if (!mongoose.isValidObjectId(course)) {
-      return res.status(400).json({ message: 'Invalid course ID' });
+      return sendError(res, 400, 'Invalid course ID');
+    }
+    if (issueDate && !validator.isISO8601(issueDate)) {
+      return sendError(res, 400, 'Invalid issueDate format. Use ISO 8601 (e.g., 2025-05-26T00:00:00Z)');
+    }
+    if (pdfUrl && !validator.isURL(pdfUrl)) {
+      return sendError(res, 400, 'Invalid pdfUrl format');
     }
 
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+    const sanitizedStudent = sanitize(student);
+    const sanitizedCourse = sanitize(course);
+    const sanitizedPdfUrl = pdfUrl ? sanitize(pdfUrl) : '';
 
     const certificate = new Certificate({
-      student,
-      course,
-      issueDate: issueDate || Date.now(),
-      pdfUrl: pdfUrl || '',
+      student: sanitizedStudent,
+      course: sanitizedCourse,
+      issueDate: issueDate ? new Date(issueDate) : new Date(),
+      pdfUrl: sanitizedPdfUrl,
       createdAt: new Date(),
       updatedAt: new Date()
     });
 
     await certificate.save();
+    const populatedCertificate = await Certificate.findById(certificate._id)
+      .populate('student', 'name email')
+      .populate('course', 'title description');
+
     res.status(201).json({
+      success: true,
       message: 'Certificate created successfully',
-      certificate: {
-        id: certificate._id,
-        student: certificate.student,
-        course: certificate.course,
-        issueDate: certificate.issueDate,
-        pdfUrl: certificate.pdfUrl,
-        createdAt: certificate.createdAt,
-        updatedAt: certificate.updatedAt
+      data: {
+        id: populatedCertificate._id,
+        student: populatedCertificate.student,
+        course: populatedCertificate.course,
+        issueDate: populatedCertificate.issueDate,
+        pdfUrl: populatedCertificate.pdfUrl,
+        createdAt: populatedCertificate.createdAt,
+        updatedAt: populatedCertificate.updatedAt
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating certificate', error: error.message });
+    sendError(res, 500, 'Error creating certificate', error);
   }
 };
 
+// Get all certificates
 exports.getAllCertificates = async (req, res) => {
   try {
     let query = {};
 
     if (req.user.role === 'Student') {
       query.student = req.user.id;
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
     }
 
     const certificates = await Certificate.find(query)
       .populate('student', 'name email')
-      .populate('course', 'title description');
+      .populate('course', 'title description')
+      .sort({ issueDate: -1 });
 
-    res.status(200).json(certificates);
+    res.status(200).json({ success: true, data: certificates });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching certificates', error: error.message });
+    sendError(res, 500, 'Error fetching certificates', error);
   }
 };
 
+// Get certificate by ID
 exports.getCertificateById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid certificate ID' });
+      return sendError(res, 400, 'Invalid certificate ID');
     }
 
     const certificate = await Certificate.findById(req.params.id)
@@ -78,95 +98,98 @@ exports.getCertificateById = async (req, res) => {
       .populate('course', 'title description');
 
     if (!certificate) {
-      return res.status(404).json({ message: 'Certificate not found' });
+      return sendError(res, 404, 'Certificate not found');
     }
 
     if (req.user.role === 'Student' && certificate.student.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor' && req.user.role !== 'Student') {
-      return res.status(403).json({ message: 'Access denied' });
+      return sendError(res, 403, 'Students can only access their own certificates');
     }
 
-    res.status(200).json(certificate);
+    res.status(200).json({ success: true, data: certificate });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching certificate', error: error.message });
+    sendError(res, 500, 'Error fetching certificate', error);
   }
 };
 
+// Update certificate
 exports.updateCertificate = async (req, res) => {
   try {
     const { student, course, issueDate, pdfUrl } = req.body;
 
     if (student && !mongoose.isValidObjectId(student)) {
-      return res.status(400).json({ message: 'Invalid student ID' });
+      return sendError(res, 400, 'Invalid student ID');
     }
     if (course && !mongoose.isValidObjectId(course)) {
-      return res.status(400).json({ message: 'Invalid course ID' });
+      return sendError(res, 400, 'Invalid course ID');
     }
-
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
+    if (issueDate && !validator.isISO8601(issueDate)) {
+      return sendError(res, 400, 'Invalid issueDate format. Use ISO 8601 (e.g., 2025-05-26T00:00:00Z)');
+    }
+    if (pdfUrl && !validator.isURL(pdfUrl)) {
+      return sendError(res, 400, 'Invalid pdfUrl format');
     }
 
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid certificate ID' });
+      return sendError(res, 400, 'Invalid certificate ID');
     }
 
     const certificate = await Certificate.findById(req.params.id);
     if (!certificate) {
-      return res.status(404).json({ message: 'Certificate not found' });
+      return sendError(res, 404, 'Certificate not found');
     }
 
-    const updateData = {
-      student: student || undefined,
-      course: course || undefined,
-      issueDate: issueDate || undefined,
-      pdfUrl: pdfUrl || undefined,
-      updatedAt: new Date()
-    };
+    // Only include fields that are provided in the request
+    const updateData = {};
+    if (student) updateData.student = sanitize(student);
+    if (course) updateData.course = sanitize(course);
+    if (issueDate) updateData.issueDate = new Date(issueDate);
+    if (pdfUrl) updateData.pdfUrl = sanitize(pdfUrl);
+    updateData.updatedAt = new Date();
 
-    Object.assign(certificate, updateData);
-    await certificate.save();
+    // Update only provided fields
+    await Certificate.updateOne({ _id: req.params.id }, { $set: updateData });
+
+    const updatedCertificate = await Certificate.findById(req.params.id)
+      .populate('student', 'name email')
+      .populate('course', 'title description');
 
     res.status(200).json({
+      success: true,
       message: 'Certificate updated successfully',
-      certificate: {
-        id: certificate._id,
-        student: certificate.student,
-        course: certificate.course,
-        issueDate: certificate.issueDate,
-        pdfUrl: certificate.pdfUrl,
-        createdAt: certificate.createdAt,
-        updatedAt: certificate.updatedAt
+      data: {
+        id: updatedCertificate._id,
+        student: updatedCertificate.student,
+        course: updatedCertificate.course,
+        issueDate: updatedCertificate.issueDate,
+        pdfUrl: updatedCertificate.pdfUrl,
+        createdAt: updatedCertificate.createdAt,
+        updatedAt: updatedCertificate.updatedAt
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating certificate', error: error.message });
+    sendError(res, 500, 'Error updating certificate', error);
   }
 };
 
+// Delete certificate
 exports.deleteCertificate = async (req, res) => {
   try {
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid certificate ID' });
+      return sendError(res, 400, 'Invalid certificate ID');
     }
 
     const certificate = await Certificate.findByIdAndDelete(req.params.id);
     if (!certificate) {
-      return res.status(404).json({ message: 'Certificate not found' });
+      return sendError(res, 404, 'Certificate not found');
     }
 
-    res.status(200).json({ message: 'Certificate deleted successfully' });
+    res.status(200).json({ success: true, message: 'Certificate deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting certificate', error: error.message });
+    sendError(res, 500, 'Error deleting certificate', error);
   }
 };
 
+// Filter certificates
 exports.filterCertificates = async (req, res) => {
   try {
     const { student, course } = req.query;
@@ -174,30 +197,29 @@ exports.filterCertificates = async (req, res) => {
 
     if (req.user.role === 'Student') {
       query.student = req.user.id;
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
     }
 
     if (student) {
       if (!mongoose.isValidObjectId(student)) {
-        return res.status(400).json({ message: 'Invalid student ID' });
+        return sendError(res, 400, 'Invalid student ID');
       }
-      query.student = student;
+      query.student = sanitize(student);
     }
 
     if (course) {
       if (!mongoose.isValidObjectId(course)) {
-        return res.status(400).json({ message: 'Invalid course ID' });
+        return sendError(res, 400, 'Invalid course ID');
       }
-      query.course = course;
+      query.course = sanitize(course);
     }
 
     const certificates = await Certificate.find(query)
       .populate('student', 'name email')
-      .populate('course', 'title description');
+      .populate('course', 'title description')
+      .sort({ issueDate: -1 });
 
-    res.status(200).json(certificates);
+    res.status(200).json({ success: true, data: certificates });
   } catch (error) {
-    res.status(500).json({ message: 'Error filtering certificates', error: error.message });
+    sendError(res, 500, 'Error filtering certificates', error);
   }
 };

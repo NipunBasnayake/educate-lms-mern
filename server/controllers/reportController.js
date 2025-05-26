@@ -1,188 +1,203 @@
 const mongoose = require('mongoose');
+const sanitize = require('mongo-sanitize'); // For sanitizing inputs
 const Report = require('../models/Report');
 
+// Utility function for standardized error responses
+const sendError = (res, status, message, error = null) => {
+  res.status(status).json({ success: false, message, error: error?.message });
+};
+
+// Create a new report
 exports.createReport = async (req, res) => {
   try {
     const { type, data, format } = req.body;
 
+    // Input validation
     if (!type) {
-      return res.status(400).json({ message: 'Type is required' });
+      return sendError(res, 400, 'Type is required');
     }
 
-    if (!['course_performance', 'student_engagement', 'gradebook'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid report type' });
+    const validTypes = ['course_performance', 'student_engagement', 'gradebook'];
+    if (!validTypes.includes(type)) {
+      return sendError(res, 400, 'Invalid report type. Must be one of: ' + validTypes.join(', '));
     }
 
     if (format && !['pdf', 'csv'].includes(format)) {
-      return res.status(400).json({ message: 'Invalid format' });
+      return sendError(res, 400, 'Invalid format. Must be one of: pdf, csv');
     }
 
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
+    if (data && (typeof data !== 'object' || Array.isArray(data))) {
+      return sendError(res, 400, 'Data must be a valid object');
     }
+
+    // Sanitize inputs
+    const sanitizedType = sanitize(type);
+    const sanitizedData = data ? sanitize(data) : {};
+    const sanitizedFormat = format ? sanitize(format) : 'pdf';
 
     const report = new Report({
-      type,
+      type: sanitizedType,
       generatedBy: req.user.id,
-      data: data || {},
-      format: format || 'pdf',
+      data: sanitizedData,
+      format: sanitizedFormat,
       createdAt: new Date()
     });
 
     await report.save();
+    const populatedReport = await Report.findById(report._id)
+      .populate('generatedBy', 'name email');
+
     res.status(201).json({
+      success: true,
       message: 'Report created successfully',
-      report: {
-        id: report._id,
-        type,
-        generatedBy: report.generatedBy,
-        data: report.data,
-        format: report.format,
-        createdAt: report.createdAt
+      data: {
+        id: populatedReport._id,
+        type: populatedReport.type,
+        generatedBy: populatedReport.generatedBy,
+        data: populatedReport.data,
+        format: populatedReport.format,
+        createdAt: populatedReport.createdAt
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating report', error: error.message });
+    sendError(res, 500, 'Error creating report', error);
   }
 };
 
+// Get all reports
 exports.getAllReports = async (req, res) => {
   try {
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
     const reports = await Report.find()
-      .populate('generatedBy', 'name email');
+      .populate('generatedBy', 'name email')
+      .sort({ createdAt: -1 }); // Sort by newest first
 
-    res.status(200).json(reports);
+    res.status(200).json({ success: true, data: reports });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching reports', error: error.message });
+    sendError(res, 500, 'Error fetching reports', error);
   }
 };
 
+// Get report by ID
 exports.getReportById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid report ID' });
-    }
-
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
+      return sendError(res, 400, 'Invalid report ID');
     }
 
     const report = await Report.findById(req.params.id)
       .populate('generatedBy', 'name email');
 
     if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
+      return sendError(res, 404, 'Report not found');
     }
 
-    res.status(200).json(report);
+    res.status(200).json({ success: true, data: report });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching report', error: error.message });
+    sendError(res, 500, 'Error fetching report', error);
   }
 };
 
+// Update report
 exports.updateReport = async (req, res) => {
   try {
     const { type, data, format } = req.body;
 
     if (type && !['course_performance', 'student_engagement', 'gradebook'].includes(type)) {
-      return res.status(400).json({ message: 'Invalid report type' });
+      return sendError(res, 400, 'Invalid report type. Must be one of: course_performance, student_engagement, gradebook');
     }
 
     if (format && !['pdf', 'csv'].includes(format)) {
-      return res.status(400).json({ message: 'Invalid format' });
+      return sendError(res, 400, 'Invalid format. Must be one of: pdf, csv');
     }
 
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
+    if (data && (typeof data !== 'object' || Array.isArray(data))) {
+      return sendError(res, 400, 'Data must be a valid object');
     }
 
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid report ID' });
+      return sendError(res, 400, 'Invalid report ID');
     }
 
     const report = await Report.findById(req.params.id);
     if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
+      return sendError(res, 404, 'Report not found');
     }
 
     const updateData = {
-      type: type || undefined,
-      data: data || undefined,
-      format: format || undefined
+      type: type ? sanitize(type) : undefined,
+      data: data ? sanitize(data) : undefined,
+      format: format ? sanitize(format) : undefined,
+      updatedAt: new Date()
     };
 
     Object.assign(report, updateData);
     await report.save();
 
+    const updatedReport = await Report.findById(report._id)
+      .populate('generatedBy', 'name email');
+
     res.status(200).json({
+      success: true,
       message: 'Report updated successfully',
-      report: {
-        id: report._id,
-        type: report.type,
-        generatedBy: report.generatedBy,
-        data: report.data,
-        format: report.format,
-        createdAt: report.createdAt
+      data: {
+        id: updatedReport._id,
+        type: updatedReport.type,
+        generatedBy: updatedReport.generatedBy,
+        data: updatedReport.data,
+        format: updatedReport.format,
+        createdAt: updatedReport.createdAt,
+        updatedAt: updatedReport.updatedAt
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating report', error: error.message });
+    sendError(res, 500, 'Error updating report', error);
   }
 };
 
+// Delete report
 exports.deleteReport = async (req, res) => {
   try {
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
     if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid report ID' });
+      return sendError(res, 400, 'Invalid report ID');
     }
 
     const report = await Report.findByIdAndDelete(req.params.id);
     if (!report) {
-      return res.status(404).json({ message: 'Report not found' });
+      return sendError(res, 404, 'Report not found');
     }
 
-    res.status(200).json({ message: 'Report deleted successfully' });
+    res.status(200).json({ success: true, message: 'Report deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting report', error: error.message });
+    sendError(res, 500, 'Error deleting report', error);
   }
 };
 
+// Filter reports
 exports.filterReports = async (req, res) => {
   try {
     const { type, generatedBy } = req.query;
     const query = {};
 
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
     if (type) {
       if (!['course_performance', 'student_engagement', 'gradebook'].includes(type)) {
-        return res.status(400).json({ message: 'Invalid report type' });
+        return sendError(res, 400, 'Invalid report type. Must be one of: course_performance, student_engagement, gradebook');
       }
-      query.type = type;
+      query.type = sanitize(type);
     }
 
     if (generatedBy) {
       if (!mongoose.isValidObjectId(generatedBy)) {
-        return res.status(400).json({ message: 'Invalid generatedBy ID' });
+        return sendError(res, 400, 'Invalid generatedBy ID');
       }
-      query.generatedBy = generatedBy;
+      query.generatedBy = sanitize(generatedBy);
     }
 
     const reports = await Report.find(query)
-      .populate('generatedBy', 'name email');
+      .populate('generatedBy', 'name email')
+      .sort({ createdAt: -1 });
 
-    res.status(200).json(reports);
+    res.status(200).json({ success: true, data: reports });
   } catch (error) {
-    res.status(500).json({ message: 'Error filtering reports', error: error.message });
+    sendError(res, 500, 'Error filtering reports', error);
   }
 };

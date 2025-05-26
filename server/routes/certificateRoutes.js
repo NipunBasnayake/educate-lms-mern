@@ -1,29 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {
-    createCertificate,
-    getAllCertificates,
-    getCertificateById,
-    updateCertificate,
-    deleteCertificate,
-    filterCertificates
-} = require('../controllers/certificateController');
+const certificateController = require('../controllers/certificateController');
+const authMiddleware = require('../middleware/auth');
 
-const restrictTo = (roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access denied' });
-        }
-        next();
-    };
-};
-
-router.post('/', auth, restrictTo(['SuperAdmin', 'Instructor']), createCertificate);
-router.get('/', auth, getAllCertificates);
-router.get('/:id', auth, getCertificateById);
-router.put('/:id', auth, restrictTo(['SuperAdmin', 'Instructor']), updateCertificate);
-router.delete('/:id', auth, restrictTo(['SuperAdmin', 'Instructor']), deleteCertificate);
-router.get('/filter', auth, filterCertificates);
+// Note: Consider adding rate-limiting middleware (e.g., express-rate-limit)
+router.post('/', authMiddleware(['SuperAdmin', 'Instructor']), certificateController.createCertificate);
+router.get('/', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), certificateController.getAllCertificates);
+router.get('/:id', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), certificateController.getCertificateById);
+router.put('/:id', authMiddleware(['SuperAdmin', 'Instructor']), certificateController.updateCertificate);
+router.delete('/:id', authMiddleware(['SuperAdmin', 'Instructor']), certificateController.deleteCertificate);
+router.get('/filter', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), certificateController.filterCertificates);
 
 module.exports = router;
