@@ -1,250 +1,181 @@
-const mongoose = require('mongoose');
 const Exam = require('../models/Exam');
+const Unit = require('../models/Unit');
+const Course = require('../models/Course');
+const mongoose = require('mongoose');
 
+// Create a new exam
 exports.createExam = async (req, res) => {
   try {
     const { title, unit, course, description, date, maxScore } = req.body;
 
+    // Validate required fields
     if (!title || !unit || !course || !maxScore) {
-      return res.status(400).json({ message: 'Title, unit, course, and maxScore are required' });
+      return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
     }
 
-    if (!mongoose.isValidObjectId(unit)) {
-      return res.status(400).json({ message: 'Invalid unit ID' });
-    }
-    if (!mongoose.isValidObjectId(course)) {
-      return res.status(400).json({ message: 'Invalid course ID' });
-    }
-
-    if (typeof maxScore !== 'number' || maxScore <= 0) {
-      return res.status(400).json({ message: 'maxScore must be a positive number' });
+    // Validate unit and course exist
+    const unitExists = await Unit.findById(unit);
+    if (!unitExists) {
+      return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
-    if (date && isNaN(new Date(date).getTime())) {
-      return res.status(400).json({ message: 'Invalid date format' });
+    const courseExists = await Course.findById(course);
+    if (!courseExists) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
+    // Validate that unit belongs to the course
+    if (unitExists.course.toString() !== course) {
+      return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
     }
 
     const exam = new Exam({
       title,
       unit,
       course,
-      description: description || '',
-      date: date || undefined,
+      description,
+      date,
       maxScore,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdBy: req.user.id,
+      updatedBy: req.user.id
     });
 
     await exam.save();
-    res.status(201).json({
-      message: 'Exam created successfully',
-      exam: {
-        id: exam._id,
-        title,
-        unit,
-        course,
-        description: exam.description,
-        date: exam.date,
-        maxScore,
-        createdAt: exam.createdAt,
-        updatedAt: exam.updatedAt
-      }
-    });
+
+    // Update unit's exams array
+    await Unit.findByIdAndUpdate(unit, { $push: { exams: exam._id } });
+
+    res.status(201).json({ success: true, data: exam });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating exam', error: error.message });
+    res.status(500).json({ success: false, message: 'Error creating exam', error: error.message });
   }
 };
 
-exports.getAllExams = async (req, res) => {
+// Get all exams (with optional unit or course filter)
+exports.getExams = async (req, res) => {
   try {
+    const { unitId, courseId } = req.query;
     let query = {};
 
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.length) {
-        return res.status(200).json([]);
+    if (unitId) {
+      if (!mongoose.Types.ObjectId.isValid(unitId)) {
+        return res.status(400).json({ success: false, message: 'Invalid unit ID' });
       }
-      query.course = { $in: req.user.courses };
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
+      query.unit = unitId;
+    }
+
+    if (courseId) {
+      if (!mongoose.Types.ObjectId.isValid(courseId)) {
+        return res.status(400).json({ success: false, message: 'Invalid course ID' });
+      }
+      query.course = courseId;
     }
 
     const exams = await Exam.find(query)
-      .populate('unit', 'title order')
-      .populate('course', 'title description');
+      .populate('unit', 'title')
+      .populate('course', 'title')
+      .sort({ createdAt: -1 });
 
-    res.status(200).json(exams);
+    res.status(200).json({ success: true, data: exams });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching exams', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching exams', error: error.message });
   }
 };
 
+// Get exam by ID
 exports.getExamById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid exam ID' });
-    }
-
     const exam = await Exam.findById(req.params.id)
-      .populate('unit', 'title order')
-      .populate('course', 'title description');
+      .populate('unit', 'title')
+      .populate('course', 'title');
 
     if (!exam) {
-      return res.status(404).json({ message: 'Exam not found' });
+      return res.status(404).json({ success: false, message: 'Exam not found' });
     }
 
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.includes(exam.course.toString())) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    res.status(200).json(exam);
+    res.status(200).json({ success: true, data: exam });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching exam', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching exam', error: error.message });
   }
 };
 
+// Update exam
 exports.updateExam = async (req, res) => {
   try {
     const { title, unit, course, description, date, maxScore } = req.body;
 
-    if (unit && !mongoose.isValidObjectId(unit)) {
-      return res.status(400).json({ message: 'Invalid unit ID' });
-    }
-    if (course && !mongoose.isValidObjectId(course)) {
-      return res.status(400).json({ message: 'Invalid course ID' });
-    }
-
-    if (maxScore !== undefined && (typeof maxScore !== 'number' || maxScore <= 0)) {
-      return res.status(400).json({ message: 'maxScore must be a positive number' });
-    }
-
-    if (date && isNaN(new Date(date).getTime())) {
-      return res.status(400).json({ message: 'Invalid date format' });
-    }
-
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid exam ID' });
-    }
-
-    const exam = await Exam.findById(req.params.id);
-    if (!exam) {
-      return res.status(404).json({ message: 'Exam not found' });
-    }
-
-    const updateData = {
-      title: title || undefined,
-      unit: unit || undefined,
-      course: course || undefined,
-      description: description || undefined,
-      date: date || undefined,
-      maxScore: maxScore || undefined,
-      updatedAt: new Date()
-    };
-
-    Object.assign(exam, updateData);
-    await exam.save();
-
-    res.status(200).json({
-      message: 'Exam updated successfully',
-      exam: {
-        id: exam._id,
-        title: exam.title,
-        unit: exam.unit,
-        course: exam.course,
-        description: exam.description,
-        date: exam.date,
-        maxScore: exam.maxScore,
-        createdAt: exam.createdAt,
-        updatedAt: exam.updatedAt
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating exam', error: error.message });
-  }
-};
-
-exports.deleteExam = async (req, res) => {
-  try {
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid exam ID' });
-    }
-
-    const exam = await Exam.findByIdAndDelete(req.params.id);
-    if (!exam) {
-      return res.status(404).json({ message: 'Exam not found' });
-    }
-
-    res.status(200).json({ message: 'Exam deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting exam', error: error.message });
-  }
-};
-
-exports.filterExams = async (req, res) => {
-  try {
-    const { unit, course, startDate, endDate } = req.query;
-    const query = {};
-
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.length) {
-        return res.status(200).json([]);
-      }
-      query.course = { $in: req.user.courses };
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
+    // Validate unit and course if provided
     if (unit) {
-      if (!mongoose.isValidObjectId(unit)) {
-        return res.status(400).json({ message: 'Invalid unit ID' });
+      const unitExists = await Unit.findById(unit);
+      if (!unitExists) {
+        return res.status(404).json({ success: false, message: 'Unit not found' });
       }
-      query.unit = unit;
     }
 
     if (course) {
-      if (!mongoose.isValidObjectId(course)) {
-        return res.status(400).json({ message: 'Invalid course ID' });
-      }
-      query.course = course;
-    }
-
-    if (startDate || endDate) {
-      query.date = {};
-      if (startDate) {
-        if (isNaN(new Date(startDate).getTime())) {
-          return res.status(400).json({ message: 'Invalid startDate format' });
-        }
-        query.date.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        if (isNaN(new Date(endDate).getTime())) {
-          return res.status(400).json({ message: 'Invalid endDate format' });
-        }
-        query.date.$lte = new Date(endDate);
+      const courseExists = await Course.findById(course);
+      if (!courseExists) {
+        return res.status(404).json({ success: false, message: 'Course not found' });
       }
     }
 
-    const exams = await Exam.find(query)
-      .populate('unit', 'title order')
-      .populate('course', 'title description');
+    // If both unit and course are provided, validate they match
+    if (unit && course) {
+      const unitDoc = await Unit.findById(unit);
+      if (unitDoc.course.toString() !== course) {
+        return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
+      }
+    }
 
-    res.status(200).json(exams);
+    const updateData = {
+      ...(title && { title }),
+      ...(unit && { unit }),
+      ...(course && { course }),
+      ...(description && { description }),
+      ...(date && { date }),
+      ...(maxScore && { maxScore }),
+      updatedBy: req.user.id,
+      updatedAt: Date.now()
+    };
+
+    const exam = await Exam.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!exam) {
+      return res.status(404).json({ success: false, message: 'Exam not found' });
+    }
+
+    // If unit is updated, update the exams array in both old and new units
+    if (unit && unit !== exam.unit.toString()) {
+      await Unit.findByIdAndUpdate(exam.unit, { $pull: { exams: exam._id } });
+      await Unit.findByIdAndUpdate(unit, { $push: { exams: exam._id } });
+    }
+
+    res.status(200).json({ success: true, data: exam });
   } catch (error) {
-    res.status(500).json({ message: 'Error filtering exams', error: error.message });
+    res.status(500).json({ success: false, message: 'Error updating exam', error: error.message });
+  }
+};
+
+// Delete exam
+exports.deleteExam = async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.id);
+
+    if (!exam) {
+      return res.status(404).json({ success: false, message: 'Exam not found' });
+    }
+
+    // Remove exam reference from unit
+    await Unit.findByIdAndUpdate(exam.unit, { $pull: { exams: exam._id } });
+
+    await exam.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Exam deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting exam', error: error.message });
   }
 };

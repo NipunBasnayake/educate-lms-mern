@@ -1,30 +1,32 @@
 const Assessment = require('../models/Assessment');
 const Unit = require('../models/Unit');
 const Course = require('../models/Course');
-const AuditLog = require('../models/AuditLog');
+const mongoose = require('mongoose');
 
+// Create a new assessment
 exports.createAssessment = async (req, res) => {
   try {
     const { title, unit, course, description, dueDate, maxScore } = req.body;
 
-    if (req.user.role !== 'Instructor' && req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Only Instructor or SuperAdmin can create assessments' });
+    // Validate required fields
+    if (!title || !unit || !course || !maxScore) {
+      return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
     }
 
-    const courseDoc = await Course.findById(course);
-    if (!courseDoc) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
-    if (req.user.role === 'Instructor' && courseDoc.instructor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to create assessments for this course' });
+    // Validate unit and course exist
+    const unitExists = await Unit.findById(unit);
+    if (!unitExists) {
+      return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
-    const unitDoc = await Unit.findById(unit);
-    if (!unitDoc) {
-      return res.status(404).json({ message: 'Unit not found' });
+    const courseExists = await Course.findById(course);
+    if (!courseExists) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
-    if (unitDoc.course.toString() !== course) {
-      return res.status(400).json({ message: 'Unit does not belong to the specified course' });
+
+    // Validate that unit belongs to the course
+    if (unitExists.course.toString() !== course) {
+      return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
     }
 
     const assessment = new Assessment({
@@ -33,45 +35,40 @@ exports.createAssessment = async (req, res) => {
       course,
       description,
       dueDate,
-      maxScore
+      maxScore,
+      createdBy: req.user.id,
+      updatedBy: req.user.id
     });
 
     await assessment.save();
 
-    unitDoc.assessments = unitDoc.assessments || [];
-    unitDoc.assessments.push(assessment._id);
-    await unitDoc.save();
+    // Update unit's assessments array
+    await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
 
-    await AuditLog.create({
-      action: 'assessment_created',
-      user: req.user.id,
-      userType: req.user.role,
-      details: `Assessment ${title} created for course ${courseDoc.title} by ${req.user.role}`
-    });
-
-    res.status(201).json({ message: 'Assessment created successfully', assessment });
+    res.status(201).json({ success: true, data: assessment });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating assessment', error: error.message });
+    res.status(500).json({ success: false, message: 'Error creating assessment', error: error.message });
   }
 };
 
+// Get all assessments (with optional unit or course filter)
 exports.getAssessments = async (req, res) => {
   try {
-    const { courseId, unitId } = req.query;
-
+    const { unitId, courseId } = req.query;
     let query = {};
-    if (courseId) {
-      query.course = courseId;
-    }
+
     if (unitId) {
+      if (!mongoose.Types.ObjectId.isValid(unitId)) {
+        return res.status(400).json({ success: false, message: 'Invalid unit ID' });
+      }
       query.unit = unitId;
     }
 
-    if (req.user.role === 'Student' && courseId) {
-      const course = await Course.findById(courseId);
-      if (!course || !course.students.includes(req.user.id)) {
-        return res.status(403).json({ message: 'Not authorized to view assessments for this course' });
+    if (courseId) {
+      if (!mongoose.Types.ObjectId.isValid(courseId)) {
+        return res.status(400).json({ success: false, message: 'Invalid course ID' });
       }
+      query.course = courseId;
     }
 
     const assessments = await Assessment.find(query)
@@ -79,12 +76,13 @@ exports.getAssessments = async (req, res) => {
       .populate('course', 'title')
       .sort({ createdAt: -1 });
 
-    res.status(200).json(assessments);
+    res.status(200).json({ success: true, data: assessments });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching assessments', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching assessments', error: error.message });
   }
 };
 
+// Get assessment by ID
 exports.getAssessmentById = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id)
@@ -92,87 +90,92 @@ exports.getAssessmentById = async (req, res) => {
       .populate('course', 'title');
 
     if (!assessment) {
-      return res.status(404).json({ message: 'Assessment not found' });
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    if (req.user.role === 'Student') {
-      const course = await Course.findById(assessment.course);
-      if (!course || !course.students.includes(req.user.id)) {
-        return res.status(403).json({ message: 'Not authorized to view this assessment' });
+    res.status(200).json({ success: true, data: assessment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching assessment', error: error.message });
+  }
+};
+
+// Update assessment
+exports.updateAssessment = async (req, res) => {
+  try {
+    const { title, unit, course, description, dueDate, maxScore } = req.body;
+
+    // Validate unit and course if provided
+    if (unit) {
+      const unitExists = await Unit.findById(unit);
+      if (!unitExists) {
+        return res.status(404).json({ success: false, message: 'Unit not found' });
       }
     }
 
-    res.status(200).json(assessment);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching assessment', error: error.message });
-  }
-};
+    if (course) {
+      const courseExists = await Course.findById(course);
+      if (!courseExists) {
+        return res.status(404).json({ success: false, message: 'Course not found' });
+      }
+    }
 
-exports.updateAssessment = async (req, res) => {
-  try {
-    const { title, description, dueDate, maxScore } = req.body;
-    const assessment = await Assessment.findById(req.params.id);
+    // If both unit and course are provided, validate they match
+    if (unit && course) {
+      const unitDoc = await Unit.findById(unit);
+      if (unitDoc.course.toString() !== course) {
+        return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
+      }
+    }
+
+    const updateData = {
+      ...(title && { title }),
+      ...(unit && { unit }),
+      ...(course && { course }),
+      ...(description && { description }),
+      ...(dueDate && { dueDate }),
+      ...(maxScore && { maxScore }),
+      updatedBy: req.user.id,
+      updatedAt: Date.now()
+    };
+
+    const assessment = await Assessment.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
 
     if (!assessment) {
-      return res.status(404).json({ message: 'Assessment not found' });
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    const course = await Course.findById(assessment.course);
-    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to update this assessment' });
+    // If unit is updated, update the assessments array in both old and new units
+    if (unit && unit !== assessment.unit.toString()) {
+      await Unit.findByIdAndUpdate(assessment.unit, { $pull: { assessments: assessment._id } });
+      await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
     }
 
-    assessment.title = title || assessment.title;
-    assessment.description = description || assessment.description;
-    assessment.dueDate = dueDate || assessment.dueDate;
-    assessment.maxScore = maxScore || assessment.maxScore;
-    assessment.updatedAt = Date.now();
-
-    await assessment.save();
-
-    await AuditLog.create({
-      action: 'assessment_updated',
-      user: req.user.id,
-      userType: req.user.role,
-      details: `Assessment ${assessment.title} updated by ${req.user.role}`
-    });
-
-    res.status(200).json({ message: 'Assessment updated successfully', assessment });
+    res.status(200).json({ success: true, data: assessment });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating assessment', error: error.message });
+    res.status(500).json({ success: false, message: 'Error updating assessment', error: error.message });
   }
 };
 
+// Delete assessment
 exports.deleteAssessment = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id);
 
     if (!assessment) {
-      return res.status(404).json({ message: 'Assessment not found' });
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    const course = await Course.findById(assessment.course);
-    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to delete this assessment' });
-    }
-
-    const unit = await Unit.findById(assessment.unit);
-    if (unit && unit.assessments) {
-      unit.assessments.pull(assessment._id);
-      await unit.save();
-    }
+    // Remove assessment reference from unit
+    await Unit.findByIdAndUpdate(assessment.unit, { $pull: { assessments: assessment._id } });
 
     await assessment.deleteOne();
 
-    await AuditLog.create({
-      action: 'assessment_deleted',
-      user: req.user.id,
-      userType: req.user.role,
-      details: `Assessment ${assessment.title} deleted by ${req.user.role}`
-    });
-
-    res.status(200).json({ message: 'Assessment deleted successfully' });
+    res.status(200).json({ success: true, message: 'Assessment deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting assessment', error: error.message });
+    res.status(500).json({ success: false, message: 'Error deleting assessment', error: error.message });
   }
 };
