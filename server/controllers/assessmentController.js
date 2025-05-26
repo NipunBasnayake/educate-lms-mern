@@ -3,17 +3,14 @@ const Unit = require('../models/Unit');
 const Course = require('../models/Course');
 const mongoose = require('mongoose');
 
-// Create a new assessment
 exports.createAssessment = async (req, res) => {
   try {
     const { title, unit, course, description, dueDate, maxScore } = req.body;
 
-    // Validate required fields
     if (!title || !unit || !course || !maxScore) {
       return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
     }
 
-    // Validate unit and course exist
     const unitExists = await Unit.findById(unit);
     if (!unitExists) {
       return res.status(404).json({ success: false, message: 'Unit not found' });
@@ -24,7 +21,6 @@ exports.createAssessment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    // Validate that unit belongs to the course
     if (unitExists.course.toString() !== course) {
       return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
     }
@@ -42,7 +38,6 @@ exports.createAssessment = async (req, res) => {
 
     await assessment.save();
 
-    // Update unit's assessments array
     await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
 
     res.status(201).json({ success: true, data: assessment });
@@ -51,7 +46,6 @@ exports.createAssessment = async (req, res) => {
   }
 };
 
-// Get all assessments (with optional unit or course filter)
 exports.getAssessments = async (req, res) => {
   try {
     const { unitId, courseId } = req.query;
@@ -82,7 +76,6 @@ exports.getAssessments = async (req, res) => {
   }
 };
 
-// Get assessment by ID
 exports.getAssessmentById = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id)
@@ -99,12 +92,10 @@ exports.getAssessmentById = async (req, res) => {
   }
 };
 
-// Update assessment
 exports.updateAssessment = async (req, res) => {
   try {
     const { title, unit, course, description, dueDate, maxScore } = req.body;
 
-    // Validate unit and course if provided
     if (unit) {
       const unitExists = await Unit.findById(unit);
       if (!unitExists) {
@@ -119,7 +110,6 @@ exports.updateAssessment = async (req, res) => {
       }
     }
 
-    // If both unit and course are provided, validate they match
     if (unit && course) {
       const unitDoc = await Unit.findById(unit);
       if (unitDoc.course.toString() !== course) {
@@ -148,7 +138,6 @@ exports.updateAssessment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    // If unit is updated, update the assessments array in both old and new units
     if (unit && unit !== assessment.unit.toString()) {
       await Unit.findByIdAndUpdate(assessment.unit, { $pull: { assessments: assessment._id } });
       await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
@@ -160,7 +149,6 @@ exports.updateAssessment = async (req, res) => {
   }
 };
 
-// Delete assessment
 exports.deleteAssessment = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id);
@@ -169,7 +157,6 @@ exports.deleteAssessment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    // Remove assessment reference from unit
     await Unit.findByIdAndUpdate(assessment.unit, { $pull: { assessments: assessment._id } });
 
     await assessment.deleteOne();

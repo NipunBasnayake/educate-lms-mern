@@ -1,7 +1,6 @@
 const Lesson = require('../models/Lesson');
 const Unit = require('../models/Unit');
 
-// Create a new lesson
 exports.createLesson = async (req, res) => {
   try {
     const { title, unit, content, order } = req.body;
@@ -31,7 +30,6 @@ exports.createLesson = async (req, res) => {
   }
 };
 
-// Get all lessons (optionally filter by unit)
 exports.getLessons = async (req, res) => {
   try {
     const filter = {};
@@ -49,7 +47,6 @@ exports.getLessons = async (req, res) => {
   }
 };
 
-// Get lesson by ID
 exports.getLessonById = async (req, res) => {
   try {
     const lesson = await Lesson.findById(req.params.id).populate('unit', 'title');
@@ -64,7 +61,6 @@ exports.getLessonById = async (req, res) => {
   }
 };
 
-// Update lesson
 exports.updateLesson = async (req, res) => {
   try {
     const { title, unit, content, order } = req.body;
@@ -79,7 +75,6 @@ exports.updateLesson = async (req, res) => {
         return res.status(404).json({ success: false, message: 'New unit not found' });
       }
 
-      // Update lessons array in both units
       await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
       await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
 
@@ -112,7 +107,6 @@ exports.updateLesson = async (req, res) => {
   }
 };
 
-// Delete lesson
 exports.deleteLesson = async (req, res) => {
   try {
     const lesson = await Lesson.findById(req.params.id);

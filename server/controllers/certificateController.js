@@ -3,12 +3,10 @@ const sanitize = require('mongo-sanitize');
 const validator = require('validator');
 const Certificate = require('../models/Certificate');
 
-// Utility function for standardized error responses
 const sendError = (res, status, message, error = null) => {
   res.status(status).json({ success: false, message, error: error?.message });
 };
 
-// Create a new certificate
 exports.createCertificate = async (req, res) => {
   try {
     const { student, course, issueDate, pdfUrl } = req.body;
@@ -66,7 +64,6 @@ exports.createCertificate = async (req, res) => {
   }
 };
 
-// Get all certificates
 exports.getAllCertificates = async (req, res) => {
   try {
     let query = {};
@@ -86,7 +83,6 @@ exports.getAllCertificates = async (req, res) => {
   }
 };
 
-// Get certificate by ID
 exports.getCertificateById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -111,7 +107,6 @@ exports.getCertificateById = async (req, res) => {
   }
 };
 
-// Update certificate
 exports.updateCertificate = async (req, res) => {
   try {
     const { student, course, issueDate, pdfUrl } = req.body;
@@ -138,7 +133,6 @@ exports.updateCertificate = async (req, res) => {
       return sendError(res, 404, 'Certificate not found');
     }
 
-    // Only include fields that are provided in the request
     const updateData = {};
     if (student) updateData.student = sanitize(student);
     if (course) updateData.course = sanitize(course);
@@ -146,7 +140,6 @@ exports.updateCertificate = async (req, res) => {
     if (pdfUrl) updateData.pdfUrl = sanitize(pdfUrl);
     updateData.updatedAt = new Date();
 
-    // Update only provided fields
     await Certificate.updateOne({ _id: req.params.id }, { $set: updateData });
 
     const updatedCertificate = await Certificate.findById(req.params.id)
@@ -171,7 +164,6 @@ exports.updateCertificate = async (req, res) => {
   }
 };
 
-// Delete certificate
 exports.deleteCertificate = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -189,7 +181,6 @@ exports.deleteCertificate = async (req, res) => {
   }
 };
 
-// Filter certificates
 exports.filterCertificates = async (req, res) => {
   try {
     const { student, course } = req.query;

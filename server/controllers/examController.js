@@ -3,17 +3,14 @@ const Unit = require('../models/Unit');
 const Course = require('../models/Course');
 const mongoose = require('mongoose');
 
-// Create a new exam
 exports.createExam = async (req, res) => {
   try {
     const { title, unit, course, description, date, maxScore } = req.body;
 
-    // Validate required fields
     if (!title || !unit || !course || !maxScore) {
       return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
     }
 
-    // Validate unit and course exist
     const unitExists = await Unit.findById(unit);
     if (!unitExists) {
       return res.status(404).json({ success: false, message: 'Unit not found' });
@@ -24,7 +21,6 @@ exports.createExam = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    // Validate that unit belongs to the course
     if (unitExists.course.toString() !== course) {
       return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
     }
@@ -42,7 +38,6 @@ exports.createExam = async (req, res) => {
 
     await exam.save();
 
-    // Update unit's exams array
     await Unit.findByIdAndUpdate(unit, { $push: { exams: exam._id } });
 
     res.status(201).json({ success: true, data: exam });
@@ -51,7 +46,6 @@ exports.createExam = async (req, res) => {
   }
 };
 
-// Get all exams (with optional unit or course filter)
 exports.getExams = async (req, res) => {
   try {
     const { unitId, courseId } = req.query;
@@ -82,7 +76,6 @@ exports.getExams = async (req, res) => {
   }
 };
 
-// Get exam by ID
 exports.getExamById = async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id)
@@ -99,12 +92,10 @@ exports.getExamById = async (req, res) => {
   }
 };
 
-// Update exam
 exports.updateExam = async (req, res) => {
   try {
     const { title, unit, course, description, date, maxScore } = req.body;
 
-    // Validate unit and course if provided
     if (unit) {
       const unitExists = await Unit.findById(unit);
       if (!unitExists) {
@@ -119,7 +110,6 @@ exports.updateExam = async (req, res) => {
       }
     }
 
-    // If both unit and course are provided, validate they match
     if (unit && course) {
       const unitDoc = await Unit.findById(unit);
       if (unitDoc.course.toString() !== course) {
@@ -148,7 +138,6 @@ exports.updateExam = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Exam not found' });
     }
 
-    // If unit is updated, update the exams array in both old and new units
     if (unit && unit !== exam.unit.toString()) {
       await Unit.findByIdAndUpdate(exam.unit, { $pull: { exams: exam._id } });
       await Unit.findByIdAndUpdate(unit, { $push: { exams: exam._id } });
@@ -160,7 +149,6 @@ exports.updateExam = async (req, res) => {
   }
 };
 
-// Delete exam
 exports.deleteExam = async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id);
@@ -169,7 +157,6 @@ exports.deleteExam = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Exam not found' });
     }
 
-    // Remove exam reference from unit
     await Unit.findByIdAndUpdate(exam.unit, { $pull: { exams: exam._id } });
 
     await exam.deleteOne();

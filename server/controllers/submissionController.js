@@ -2,23 +2,19 @@ const Submission = require('../models/Submission');
 const Assessment = require('../models/Assessment');
 const mongoose = require('mongoose');
 
-// Create a new submission
 exports.createSubmission = async (req, res) => {
   try {
     const { student, assessment, content } = req.body;
 
-    // Validate required fields
     if (!student || !assessment || !content) {
       return res.status(400).json({ success: false, message: 'Student, assessment, and content are required' });
     }
 
-    // Validate assessment exists
     const assessmentExists = await Assessment.findById(assessment);
     if (!assessmentExists) {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    // Ensure the user is the student or has appropriate permissions
     if (req.user.role === 'Student' && req.user.id !== student) {
       return res.status(403).json({ success: false, message: 'Students can only submit for themselves' });
     }
@@ -40,7 +36,6 @@ exports.createSubmission = async (req, res) => {
   }
 };
 
-// Get all submissions (with optional assessment or student filter)
 exports.getSubmissions = async (req, res) => {
   try {
     const { assessmentId, studentId } = req.query;
@@ -60,7 +55,6 @@ exports.getSubmissions = async (req, res) => {
       query.student = studentId;
     }
 
-    // Restrict students to only see their own submissions
     if (req.user.role === 'Student') {
       query.student = req.user.id;
     }
@@ -76,7 +70,6 @@ exports.getSubmissions = async (req, res) => {
   }
 };
 
-// Get submission by ID
 exports.getSubmissionById = async (req, res) => {
   try {
     const submission = await Submission.findById(req.params.id)
@@ -87,7 +80,6 @@ exports.getSubmissionById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
-    // Restrict students to only see their own submissions
     if (req.user.role === 'Student' && submission.student.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
@@ -98,7 +90,6 @@ exports.getSubmissionById = async (req, res) => {
   }
 };
 
-// Update submission (e.g., for grading or updating content)
 exports.updateSubmission = async (req, res) => {
 
   console.log('Update submission request:', req.body, req.params.id, req.user);
@@ -112,7 +103,6 @@ exports.updateSubmission = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
-    // Restrict students to only updating content, and only if status is pending
     if (req.user.role === 'Student') {
       if (submission.student.toString() !== req.user.id) {
         return res.status(403).json({ success: false, message: 'Students can only update their own submissions' });
@@ -125,12 +115,10 @@ exports.updateSubmission = async (req, res) => {
       }
     }
 
-    // Validate status if provided
     if (status && !['submitted', 'graded', 'pending'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status' });
     }
 
-    // Validate score if provided
     if (score) {
       const assessment = await Assessment.findById(submission.assessment);
       if (score > assessment.maxScore) {
@@ -161,7 +149,6 @@ exports.updateSubmission = async (req, res) => {
   }
 };
 
-// Delete submission
 exports.deleteSubmission = async (req, res) => {
   try {
     const submission = await Submission.findById(req.params.id);
@@ -170,7 +157,6 @@ exports.deleteSubmission = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
-    // Restrict students to only deleting their own submissions
     if (req.user.role === 'Student' && submission.student.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Students can only delete their own submissions' });
     }

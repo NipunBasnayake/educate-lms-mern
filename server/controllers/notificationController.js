@@ -1,32 +1,26 @@
 const Notification = require('../models/Notification');
 const mongoose = require('mongoose');
 
-// Create a new notification
 exports.createNotification = async (req, res) => {
   try {
     const { recipient, recipientType, message, type } = req.body;
 
-    // Validate required fields
     if (!recipient || !recipientType || !message || !type) {
       return res.status(400).json({ success: false, message: 'Recipient, recipientType, message, and type are required' });
     }
 
-    // Validate recipientType
     if (!['Student', 'Instructor', 'SuperAdmin'].includes(recipientType)) {
       return res.status(400).json({ success: false, message: 'Invalid recipientType' });
     }
 
-    // Validate type
     if (!['announcement', 'grade', 'deadline', 'message'].includes(type)) {
       return res.status(400).json({ success: false, message: 'Invalid notification type' });
     }
 
-    // Restrict creation to Instructors and SuperAdmins
     if (!['Instructor', 'SuperAdmin'].includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Only Instructors and SuperAdmins can create notifications' });
     }
 
-    // Validate recipient ObjectId
     if (!mongoose.Types.ObjectId.isValid(recipient)) {
       return res.status(400).json({ success: false, message: 'Invalid recipient ID' });
     }
@@ -47,7 +41,6 @@ exports.createNotification = async (req, res) => {
   }
 };
 
-// Get all notifications (with optional filters)
 exports.getNotifications = async (req, res) => {
   try {
     const { recipientId, type, read } = req.query;
@@ -71,7 +64,6 @@ exports.getNotifications = async (req, res) => {
       query.read = read === 'true';
     }
 
-    // Restrict students and instructors to only see their own notifications
     if (['Student', 'Instructor'].includes(req.user.role)) {
       query.recipient = req.user.id;
       query.recipientType = req.user.role;
@@ -87,7 +79,6 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
-// Get notification by ID
 exports.getNotificationById = async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.id)
@@ -97,7 +88,6 @@ exports.getNotificationById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
-    // Restrict students and instructors to only see their own notifications
     if (['Student', 'Instructor'].includes(req.user.role) && notification.recipient.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
@@ -108,7 +98,6 @@ exports.getNotificationById = async (req, res) => {
   }
 };
 
-// Update notification (e.g., mark as read)
 exports.updateNotification = async (req, res) => {
   try {
     const { read, message, type } = req.body;
@@ -118,17 +107,14 @@ exports.updateNotification = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
-    // Restrict students and instructors to only updating their own notifications
     if (['Student', 'Instructor'].includes(req.user.role) && notification.recipient.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    // Restrict students and instructors to only updating the read status
     if (['Student', 'Instructor'].includes(req.user.role) && (message || type)) {
       return res.status(403).json({ success: false, message: 'Students and Instructors can only update read status' });
     }
 
-    // Validate type if provided
     if (type && !['announcement', 'grade', 'deadline', 'message'].includes(type)) {
       return res.status(400).json({ success: false, message: 'Invalid notification type' });
     }
@@ -154,7 +140,6 @@ exports.updateNotification = async (req, res) => {
   }
 };
 
-// Delete notification
 exports.deleteNotification = async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.id);
@@ -163,7 +148,6 @@ exports.deleteNotification = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Notification not found' });
     }
 
-    // Restrict students and instructors to only deleting their own notifications
     if (['Student', 'Instructor'].includes(req.user.role) && notification.recipient.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }

@@ -1,20 +1,17 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const sanitize = require('mongo-sanitize'); // For sanitizing inputs
+const sanitize = require('mongo-sanitize');
 const Student = require('../models/Student');
 
-// Utility function for standardized error responses
 const sendError = (res, status, message, error = null) => {
   res.status(status).json({ success: false, message, error: error?.message });
 };
 
-// Register a new student
 exports.registerStudent = async (req, res) => {
   try {
     const { name, email, password, profile } = req.body;
 
-    // Input validation
     if (!name || !email || !password) {
       return sendError(res, 400, 'Name, email, and password are required');
     }
@@ -24,13 +21,11 @@ exports.registerStudent = async (req, res) => {
       return sendError(res, 400, 'Invalid email format');
     }
 
-    // Password complexity: at least 8 characters, 1 uppercase, 1 lowercase, 1 number
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
     if (!passwordRegex.test(password)) {
       return sendError(res, 400, 'Password must be at least 8 characters long and include uppercase, lowercase, and a number');
     }
 
-    // Sanitize inputs
     const sanitizedEmail = sanitize(email);
     const sanitizedName = sanitize(name);
 
@@ -39,7 +34,7 @@ exports.registerStudent = async (req, res) => {
       return sendError(res, 400, 'Email already in use');
     }
 
-    const salt = await bcrypt.genSalt(12); // Increased salt rounds for better security
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const student = new Student({
@@ -69,7 +64,6 @@ exports.registerStudent = async (req, res) => {
   }
 };
 
-// Login a student
 exports.loginStudent = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -89,7 +83,7 @@ exports.loginStudent = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: student._id, role: 'Student' }, // Simplified token payload
+      { id: student._id, role: 'Student' },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -110,7 +104,6 @@ exports.loginStudent = async (req, res) => {
   }
 };
 
-// Get all students (SuperAdmin/Instructor only)
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await Student.find()
@@ -123,7 +116,6 @@ exports.getAllStudents = async (req, res) => {
   }
 };
 
-// Get student by ID (Restricted to self for students)
 exports.getStudentById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -156,7 +148,6 @@ exports.getStudentById = async (req, res) => {
   }
 };
 
-// Update student
 exports.updateStudent = async (req, res) => {
   try {
     const { name, email, password, profile, enrolledCourses, completedCourses, assessments, exams, certificates, notifications, calendarEvents, performance } = req.body;
@@ -231,7 +222,6 @@ exports.updateStudent = async (req, res) => {
   }
 };
 
-// Delete student (SuperAdmin/Instructor only)
 exports.deleteStudent = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -249,7 +239,6 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-// Get enrolled courses
 exports.getStudentEnrolledCourses = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -273,7 +262,6 @@ exports.getStudentEnrolledCourses = async (req, res) => {
   }
 };
 
-// Get performance data
 exports.getStudentPerformance = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {

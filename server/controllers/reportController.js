@@ -1,18 +1,15 @@
 const mongoose = require('mongoose');
-const sanitize = require('mongo-sanitize'); // For sanitizing inputs
+const sanitize = require('mongo-sanitize');
 const Report = require('../models/Report');
 
-// Utility function for standardized error responses
 const sendError = (res, status, message, error = null) => {
   res.status(status).json({ success: false, message, error: error?.message });
 };
 
-// Create a new report
 exports.createReport = async (req, res) => {
   try {
     const { type, data, format } = req.body;
 
-    // Input validation
     if (!type) {
       return sendError(res, 400, 'Type is required');
     }
@@ -30,7 +27,6 @@ exports.createReport = async (req, res) => {
       return sendError(res, 400, 'Data must be a valid object');
     }
 
-    // Sanitize inputs
     const sanitizedType = sanitize(type);
     const sanitizedData = data ? sanitize(data) : {};
     const sanitizedFormat = format ? sanitize(format) : 'pdf';
@@ -64,12 +60,11 @@ exports.createReport = async (req, res) => {
   }
 };
 
-// Get all reports
 exports.getAllReports = async (req, res) => {
   try {
     const reports = await Report.find()
       .populate('generatedBy', 'name email')
-      .sort({ createdAt: -1 }); // Sort by newest first
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: reports });
   } catch (error) {
@@ -77,7 +72,6 @@ exports.getAllReports = async (req, res) => {
   }
 };
 
-// Get report by ID
 exports.getReportById = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -97,7 +91,6 @@ exports.getReportById = async (req, res) => {
   }
 };
 
-// Update report
 exports.updateReport = async (req, res) => {
   try {
     const { type, data, format } = req.body;
@@ -154,7 +147,6 @@ exports.updateReport = async (req, res) => {
   }
 };
 
-// Delete report
 exports.deleteReport = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
@@ -172,7 +164,6 @@ exports.deleteReport = async (req, res) => {
   }
 };
 
-// Filter reports
 exports.filterReports = async (req, res) => {
   try {
     const { type, generatedBy } = req.query;

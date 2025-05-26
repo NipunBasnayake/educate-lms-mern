@@ -1,12 +1,10 @@
 const Course = require('../models/Course');
 const mongoose = require('mongoose');
 
-// Create a new course
 const createCourse = async (req, res) => {
   try {
     const { title, description, instructor, status } = req.body;
 
-    // Validate instructor ID
     if (!mongoose.Types.ObjectId.isValid(instructor)) {
       return res.status(400).json({ success: false, message: 'Invalid instructor ID' });
     }
@@ -33,7 +31,6 @@ const createCourse = async (req, res) => {
   }
 };
 
-// Get all courses with pagination and filtering
 const getAllCourses = async (req, res) => {
   try {
     const { page = 1, limit = 10, status, instructor } = req.query;
@@ -70,7 +67,6 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-// Get a single course by ID
 const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -98,7 +94,6 @@ const getCourseById = async (req, res) => {
   }
 };
 
-// Update a course
 const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -108,7 +103,6 @@ const updateCourse = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid course ID' });
     }
 
-    // Prevent updating certain fields
     delete updates.createdAt;
     delete updates.updatedAt;
     
@@ -140,7 +134,6 @@ const updateCourse = async (req, res) => {
   }
 };
 
-// Delete a course
 const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params;

@@ -3,7 +3,6 @@ const router = express.Router();
 const studentController = require('../controllers/studentController');
 const authMiddleware = require('../middleware/auth');
 
-// Note: Consider adding rate-limiting middleware (e.g., express-rate-limit) to prevent abuse
 router.post('/register', authMiddleware(['SuperAdmin']), studentController.registerStudent);
 router.post('/login', studentController.loginStudent);
 router.get('/', authMiddleware(['SuperAdmin', 'Instructor']), studentController.getAllStudents);

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Unit = require('../models/Unit');
 
-// Custom error class for consistent error handling
 class ApiError extends Error {
   constructor(statusCode, message) {
     super(message);
@@ -9,7 +8,6 @@ class ApiError extends Error {
   }
 }
 
-// Reusable validation functions
 const validateObjectId = (id, name = 'ID') => {
   if (!mongoose.isValidObjectId(id)) {
     throw new ApiError(400, `Invalid ${name}`);
@@ -30,7 +28,6 @@ const validateObjectIdArray = (array, name) => {
   }
 };
 
-// Reusable function to find unit by ID
 const findUnitById = async (id, populateOptions = []) => {
   validateObjectId(id, 'unit ID');
   const unit = await Unit.findById(id)
@@ -42,7 +39,6 @@ const findUnitById = async (id, populateOptions = []) => {
   return unit;
 };
 
-// Common populate options (removed discussions.user)
 const populateOptions = [
   { path: 'course', select: 'title description' },
   { path: 'subUnits', select: 'title order' },
@@ -51,12 +47,10 @@ const populateOptions = [
   { path: 'exams', select: 'title date' }
 ];
 
-// Create a new unit
 exports.createUnit = async (req, res) => {
   try {
     const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials } = req.body;
 
-    // Validate inputs
     validateRequiredFields(['title', 'course', 'order'], { title, course, order });
     validateObjectId(course, 'course ID');
     validateObjectIdArray(subUnits, 'subUnit');
@@ -101,19 +95,17 @@ exports.createUnit = async (req, res) => {
   }
 };
 
-// Get all units
 exports.getAllUnits = async (req, res) => {
   try {
     const { page = 1, limit = 10, course } = req.query;
     const query = {};
 
-    // Add course filter if provided
     if (course) {
       validateObjectId(course, 'course ID');
       query.course = course;
     }
 
-    console.log('Query:', query, 'Page:', page, 'Limit:', limit); // Debugging log
+    console.log('Query:', query, 'Page:', page, 'Limit:', limit);
 
     const units = await Unit.find(query)
       .populate(populateOptions)
@@ -124,7 +116,7 @@ exports.getAllUnits = async (req, res) => {
 
     const total = await Unit.countDocuments(query);
 
-    console.log('Units found:', units.length, 'Total:', total); // Debugging log
+    console.log('Units found:', units.length, 'Total:', total);
 
     return res.status(200).json({
       success: true,
@@ -136,7 +128,7 @@ exports.getAllUnits = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in getAllUnits:', error); // Debugging log
+    console.error('Error in getAllUnits:', error);
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
@@ -145,7 +137,6 @@ exports.getAllUnits = async (req, res) => {
   }
 };
 
-// Get unit by ID
 exports.getUnitById = async (req, res) => {
   try {
     const unit = await findUnitById(req.params.id, populateOptions);
@@ -159,12 +150,10 @@ exports.getUnitById = async (req, res) => {
   }
 };
 
-// Update unit
 exports.updateUnit = async (req, res) => {
   try {
     const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials } = req.body;
 
-    // Validate inputs if provided
     if (course) validateObjectId(course, 'course ID');
     validateObjectIdArray(subUnits, 'subUnit');
     validateObjectIdArray(lessons, 'lesson');
@@ -217,7 +206,6 @@ exports.updateUnit = async (req, res) => {
   }
 };
 
-// Delete unit
 exports.deleteUnit = async (req, res) => {
   try {
     const unit = await Unit.findByIdAndDelete(req.params.id);
@@ -237,7 +225,6 @@ exports.deleteUnit = async (req, res) => {
   }
 };
 
-// Add sub-unit
 exports.addSubUnit = async (req, res) => {
   try {
     const { subUnitId } = req.body;
@@ -267,7 +254,6 @@ exports.addSubUnit = async (req, res) => {
   }
 };
 
-// Add lesson
 exports.addLesson = async (req, res) => {
   try {
     const { lessonId } = req.body;
@@ -297,7 +283,6 @@ exports.addLesson = async (req, res) => {
   }
 };
 
-// Add assessment
 exports.addAssessment = async (req, res) => {
   try {
     const { assessmentId } = req.body;
@@ -327,7 +312,6 @@ exports.addAssessment = async (req, res) => {
   }
 };
 
-// Add exam
 exports.addExam = async (req, res) => {
   try {
     const { examId } = req.body;
@@ -357,7 +341,6 @@ exports.addExam = async (req, res) => {
   }
 };
 
-// Add study material
 exports.addStudyMaterial = async (req, res) => {
   try {
     const { url, title, type } = req.body;
@@ -387,7 +370,6 @@ exports.addStudyMaterial = async (req, res) => {
   }
 };
 
-// Add discussion
 exports.addDiscussion = async (req, res) => {
   try {
     const { question } = req.body;

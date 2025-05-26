@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs'); // Changed from bcrypt to bcryptjs
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
 const SuperAdmin = require('../models/SuperAdmin');
 
-// Validation schemas
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
@@ -24,7 +23,6 @@ const updateSchema = Joi.object({
 
 exports.registerSuperAdmin = async (req, res) => {
   try {
-    // Validate input
     const { error } = registerSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -32,16 +30,13 @@ exports.registerSuperAdmin = async (req, res) => {
 
     const { name, email, password } = req.body;
 
-    // Check for existing SuperAdmin
     const existingSuperAdmin = await SuperAdmin.findOne({ email });
     if (existingSuperAdmin) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create SuperAdmin
     const superAdmin = new SuperAdmin({
       name,
       email,
@@ -71,7 +66,6 @@ exports.registerSuperAdmin = async (req, res) => {
 
 exports.loginSuperAdmin = async (req, res) => {
   try {
-    // Validate input
     const { error } = loginSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -79,19 +73,16 @@ exports.loginSuperAdmin = async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Find SuperAdmin
     const superAdmin = await SuperAdmin.findOne({ email });
     if (!superAdmin) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, superAdmin.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       { id: superAdmin._id, role: superAdmin.role },
       process.env.JWT_SECRET,
@@ -115,7 +106,6 @@ exports.loginSuperAdmin = async (req, res) => {
 
 exports.getAllSuperAdmins = async (req, res) => {
   try {
-    // Authorization check
     if (req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -129,12 +119,10 @@ exports.getAllSuperAdmins = async (req, res) => {
 
 exports.getSuperAdminById = async (req, res) => {
   try {
-    // Validate ID
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid SuperAdmin ID' });
     }
 
-    // Authorization check
     if (req.user.role !== 'superadmin' || (req.user.id !== req.params.id && req.user.role !== 'superadmin')) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -152,7 +140,6 @@ exports.getSuperAdminById = async (req, res) => {
 
 exports.updateSuperAdmin = async (req, res) => {
   try {
-    // Validate input
     const { error } = updateSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
@@ -160,12 +147,10 @@ exports.updateSuperAdmin = async (req, res) => {
 
     const { name, email, password } = req.body;
 
-    // Validate ID
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid SuperAdmin ID' });
     }
 
-    // Authorization check
     if (req.user.role !== 'superadmin' || (req.user.id !== req.params.id && req.user.role !== 'superadmin')) {
       return res.status(403).json({ message: 'Access denied' });
     }
@@ -175,7 +160,6 @@ exports.updateSuperAdmin = async (req, res) => {
       return res.status(404).json({ message: 'SuperAdmin not found' });
     }
 
-    // Check for email conflict
     if (email && email !== superAdmin.email) {
       const existingSuperAdmin = await SuperAdmin.findOne({ email });
       if (existingSuperAdmin) {
@@ -183,7 +167,6 @@ exports.updateSuperAdmin = async (req, res) => {
       }
     }
 
-    // Prepare update data
     const updateData = {
       name: name || superAdmin.name,
       email: email || superAdmin.email,
@@ -194,7 +177,6 @@ exports.updateSuperAdmin = async (req, res) => {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Update SuperAdmin
     Object.assign(superAdmin, updateData);
     await superAdmin.save();
 
@@ -216,17 +198,14 @@ exports.updateSuperAdmin = async (req, res) => {
 
 exports.deleteSuperAdmin = async (req, res) => {
   try {
-    // Authorization check
     if (req.user.role !== 'superadmin') {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Validate ID
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid SuperAdmin ID' });
     }
 
-    // Prevent self-deletion
     if (req.params.id === req.user.id) {
       return res.status(403).json({ message: 'Cannot delete yourself' });
     }
@@ -244,12 +223,10 @@ exports.deleteSuperAdmin = async (req, res) => {
 
 exports.getSuperAdminNotifications = async (req, res) => {
   try {
-    // Authorization check
     if (req.user.role !== 'superadmin' || (req.user.id !== req.params.id && req.user.role !== 'superadmin')) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    // Validate ID
     if (!mongoose.isValidObjectId(req.params.id)) {
       return res.status(400).json({ message: 'Invalid SuperAdmin ID' });
     }
