@@ -1,7 +1,4 @@
-import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer";
-import Card from "../components/Card";
 import Section from "../components/Section";
 import Performance from "../homecomponents/Performance";
 import AssignedAssessments from "../homecomponents/assigned";
@@ -18,9 +15,7 @@ const Home = () => {
           <div className="max-w-8xl mx-auto space-y-8 mt-6">
             <Section>
               <Completed />
-
               <CompletedAssessmentsCard />
-
               <Exm />
               <AssignedAssessments />
               <Performance />
