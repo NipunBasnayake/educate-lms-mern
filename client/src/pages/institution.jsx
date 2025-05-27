@@ -70,12 +70,12 @@ const Home = () => {
             }
           />
 
-         {/* Course Card 3 */}
+         {/* Completed Assessments*/}
                   <div className="flex flex-col">
                     <Card
                       variant="institution"
                       className="bg-white border border-gray-300 shadow-sm h-full flex flex-col"
-                      title="Web Development"
+                      title="Completed Assessments"
                       content={
                         <div className="text-sm text-gray-600 mt-2 space-y-1 flex-grow">
                           <p>✔ Capstone: A+</p>
@@ -87,12 +87,12 @@ const Home = () => {
 
 
 
-                   {/* Course Card 3 */}
+                   {/* Exam Results*/}
                   <div className="flex flex-col">
                     <Card
                       variant="institution"
                       className="bg-white border border-gray-300 shadow-sm h-full flex flex-col"
-                      title="Web Development"
+                      title="Exam Results"
                       content={
                         <div className="text-sm text-gray-600 mt-2 space-y-1 flex-grow">
                           <p>✔ Capstone: A+</p>
@@ -104,12 +104,27 @@ const Home = () => {
 
 
 
-                   {/* Course Card 3 */}
+                   {/* Assigned Assessments */}
                   <div className="flex flex-col">
                     <Card
                       variant="institution"
                       className="bg-white border border-gray-300 shadow-sm h-full flex flex-col"
-                      title="Web Development"
+                      title="Assigned Assessments"
+                      content={
+                        <div className="text-sm text-gray-600 mt-2 space-y-1 flex-grow">
+                          <p>✔ Capstone: A+</p>
+                          <p>📅 May 2024</p>
+                        </div>
+                      }
+                    />
+                  </div>
+               
+                          {/* Performance Summary */}
+                  <div className="flex flex-col">
+                    <Card
+                      variant="institution"
+                      className="bg-white border border-gray-300 shadow-sm h-full flex flex-col"
+                      title="Performance Summary"
                       content={
                         <div className="text-sm text-gray-600 mt-2 space-y-1 flex-grow">
                           <p>✔ Capstone: A+</p>
