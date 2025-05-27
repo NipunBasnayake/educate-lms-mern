@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "framer-motion": "^12.12.1",
-    "recharts": "^2.15.3"
-  }
-}
