@@ -1,38 +1,66 @@
 import React from 'react';
+import img1 from '../images/img1.jpg';
+import img2 from '../images/img2.jpg';
+import img3 from '../images/img3.jpg';
 
 const courses = [
   {
+    id: 'CS501',
     title: 'Advanced Data Structures',
     details: ['✔ Grade: A (95%)', '📅 Dec 2023'],
+    description: 'Mastered complex data structures and algorithms with practical implementations.',
+    image: img1
   },
   {
+    id: 'CS502',
     title: 'Machine Learning',
     details: ['✔ Honors (Top 10%)', '📅 Mar 2024'],
+    description: 'Developed predictive models using supervised and unsupervised learning techniques.',
+    image: img2
   },
   {
+    id: 'CS503',
     title: 'Web Development',
     details: ['✔ Capstone: A+', '📅 May 2024'],
+    description: 'Built full-stack applications with modern frameworks and responsive design.',
+    image: img3
   },
 ];
 
 const CompletedCoursesCard = () => {
   return (
-    <div className="bg-white border border-gray-300 shadow-sm p-6 rounded-xl flex flex-col">
+    <div className="bg-white border border-gray-300 shadow-sm p-6 rounded-xl">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">Completed Courses</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course, idx) => (
+        {courses.map((course) => (
           <div
-            key={idx}
-            className="bg-white border border-gray-300 rounded-lg shadow-sm p-4 flex flex-col justify-between min-h-[200px]"
+            key={course.id}
+            className="bg-white border border-gray-300 rounded-lg shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow"
           >
-            <div>
-              <h3 className="text-md font-semibold text-gray-800">{course.title}</h3>
-              <div className="text-sm text-gray-600 mt-3 space-y-1">
-                {course.details.map((line, i) => (
-                  <p key={i}>{line}</p>
-                ))}
-              </div>
+            {/* Top: Title */}
+            <h3 className="text-md font-semibold text-gray-800 mb-2">{course.title}</h3>
+            
+            {/* Middle: Course Image */}
+            <div className="my-3 flex justify-center h-40 overflow-hidden rounded-md">
+              <img 
+                src={course.image} 
+                alt={course.title} 
+                className="w-full h-full object-cover hover:scale-105 transition-transform"
+              />
+            </div>
+            
+            {/* Details */}
+            <div className="text-sm text-gray-600 space-y-1 mb-3">
+              {course.details.map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+            
+            {/* Bottom: ID and Description */}
+            <div className="mt-auto">
+              <p className="text-xs font-mono text-gray-500 mb-1">ID: {course.id}</p>
+              <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
             </div>
           </div>
         ))}
