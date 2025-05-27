@@ -9,10 +9,20 @@ const UnitSchema = new Schema({
   assessments: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],
   exams: [{ type: Schema.Types.ObjectId, ref: 'Exam' }],
   studyMaterials: [{ url: String, title: String, type: String }],
-  discussions: [{ question: String, answers: [{ user: { type: Schema.Types.ObjectId, refPath: 'discussions.userType' }, content: String, createdAt: Date }], userType: { type: String, enum: ['Student', 'Instructor'] } }],
+  discussions: [{
+    question: String,
+    answers: [{
+      user: { type: Schema.Types.ObjectId, refPath: 'discussions.userType' },
+      content: String,
+      createdAt: Date
+    }],
+    userType: { type: String, enum: ['Student', 'Instructor'] }
+  }],
   order: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-});
+}, { strictPopulate: false });
+
+UnitSchema.index({ course: 1, order: 1 });
 
 module.exports = mongoose.model('Unit', UnitSchema);

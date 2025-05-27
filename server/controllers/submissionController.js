@@ -1,241 +1,170 @@
-const mongoose = require('mongoose');
 const Submission = require('../models/Submission');
+const Assessment = require('../models/Assessment');
+const mongoose = require('mongoose');
 
 exports.createSubmission = async (req, res) => {
   try {
     const { student, assessment, content } = req.body;
 
-    if (!student || !assessment) {
-      return res.status(400).json({ message: 'Student and assessment are required' });
+    if (!student || !assessment || !content) {
+      return res.status(400).json({ success: false, message: 'Student, assessment, and content are required' });
     }
 
-    if (!mongoose.isValidObjectId(student)) {
-      return res.status(400).json({ message: 'Invalid student ID' });
-    }
-    if (!mongoose.isValidObjectId(assessment)) {
-      return res.status(400).json({ message: 'Invalid assessment ID' });
+    const assessmentExists = await Assessment.findById(assessment);
+    if (!assessmentExists) {
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
-    if (req.user.role === 'Student' && student !== req.user.id) {
-      return res.status(403).json({ message: 'Students can only submit for themselves' });
-    }
-
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor' && req.user.role !== 'Student') {
-      return res.status(403).json({ message: 'Access denied' });
+    if (req.user.role === 'Student' && req.user.id !== student) {
+      return res.status(403).json({ success: false, message: 'Students can only submit for themselves' });
     }
 
     const submission = new Submission({
       student,
       assessment,
-      content: content || '',
+      content,
       status: 'submitted',
-      submittedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdBy: req.user.id,
+      updatedBy: req.user.id
     });
 
     await submission.save();
-    res.status(201).json({
-      message: 'Submission created successfully',
-      submission: {
-        id: submission._id,
-        student,
-        assessment,
-        content: submission.content,
-        score: submission.score,
-        feedback: submission.feedback,
-        status: submission.status,
-        submittedAt: submission.submittedAt,
-        createdAt: submission.createdAt,
-        updatedAt: submission.updatedAt
-      }
-    });
+
+    res.status(201).json({ success: true, data: submission });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating submission', error: error.message });
+    res.status(500).json({ success: false, message: 'Error creating submission', error: error.message });
   }
 };
 
-exports.getAllSubmissions = async (req, res) => {
+exports.getSubmissions = async (req, res) => {
   try {
+    const { assessmentId, studentId } = req.query;
     let query = {};
+
+    if (assessmentId) {
+      if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+        return res.status(400).json({ success: false, message: 'Invalid assessment ID' });
+      }
+      query.assessment = assessmentId;
+    }
+
+    if (studentId) {
+      if (!mongoose.Types.ObjectId.isValid(studentId)) {
+        return res.status(400).json({ success: false, message: 'Invalid student ID' });
+      }
+      query.student = studentId;
+    }
 
     if (req.user.role === 'Student') {
       query.student = req.user.id;
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
     }
 
     const submissions = await Submission.find(query)
-      .populate('student', 'name email')
-      .populate('assessment', 'title description');
+      .populate('student', 'name')
+      .populate('assessment', 'title')
+      .sort({ submittedAt: -1 });
 
-    res.status(200).json(submissions);
+    res.status(200).json({ success: true, data: submissions });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching submissions', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching submissions', error: error.message });
   }
 };
 
 exports.getSubmissionById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid submission ID' });
-    }
-
     const submission = await Submission.findById(req.params.id)
-      .populate('student', 'name email')
-      .populate('assessment', 'title description');
+      .populate('student', 'name')
+      .populate('assessment', 'title');
 
     if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
+      return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
     if (req.user.role === 'Student' && submission.student.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor' && req.user.role !== 'Student') {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    res.status(200).json(submission);
+    res.status(200).json({ success: true, data: submission });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching submission', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching submission', error: error.message });
   }
 };
 
 exports.updateSubmission = async (req, res) => {
+
+  console.log('Update submission request:', req.body, req.params.id, req.user);
+  
+
   try {
-    const { student, assessment, content, score, feedback, status } = req.body;
-
-    if (student && !mongoose.isValidObjectId(student)) {
-      return res.status(400).json({ message: 'Invalid student ID' });
-    }
-    if (assessment && !mongoose.isValidObjectId(assessment)) {
-      return res.status(400).json({ message: 'Invalid assessment ID' });
-    }
-
-    if (score !== undefined && (typeof score !== 'number' || score < 0)) {
-      return res.status(400).json({ message: 'Score must be a non-negative number' });
-    }
-
-    if (status && !['submitted', 'graded', 'pending'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid submission ID' });
-    }
+    const { content, score, feedback, status } = req.body;
 
     const submission = await Submission.findById(req.params.id);
     if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
+      return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
     if (req.user.role === 'Student') {
       if (submission.student.toString() !== req.user.id) {
-        return res.status(403).json({ message: 'Access denied' });
+        return res.status(403).json({ success: false, message: 'Students can only update their own submissions' });
       }
       if (submission.status !== 'pending') {
-        return res.status(403).json({ message: 'Students can only update pending submissions' });
+        return res.status(403).json({ success: false, message: 'Cannot update graded or submitted submissions' });
       }
-      if (student || assessment || score || feedback || status) {
-        return res.status(403).json({ message: 'Students can only update content' });
+      if (score || feedback || status) {
+        return res.status(403).json({ success: false, message: 'Students cannot update score, feedback, or status' });
       }
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (status && !['submitted', 'graded', 'pending'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    if (score) {
+      const assessment = await Assessment.findById(submission.assessment);
+      if (score > assessment.maxScore) {
+        return res.status(400).json({ success: false, message: 'Score exceeds assessment maxScore' });
+      }
     }
 
     const updateData = {
-      student: student || undefined,
-      assessment: assessment || undefined,
-      content: content || undefined,
-      score: score !== undefined ? score : undefined,
-      feedback: feedback || undefined,
-      status: status || undefined,
-      updatedAt: new Date()
+      ...(content && { content }),
+      ...(score !== undefined && { score }),
+      ...(feedback && { feedback }),
+      ...(status && { status }),
+      updatedBy: req.user.id,
+      updatedAt: Date.now()
     };
 
-    Object.assign(submission, updateData);
-    await submission.save();
+    const updatedSubmission = await Submission.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+      .populate('student', 'name')
+      .populate('assessment', 'title');
 
-    res.status(200).json({
-      message: 'Submission updated successfully',
-      submission: {
-        id: submission._id,
-        student: submission.student,
-        assessment: submission.assessment,
-        content: submission.content,
-        score: submission.score,
-        feedback: submission.feedback,
-        status: submission.status,
-        submittedAt: submission.submittedAt,
-        createdAt: submission.createdAt,
-        updatedAt: submission.updatedAt
-      }
-    });
+    res.status(200).json({ success: true, data: updatedSubmission });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating submission', error: error.message });
+    res.status(500).json({ success: false, message: 'Error updating submission', error: error.message });
   }
 };
 
 exports.deleteSubmission = async (req, res) => {
   try {
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
+    const submission = await Submission.findById(req.params.id);
 
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid submission ID' });
-    }
-
-    const submission = await Submission.findByIdAndDelete(req.params.id);
     if (!submission) {
-      return res.status(404).json({ message: 'Submission not found' });
+      return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
-    res.status(200).json({ message: 'Submission deleted successfully' });
+    if (req.user.role === 'Student' && submission.student.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Students can only delete their own submissions' });
+    }
+
+    await submission.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Submission deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting submission', error: error.message });
-  }
-};
-
-exports.filterSubmissions = async (req, res) => {
-  try {
-    const { student, assessment, status } = req.query;
-    const query = {};
-
-    if (req.user.role === 'Student') {
-      query.student = req.user.id;
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (student) {
-      if (!mongoose.isValidObjectId(student)) {
-        return res.status(400).json({ message: 'Invalid student ID' });
-      }
-      query.student = student;
-    }
-
-    if (assessment) {
-      if (!mongoose.isValidObjectId(assessment)) {
-        return res.status(400).json({ message: 'Invalid assessment ID' });
-      }
-      query.assessment = assessment;
-    }
-
-    if (status) {
-      if (!['submitted', 'graded', 'pending'].includes(status)) {
-        return res.status(400).json({ message: 'Invalid status' });
-      }
-      query.status = status;
-    }
-
-    const submissions = await Submission.find(query)
-      .populate('student', 'name email')
-      .populate('assessment', 'title description');
-
-    res.status(200).json(submissions);
-  } catch (error) {
-    res.status(500).json({ message: 'Error filtering submissions', error: error.message });
+    res.status(500).json({ success: false, message: 'Error deleting submission', error: error.message });
   }
 };

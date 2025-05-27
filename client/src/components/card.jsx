@@ -2,23 +2,20 @@ import React from "react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 
-// Flexible Card component with optional motion and variant support
 const Card = ({
   title,
   content,
   footer,
-  className,
+  className = "",
   children,
   variant,
-  animate = true, // Allow disabling motion if needed
+  animate = true,
 }) => {
-  const isStructured = title || content || footer;
-
   const baseClasses = clsx(
-    "rounded-2xl shadow-md bg-white dark:bg-gray-800 transition-colors duration-300 border border-gray-200 dark:border-gray-700",
-    "w-full",
+    "rounded-2xl border w-full shadow-sm transition-all duration-300 ease-in-out",
+    "bg-white text-gray-800 border-gray-300", // Light mode focused
     {
-      "h-96": variant === "institution", // Custom height for institution cards
+      "h-96": variant === "institution",
     },
     className
   );
@@ -33,19 +30,17 @@ const Card = ({
       transition={animate ? { duration: 0.4 } : undefined}
     >
       {children ? (
-        children // Custom layout (e.g. chart)
+        children
       ) : (
-        <div className="p-6 space-y-4 max-w-xl">
+        <div className="p-6 space-y-4">
           {title && (
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {title}
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           )}
           {content && (
-            <p className="text-gray-700 dark:text-gray-300">{content}</p>
+            <p className="text-sm leading-relaxed text-gray-700">{content}</p>
           )}
           {footer && (
-            <div className="pt-2 border-t text-sm text-gray-500 dark:text-gray-400">
+            <div className="pt-4 border-t border-gray-200 text-sm text-gray-500">
               {footer}
             </div>
           )}
@@ -55,7 +50,6 @@ const Card = ({
   );
 };
 
-// CardContent for inner layout
 export const CardContent = ({ className, children }) => (
   <div className={clsx("p-4 md:p-6", className)}>{children}</div>
 );

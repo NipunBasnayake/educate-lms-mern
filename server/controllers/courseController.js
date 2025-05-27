@@ -1,121 +1,170 @@
 const Course = require('../models/Course');
-const AuditLog = require('../models/AuditLog');
-const Instructor = require('../models/Instructor');
+const mongoose = require('mongoose');
 
-exports.createCourse = async (req, res) => {
+const createCourse = async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const instructorId = req.user.id;
+    const { title, description, instructor, status } = req.body;
 
-    if (req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Only instructors can create courses' });
-    }
-
-    const instructor = await Instructor.findById(instructorId);
-    if (!instructor) {
-      return res.status(404).json({ message: 'Instructor not found' });
+    if (!mongoose.Types.ObjectId.isValid(instructor)) {
+      return res.status(400).json({ success: false, message: 'Invalid instructor ID' });
     }
 
     const course = new Course({
       title,
       description,
-      instructor: instructorId,
+      instructor,
+      status: status || 'pending'
     });
 
     await course.save();
-
-    await AuditLog.create({
-      action: 'course_created',
-      user: instructorId,
-      userType: req.user.role,
-      details: `Course ${title} created by ${instructor.name}`,
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Course created successfully', 
+      data: course 
     });
-
-    res.status(201).json({ message: 'Course created successfully', course });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating course', error: error.message });
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Error creating course', 
+      error: error.message 
+    });
   }
 };
 
-exports.getAllCourses = async (req, res) => {
+const getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find()
+    const { page = 1, limit = 10, status, instructor } = req.query;
+    
+    const query = {};
+    if (status) query.status = status;
+    if (instructor && mongoose.Types.ObjectId.isValid(instructor)) {
+      query.instructor = instructor;
+    }
+
+    const courses = await Course.find(query)
       .populate('instructor', 'name email')
-      .populate('students', 'name email');
-    res.status(200).json(courses);
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Course.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      data: courses,
+      pagination: {
+        total,
+        page: parseInt(page),
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching courses', error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching courses', 
+      error: error.message 
+    });
   }
 };
 
-exports.getCourseById = async (req, res) => {
+const getCourseById = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id)
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid course ID' });
+    }
+
+    const course = await Course.findById(id)
       .populate('instructor', 'name email')
+      .populate('units', 'title')
       .populate('students', 'name email');
+
     if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
-    res.status(200).json(course);
+
+    return res.status(200).json({ success: true, data: course });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching course', error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching course', 
+      error: error.message 
+    });
   }
 };
 
-exports.updateCourse = async (req, res) => {
+const updateCourse = async (req, res) => {
   try {
-    const { title, description, status } = req.body;
-    const course = await Course.findById(req.params.id);
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid course ID' });
+    }
+
+    delete updates.createdAt;
+    delete updates.updatedAt;
+    
+    if (updates.instructor && !mongoose.Types.ObjectId.isValid(updates.instructor)) {
+      return res.status(400).json({ success: false, message: 'Invalid instructor ID' });
+    }
+
+    const course = await Course.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
+
     if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to update this course' });
-    }
-
-    course.title = title || course.title;
-    course.description = description || course.description;
-    course.status = status || course.status;
-    course.updatedAt = Date.now();
-
-    await course.save();
-
-    await AuditLog.create({
-      action: 'course_updated',
-      user: req.user.id,
-      userType: req.user.role,
-      details: `Course ${course.title} updated by ${req.user.role}`,
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Course updated successfully', 
+      data: course 
     });
-
-    res.status(200).json({ message: 'Course updated successfully', course });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating course', error: error.message });
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Error updating course', 
+      error: error.message 
+    });
   }
 };
 
-exports.deleteCourse = async (req, res) => {
+const deleteCourse = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid course ID' });
+    }
+
+    const course = await Course.findByIdAndDelete(id);
+
     if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    if (req.user.role !== 'SuperAdmin' && course.instructor.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to delete this course' });
-    }
-
-    await course.deleteOne();
-
-    await AuditLog.create({
-      action: 'course_deleted',
-      user: req.user.id,
-      userType: req.user.role,
-      details: `Course ${course.title} deleted by ${req.user.role}`,
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Course deleted successfully' 
     });
-
-    res.status(200).json({ message: 'Course deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting course', error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error deleting course', 
+      error: error.message 
+    });
   }
+};
+
+module.exports = {
+  createCourse,
+  getAllCourses,
+  getCourseById,
+  updateCourse,
+  deleteCourse
 };

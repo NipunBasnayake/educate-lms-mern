@@ -61,20 +61,27 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
 
   try {
-    if (!['Student', 'Instructor', 'SuperAdmin'].includes(role)) {
-      return res.status(400).json({ message: 'Invalid role' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    let user;
-    if (role === 'Student') {
-      user = await Student.findOne({ email });
-    } else if (role === 'Instructor') {
+    let user, role;
+    user = await Student.findOne({ email });
+    if (user) {
+      role = 'Student';
+    } else {
       user = await Instructor.findOne({ email });
-    } else if (role === 'SuperAdmin') {
-      user = await SuperAdmin.findOne({ email });
+      if (user) {
+        role = 'Instructor';
+      } else {
+        user = await SuperAdmin.findOne({ email });
+        if (user) {
+          role = 'SuperAdmin';
+        }
+      }
     }
 
     if (!user) {

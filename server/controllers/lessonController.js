@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Lesson = require('../models/Lesson');
 const Unit = require('../models/Unit');
 
@@ -6,234 +5,120 @@ exports.createLesson = async (req, res) => {
   try {
     const { title, unit, content, order } = req.body;
 
-    if (!title || !unit || order === undefined) {
-      return res.status(400).json({ message: 'Title, unit, and order are required' });
+    if (!title || !unit || order == null) {
+      return res.status(400).json({ success: false, message: 'Title, unit, and order are required' });
     }
 
-    if (!mongoose.isValidObjectId(unit)) {
-      return res.status(400).json({ message: 'Invalid unit ID' });
+    const unitExists = await Unit.findById(unit);
+    if (!unitExists) {
+      return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
-    if (typeof order !== 'number' || order < 0) {
-      return res.status(400).json({ message: 'Order must be a non-negative number' });
+    const orderExists = await Lesson.findOne({ unit, order });
+    if (orderExists) {
+      return res.status(400).json({ success: false, message: 'Order already exists for this unit' });
     }
 
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const unitDoc = await Unit.findById(unit);
-    if (!unitDoc) {
-      return res.status(404).json({ message: 'Unit not found' });
-    }
-
-    const lesson = new Lesson({
-      title,
-      unit,
-      content: content || '',
-      order,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
+    const lesson = new Lesson({ title, unit, content, order });
     await lesson.save();
-    res.status(201).json({
-      message: 'Lesson created successfully',
-      lesson: {
-        id: lesson._id,
-        title,
-        unit,
-        content: lesson.content,
-        order,
-        createdAt: lesson.createdAt,
-        updatedAt: lesson.updatedAt
-      }
-    });
+
+    await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
+
+    res.status(201).json({ success: true, data: lesson });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating lesson', error: error.message });
+    res.status(500).json({ success: false, message: 'Error creating lesson', error: error.message });
   }
 };
 
-exports.getAllLessons = async (req, res) => {
+exports.getLessons = async (req, res) => {
   try {
-    let query = {};
-
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.length) {
-        return res.status(200).json([]);
-      }
-      const units = await Unit.find({ course: { $in: req.user.courses } }).select('_id');
-      const unitIds = units.map(unit => unit._id);
-      query.unit = { $in: unitIds };
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
+    const filter = {};
+    if (req.query.unit) {
+      filter.unit = req.query.unit;
     }
 
-    const lessons = await Lesson.find(query)
-      .populate('unit', 'title course')
-      .populate({
-        path: 'unit',
-        populate: { path: 'course', select: 'title description' }
-      });
+    const lessons = await Lesson.find(filter)
+      .populate('unit', 'title')
+      .sort({ order: 1 });
 
-    res.status(200).json(lessons);
+    res.status(200).json({ success: true, data: lessons });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching lessons', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching lessons', error: error.message });
   }
 };
 
 exports.getLessonById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid lesson ID' });
-    }
-
-    const lesson = await Lesson.findById(req.params.id)
-      .populate('unit', 'title course')
-      .populate({
-        path: 'unit',
-        populate: { path: 'course', select: 'title description' }
-      });
+    const lesson = await Lesson.findById(req.params.id).populate('unit', 'title');
 
     if (!lesson) {
-      return res.status(404).json({ message: 'Lesson not found' });
+      return res.status(404).json({ success: false, message: 'Lesson not found' });
     }
 
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.includes(lesson.unit.course.toString())) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    res.status(200).json(lesson);
+    res.status(200).json({ success: true, data: lesson });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching lesson', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching lesson', error: error.message });
   }
 };
 
 exports.updateLesson = async (req, res) => {
   try {
     const { title, unit, content, order } = req.body;
-
-    if (unit && !mongoose.isValidObjectId(unit)) {
-      return res.status(400).json({ message: 'Invalid unit ID' });
-    }
-
-    if (order !== undefined && (typeof order !== 'number' || order < 0)) {
-      return res.status(400).json({ message: 'Order must be a non-negative number' });
-    }
-
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid lesson ID' });
-    }
-
     const lesson = await Lesson.findById(req.params.id);
     if (!lesson) {
-      return res.status(404).json({ message: 'Lesson not found' });
+      return res.status(404).json({ success: false, message: 'Lesson not found' });
     }
 
-    if (unit) {
-      const unitDoc = await Unit.findById(unit);
-      if (!unitDoc) {
-        return res.status(404).json({ message: 'Unit not found' });
+    if (unit && unit !== lesson.unit.toString()) {
+      const newUnit = await Unit.findById(unit);
+      if (!newUnit) {
+        return res.status(404).json({ success: false, message: 'New unit not found' });
       }
+
+      await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
+      await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
+
+      lesson.unit = unit;
     }
 
-    const updateData = {
-      title: title || undefined,
-      unit: unit || undefined,
-      content: content || undefined,
-      order: order !== undefined ? order : undefined,
-      updatedAt: new Date()
-    };
+    if ((order != null && order !== lesson.order) || (unit && unit !== lesson.unit.toString())) {
+      const duplicateOrder = await Lesson.findOne({
+        _id: { $ne: lesson._id },
+        unit: lesson.unit,
+        order: order != null ? order : lesson.order,
+      });
 
-    Object.assign(lesson, updateData);
+      if (duplicateOrder) {
+        return res.status(400).json({ success: false, message: 'Order already exists for this unit' });
+      }
+
+      if (order != null) lesson.order = order;
+    }
+
+    if (title) lesson.title = title;
+    if (content !== undefined) lesson.content = content;
+    lesson.updatedAt = Date.now();
+
     await lesson.save();
 
-    res.status(200).json({
-      message: 'Lesson updated successfully',
-      lesson: {
-        id: lesson._id,
-        title: lesson.title,
-        unit: lesson.unit,
-        content: lesson.content,
-        order: lesson.order,
-        createdAt: lesson.createdAt,
-        updatedAt: lesson.updatedAt
-      }
-    });
+    res.status(200).json({ success: true, data: lesson });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating lesson', error: error.message });
+    res.status(500).json({ success: false, message: 'Error updating lesson', error: error.message });
   }
 };
 
 exports.deleteLesson = async (req, res) => {
   try {
-    if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid lesson ID' });
-    }
-
-    const lesson = await Lesson.findByIdAndDelete(req.params.id);
+    const lesson = await Lesson.findById(req.params.id);
     if (!lesson) {
-      return res.status(404).json({ message: 'Lesson not found' });
+      return res.status(404).json({ success: false, message: 'Lesson not found' });
     }
 
-    res.status(200).json({ message: 'Lesson deleted successfully' });
+    await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
+    await lesson.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Lesson deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting lesson', error: error.message });
-  }
-};
-
-exports.filterLessons = async (req, res) => {
-  try {
-    const { unit, order } = req.query;
-    const query = {};
-
-    if (req.user.role === 'Student') {
-      if (!req.user.courses || !req.user.courses.length) {
-        return res.status(200).json([]);
-      }
-      const units = await Unit.find({ course: { $in: req.user.courses } }).select('_id');
-      const unitIds = units.map(unit => unit._id);
-      query.unit = { $in: unitIds };
-    } else if (req.user.role !== 'SuperAdmin' && req.user.role !== 'Instructor') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (unit) {
-      if (!mongoose.isValidObjectId(unit)) {
-        return res.status(400).json({ message: 'Invalid unit ID' });
-      }
-      query.unit = unit;
-    }
-
-    if (order !== undefined) {
-      const orderNum = Number(order);
-      if (isNaN(orderNum) || orderNum < 0) {
-        return res.status(400).json({ message: 'Order must be a non-negative number' });
-      }
-      query.order = orderNum;
-    }
-
-    const lessons = await Lesson.find(query)
-      .populate('unit', 'title course')
-      .populate({
-        path: 'unit',
-        populate: { path: 'course', select: 'title description' }
-      });
-
-    res.status(200).json(lessons);
-  } catch (error) {
-    res.status(500).json({ message: 'Error filtering lessons', error: error.message });
+    res.status(500).json({ success: false, message: 'Error deleting lesson', error: error.message });
   }
 };

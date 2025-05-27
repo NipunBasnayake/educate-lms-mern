@@ -1,29 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {
-    createCalendarEvent,
-    getAllCalendarEvents,
-    getCalendarEventById,
-    updateCalendarEvent,
-    deleteCalendarEvent,
-    filterCalendarEvents
-} = require('../controllers/calendarController');
+const calendarController = require('../controllers/calendarController');
+const authMiddleware = require('../middleware/auth');
 
-const restrictTo = (roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access denied' });
-        }
-        next();
-    };
-};
-
-router.post('/', auth, restrictTo(['SuperAdmin', 'Instructor']), createCalendarEvent);
-router.get('/', auth, getAllCalendarEvents);
-router.get('/:id', auth, getCalendarEventById);
-router.put('/:id', auth, restrictTo(['SuperAdmin', 'Instructor']), updateCalendarEvent);
-router.delete('/:id', auth, restrictTo(['SuperAdmin', 'Instructor']), deleteCalendarEvent);
-router.get('/filter', auth, filterCalendarEvents);
+router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), calendarController.createCalendarEvent);
+router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), calendarController.getCalendarEvents);
+router.get('/:id', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), calendarController.getCalendarEventById);
+router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), calendarController.updateCalendarEvent);
+router.delete('/:id', authMiddleware(['Instructor', 'SuperAdmin']), calendarController.deleteCalendarEvent);
 
 module.exports = router;

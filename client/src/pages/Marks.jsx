@@ -1,27 +1,320 @@
-import Navbar from "../components/Navbar";
+import React from "react";
 import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer"; 
-
-
+import Card, { CardContent } from "../components/Card";
 
 const Institution = () => {
+  const academicYears = [
+    {
+      year: "Year 1",
+      semesters: [
+        {
+          name: "Semester 1",
+          subjects: [
+            { name: "Business Fundamentals", grade: "A+" },
+            { name: "Economics", grade: "B+" },
+            { name: "Business Math", grade: "A" },
+            { name: "Computer Skills", grade: "B" },
+            { name: "English", grade: "C+" },
+            { name: "Marketing", grade: "B+" },
+            { name: "Statistics", grade: "C" },
+            { name: "Ethics", grade: "A" },
+          ],
+        },
+        {
+          name: "Semester 2",
+          subjects: [
+            { name: "Accounting", grade: "A+" },
+            { name: "HRM", grade: "B+" },
+            { name: "Finance", grade: "A" },
+            { name: "Entrepreneurship", grade: "A" },
+            { name: "Business Law", grade: "B" },
+            { name: "OB", grade: "B+" },
+            { name: "Communication", grade: "C+" },
+            { name: "Operations", grade: "A" },
+          ],
+        },
+      ],
+    },
+    {
+      year: "Year 2",
+      semesters: [
+        {
+          name: "Semester 1",
+          subjects: [
+            { name: "Managerial Accounting", grade: "B+" },
+            { name: "Marketing Research", grade: "A" },
+            { name: "Quantitative Methods", grade: "A+" },
+            { name: "Organizational Behavior", grade: "B" },
+            { name: "Business Communication", grade: "B+" },
+            { name: "Project Management", grade: "C+" },
+            { name: "E-Commerce", grade: "A" },
+            { name: "Database Systems", grade: "B+" },
+          ],
+        },
+        {
+          name: "Semester 2",
+          subjects: [
+            { name: "Cost Accounting", grade: "A" },
+            { name: "Business Analytics", grade: "A+" },
+            { name: "Corporate Finance", grade: "B+" },
+            { name: "Consumer Behavior", grade: "A" },
+            { name: "Supply Chain", grade: "C" },
+            { name: "MIS", grade: "B+" },
+            { name: "Ethical Decision Making", grade: "A+" },
+            { name: "Leadership Skills", grade: "A" },
+          ],
+        },
+      ],
+    },
+    {
+      year: "Year 3",
+      semesters: [
+        {
+          name: "Semester 1",
+          subjects: [
+            { name: "Strategic Management", grade: "A+" },
+            { name: "Digital Marketing", grade: "B+" },
+            { name: "Innovation & Change", grade: "A" },
+            { name: "Negotiation Skills", grade: "B" },
+            { name: "Business Policy", grade: "C+" },
+            { name: "Public Relations", grade: "A" },
+            { name: "Data Analysis", grade: "B+" },
+            { name: "Taxation", grade: "A" },
+          ],
+        },
+        {
+          name: "Semester 2",
+          subjects: [
+            { name: "Risk Management", grade: "A" },
+            { name: "Performance Management", grade: "B+" },
+            { name: "Legal Environment", grade: "C+" },
+            { name: "Capital Markets", grade: "A" },
+            { name: "Cross-cultural Management", grade: "B+" },
+            { name: "Customer Relations", grade: "A+" },
+            { name: "Investment Analysis", grade: "A" },
+            { name: "Knowledge Management", grade: "B" },
+          ],
+        },
+      ],
+    },
+    {
+      year: "Year 4",
+      semesters: [
+        {
+          name: "Semester 1",
+          subjects: [
+            { name: "Research Methodology", grade: "A+" },
+            { name: "Advanced Strategic Mgmt", grade: "A" },
+            { name: "Corporate Governance", grade: "B+" },
+            { name: "Entrepreneurship Strategy", grade: "A" },
+            { name: "Social Responsibility", grade: "C+" },
+            { name: "Digital Transformation", grade: "A+" },
+            { name: "Business Intelligence", grade: "A" },
+            { name: "Portfolio Management", grade: "B+" },
+          ],
+        },
+        {
+          name: "Final Semester",
+          subjects: [
+            { name: "Dissertation", grade: "A+" },
+            { name: "Industry Training", grade: "A+" },
+            { name: "Viva Presentation", grade: "A" },
+            { name: "Case Study", grade: "A" },
+            { name: "Field Report", grade: "B+" },
+            { name: "Internship Logbook", grade: "A" },
+            { name: "Innovation Project", grade: "A+" },
+            { name: "Leadership Seminar", grade: "A" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  // Sample data for the results summary card:
+  const resultsSummary = {
+    examDates: "March 2025 - April 2025",
+    continuousAssessments: [
+      { name: "Midterm Exam", marks: 45 },
+      { name: "Project Work", marks: 40 },
+      { name: "Quizzes", marks: 15 },
+    ],
+    repeatedSubjects: ["Statistics", "Supply Chain"],
+    extraCurricularMarks: 85,
+    finalGPA: 3.75,
+  };
+
+  const gradeLegend = [
+    { grade: "A+", meaning: "Excellent" },
+    { grade: "A", meaning: "Very Good" },
+    { grade: "B+", meaning: "Good" },
+    { grade: "B", meaning: "Above Average" },
+    { grade: "C+", meaning: "Average" },
+    { grade: "C", meaning: "Below Average" },
+  ];
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <div className="flex flex-1">
-        <aside className="w-64 bg-gray-100 ">
-          <Sidebar />
-        </aside>
-        <main className="flex-1 p-4 flex justify-center items-center">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold">Marks Page</h1>
-            <p className="mt-4 text-lg">
-              This is the main content area centered on the page.
+    <div className="flex h-screen bg-neutral-50 text-neutral-800 overflow-hidden">
+      <aside className="fixed top-0 left-0 z-10 w-64 h-full">
+        <Sidebar />
+      </aside>
+
+      <main className="flex-1 h-full overflow-y-auto p-6 pt-10 ml-0 md:ml-64">
+        {/* Academic years cards */}
+        <Card>
+          <div className="mb-1 px-10 mt-6">
+            <h2 className="text-2xl font-semibold text-gray-900">Marks</h2>
+            <p className="text-sm text-gray-600">
+              LMS - Record of Formative Coursework Evaluation
             </p>
           </div>
-        </main>
+
+          <CardContent>
+            <div className="space-y-10">
+              {academicYears.map((year, yearIdx) => (
+                <div
+                  key={yearIdx}
+                  className="bg-white border border-gray-200 rounded-xl shadow-sm transition p-6"
+                >
+                  <h3 className="text-xl font-semibold text-blue-700 mb-6 text-left">
+                    {`${yearIdx + 1}. ${year.year}`}
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {year.semesters.map((semester, semIdx) => (
+                      <div
+                        key={semIdx}
+                        className="border rounded-lg p-4 bg-gray-50 flex flex-col items-center"
+                      >
+                        <h4 className="text-md font-semibold text-gray-800 mb-3">
+                          {semester.name}
+                        </h4>
+                        <ul className="space-y-2 w-full">
+                          {semester.subjects.map((subject, subIdx) => (
+                            <li
+                              key={subIdx}
+                              className="flex items-center justify-between text-sm border-b pb-1 text-gray-700"
+                            >
+                              <span className="truncate">{subject.name}</span>
+                              <span className="font-semibold w-12 flex items-center justify-center">
+                                {subject.grade}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Final results summary card */}
+        <Card className="mt-10">
+          <div className="mb-1 px-10 mt-6 flex justify-between items-start">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Results Summary
+              </h2>
+              <p className="text-sm text-gray-600">
+                Exam Face Dates:{" "}
+                <span className="font-medium">{resultsSummary.examDates}</span>
+              </p>
+            </div>
+
+            <div className="text-sm text-gray-700 bg-gray-100 p-4 rounded-md shadow-inner w-52">
+              <h4 className="font-semibold mb-2 text-center">Grade Meaning</h4>
+              <ul className="space-y-1">
+                {gradeLegend.map(({ grade, meaning }) => (
+                  <li
+                    key={grade}
+                    className="flex justify-between border-b pb-1 last:border-none"
+                  >
+                    <span className="font-semibold w-10 text-center">{grade}</span>
+                    <span className="text-left">{meaning}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+         <CardContent>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+      <h3 className="font-semibold text-lg mb-3 border-b border-gray-300 pb-1">
+        Continuous Assessments
+      </h3>
+      <ul className="space-y-2">
+        {resultsSummary.continuousAssessments.map((assessment, idx) => (
+          <li
+            key={idx}
+            className="flex justify-between border-b pb-1 text-gray-700"
+          >
+            <span>{assessment.name}</span>
+            <span className="font-semibold">{assessment.marks}%</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Applying for Exams Section */}
+      <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <h4 className="text-lg font-semibold text-gray-800 mb-2">
+          Applying for Exams
+        </h4>
+        <p className="text-gray-600 mb-4">
+          Apply for proper, repeat, or re-correction exams using the button below.
+        </p>
+        <button className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">
+          Click here
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 transform rotate-180"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
       </div>
-      <Footer />
+    </div>
+
+    <div>
+      <h3 className="font-semibold text-lg mb-3 border-b border-gray-300 pb-1">
+        Repeated Subjects
+      </h3>
+      <ul className="list-disc list-inside mb-6 text-gray-700">
+        {resultsSummary.repeatedSubjects.length > 0 ? (
+          resultsSummary.repeatedSubjects.map((subject, idx) => (
+            <li key={idx}>{subject}</li>
+          ))
+        ) : (
+          <li>No repeated subjects</li>
+        )}
+      </ul>
+
+      <h3 className="font-semibold text-lg mb-3 border-b border-gray-300 pb-1">
+        Extra-Curricular Activity Marks
+      </h3>
+      <p className="text-gray-700 font-semibold text-xl">
+        {resultsSummary.extraCurricularMarks}%
+      </p>
+
+      <h3 className="font-semibold text-lg mt-8 mb-3 border-b border-gray-300 pb-1">
+        Final GPA
+      </h3>
+      <p className="text-blue-700 font-bold text-2xl">
+        {resultsSummary.finalGPA}
+      </p>
+    </div>
+  </div>
+</CardContent>
+
+
+          
+        </Card>
+      </main>
     </div>
   );
 };

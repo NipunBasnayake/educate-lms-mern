@@ -1,136 +1,147 @@
-const mongoose = require('mongoose');
 const AuditLog = require('../models/AuditLog');
+const mongoose = require('mongoose');
 
 exports.createAuditLog = async (req, res) => {
   try {
-    const { action, details } = req.body;
+    const { action, user, userType, details } = req.body;
 
-    if (!action) {
-      return res.status(400).json({ message: 'Action is required' });
+    if (!action || !user || !userType) {
+      return res.status(400).json({ success: false, message: 'Action, user, and userType are required' });
     }
 
-    if (!req.user || !req.user.id || !req.user.role) {
-      return res.status(401).json({ message: 'Authentication required' });
+    if (!['Student', 'Instructor', 'SuperAdmin'].includes(userType)) {
+      return res.status(400).json({ success: false, message: 'Invalid userType' });
     }
 
-    if (!['Student', 'Instructor', 'SuperAdmin'].includes(req.user.role)) {
-      return res.status(400).json({ message: 'Invalid userType' });
+    if (req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ success: false, message: 'Only SuperAdmins can create audit logs' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(user)) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID' });
     }
 
     const auditLog = new AuditLog({
       action,
-      user: req.user.id,
-      userType: req.user.role,
-      details: details || ''
+      user,
+      userType,
+      details,
+      createdBy: req.user.id
     });
 
     await auditLog.save();
-    res.status(201).json({
-      message: 'Audit log created successfully',
-      auditLog: {
-        id: auditLog._id,
-        action: auditLog.action,
-        user: auditLog.user,
-        userType: auditLog.userType,
-        details: auditLog.details,
-        createdAt: auditLog.createdAt
+
+    res.status(201).json({ success: true, data: auditLog });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error creating audit log', error: error.message });
+  }
+};
+
+exports.getAuditLogs = async (req, res) => {
+  try {
+    const { userId, action, userType } = req.query;
+    let query = {};
+
+    if (req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ success: false, message: 'Only SuperAdmins can view audit logs' });
+    }
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ success: false, message: 'Invalid user ID' });
       }
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating audit log', error: error.message });
-  }
-};
-
-exports.getAllAuditLogs = async (req, res) => {
-  try {
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const auditLogs = await AuditLog.find()
-      .populate({
-        path: 'user',
-        select: 'name email',
-        model: function(doc) {
-          return doc.userType === 'Student' ? 'Student' :
-                 doc.userType === 'Instructor' ? 'Instructor' : 'SuperAdmin';
-        }
-      });
-
-    res.status(200).json(auditLogs);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching audit logs', error: error.message });
-  }
-};
-
-exports.getAuditLogById = async (req, res) => {
-  try {
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid audit log ID' });
-    }
-
-    const auditLog = await AuditLog.findById(req.params.id)
-      .populate({
-        path: 'user',
-        select: 'name email',
-        model: function(doc) {
-          return doc.userType === 'Student' ? 'Student' :
-                 doc.userType === 'Instructor' ? 'Instructor' : 'SuperAdmin';
-        }
-      });
-
-    if (!auditLog) {
-      return res.status(404).json({ message: 'Audit log not found' });
-    }
-
-    res.status(200).json(auditLog);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching audit log', error: error.message });
-  }
-};
-
-exports.filterAuditLogs = async (req, res) => {
-  try {
-    if (req.user.role !== 'SuperAdmin') {
-      return res.status(403).json({ message: 'Access denied' });
-    }
-
-    const { user, userType, action } = req.query;
-    const query = {};
-
-    if (user) {
-      if (!mongoose.isValidObjectId(user)) {
-        return res.status(400).json({ message: 'Invalid user ID' });
-      }
-      query.user = user;
-    }
-
-    if (userType && ['Student', 'Instructor', 'SuperAdmin'].includes(userType)) {
-      query.userType = userType;
-    } else if (userType) {
-      return res.status(400).json({ message: 'Invalid userType' });
+      query.user = userId;
     }
 
     if (action) {
       query.action = action;
     }
 
-    const auditLogs = await AuditLog.find(query)
-      .populate({
-        path: 'user',
-        select: 'name email',
-        model: function(doc) {
-          return doc.userType === 'Student' ? 'Student' :
-                 doc.userType === 'Instructor' ? 'Instructor' : 'SuperAdmin';
-        }
-      });
+    if (userType) {
+      if (!['Student', 'Instructor', 'SuperAdmin'].includes(userType)) {
+        return res.status(400).json({ success: false, message: 'Invalid userType' });
+      }
+      query.userType = userType;
+    }
 
-    res.status(200).json(auditLogs);
+    const auditLogs = await AuditLog.find(query)
+      .populate('user', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, data: auditLogs });
   } catch (error) {
-    res.status(500).json({ message: 'Error filtering audit logs', error: error.message });
+    res.status(500).json({ success: false, message: 'Error fetching audit logs', error: error.message });
+  }
+};
+
+exports.getAuditLogById = async (req, res) => {
+  try {
+    if (req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ success: false, message: 'Only SuperAdmins can view audit logs' });
+    }
+
+    const auditLog = await AuditLog.findById(req.params.id)
+      .populate('user', 'name');
+
+    if (!auditLog) {
+      return res.status(404).json({ success: false, message: 'Audit log not found' });
+    }
+
+    res.status(200).json({ success: true, data: auditLog });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching audit log', error: error.message });
+  }
+};
+
+exports.updateAuditLog = async (req, res) => {
+  try {
+    const { action, details } = req.body;
+
+    if (req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ success: false, message: 'Only SuperAdmins can update audit logs' });
+    }
+
+    const auditLog = await AuditLog.findById(req.params.id);
+    if (!auditLog) {
+      return res.status(404).json({ success: false, message: 'Audit log not found' });
+    }
+
+    const updateData = {
+      ...(action && { action }),
+      ...(details && { details }),
+      updatedBy: req.user.id,
+      updatedAt: Date.now()
+    };
+
+    const updatedAuditLog = await AuditLog.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+      .populate('user', 'name');
+
+    res.status(200).json({ success: true, data: updatedAuditLog });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating audit log', error: error.message });
+  }
+};
+
+exports.deleteAuditLog = async (req, res) => {
+  try {
+    if (req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ success: false, message: 'Only SuperAdmins can delete audit logs' });
+    }
+
+    const auditLog = await AuditLog.findById(req.params.id);
+
+    if (!auditLog) {
+      return res.status(404).json({ success: false, message: 'Audit log not found' });
+    }
+
+    await auditLog.deleteOne();
+
+    res.status(200).json({ success: true, message: 'Audit log deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error deleting audit log', error: error.message });
   }
 };

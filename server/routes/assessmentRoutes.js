@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {
-    createAssessment,
-    getAssessments,
-    getAssessmentById,
-    updateAssessment,
-    deleteAssessment,
-} = require('../controllers/assessmentController');
+const assessmentController = require('../controllers/assessmentController');
+const authMiddleware = require('../middleware/auth');
 
-router.post('/', auth(['Instructor', 'SuperAdmin']), createAssessment);
-router.get('/', auth(['Student', 'Instructor', 'SuperAdmin']), getAssessments);
-router.get('/:id', auth(['Student', 'Instructor', 'SuperAdmin']), getAssessmentById);
-router.put('/:id', auth(['Instructor', 'SuperAdmin']), updateAssessment);
-router.delete('/:id', auth(['Instructor', 'SuperAdmin']), deleteAssessment);
+router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.createAssessment);
+router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), assessmentController.getAssessments);
+router.get('/:id', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.getAssessmentById);
+router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.updateAssessment);
+router.delete('/:id', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.deleteAssessment);
 
 module.exports = router;
