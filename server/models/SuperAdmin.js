@@ -7,6 +7,8 @@ const SuperAdminSchema = new Schema({
   password: { type: String, required: true },
   role: { type: String, default: 'superadmin' },
   notifications: [{ type: Schema.Types.ObjectId, ref: 'Notification' }],
+  resetPasswordOTP: { type: String },
+  resetPasswordExpires: { type: Number },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
