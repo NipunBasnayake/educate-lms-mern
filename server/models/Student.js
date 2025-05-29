@@ -34,6 +34,8 @@ const StudentSchema = new Schema({
     examAverage: { type: Number, default: 0 },
     progress: [{ course: { type: Schema.Types.ObjectId, ref: 'Course' }, percentage: { type: Number } }]
   },
+  resetPasswordOTP: { type: String },
+  resetPasswordExpires: { type: Number },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
