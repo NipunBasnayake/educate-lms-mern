@@ -3,6 +3,13 @@ export const courses = [
     id: "BUS301",
     name: "Strategic Management",
     credits: 3,
+    grade: "A+",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Understand market forces and develop competitive strategies.",
     instructor: "Prof. James Wilson",
     department: "Business Administration",
@@ -24,6 +31,13 @@ export const courses = [
     id: "BUS205",
     name: "Business Ethics",
     credits: 2,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Explore ethical decision-making in corporate environments.",
     instructor: "Dr. Sarah Chen",
     department: "Business Administration",
@@ -45,6 +59,13 @@ export const courses = [
     id: "MKT310",
     name: "Marketing Analytics",
     credits: 3,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Use data to drive marketing decisions and measure impact.",
     instructor: "Prof. Alan Ruiz",
     department: "Marketing",
@@ -66,6 +87,13 @@ export const courses = [
     id: "OPS320",
     name: "Operations Research",
     credits: 3,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Model business processes for better efficiency and productivity.",
     instructor: "Dr. Michael Johnson",
     department: "Operations Management",
@@ -87,6 +115,13 @@ export const courses = [
     id: "HRM210",
     name: "Organizational Behavior",
     credits: 3,
+    grade: "B",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Analyze how individuals and groups impact organizational dynamics.",
     instructor: "Dr. Emily Park",
     department: "Human Resources",
@@ -108,6 +143,13 @@ export const courses = [
     id: "ACC101",
     name: "Financial Accounting",
     credits: 3,
+    grade: "A+",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Interpret financial statements and track business performance.",
     instructor: "Prof. Robert Kim",
     department: "Accounting",
@@ -129,6 +171,13 @@ export const courses = [
     id: "HRM315",
     name: "Leadership & Influence",
     credits: 2,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Develop skills to lead teams and manage change.",
     instructor: "Dr. Lisa Wong",
     department: "Human Resources",
@@ -150,6 +199,13 @@ export const courses = [
     id: "ENT302",
     name: "Innovation Management",
     credits: 2,
+    grade: "A+",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Foster creativity and bring new products to market.",
     instructor: "Prof. David Miller",
     department: "Entrepreneurship",
@@ -171,6 +227,13 @@ export const courses = [
     id: "OPS410",
     name: "Supply Chain Management",
     credits: 3,
+    grade: "C",
+    isRepeated: true,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Coordinate logistics and inventory across global networks.",
     instructor: "Prof. Angela Lopez",
     department: "Operations Management",
@@ -192,6 +255,13 @@ export const courses = [
     id: "BUS350",
     name: "Data-Driven Decision Making",
     credits: 3,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Leverage analytics for smarter business strategies.",
     instructor: "Dr. Mark Taylor",
     department: "Business Analytics",
@@ -213,6 +283,13 @@ export const courses = [
     id: "BUS220",
     name: "International Business",
     credits: 3,
+    grade: "B+",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Navigate global trade, markets, and cultural differences.",
     instructor: "Prof. Sophia Patel",
     department: "International Business",
@@ -234,6 +311,13 @@ export const courses = [
     id: "HRM405",
     name: "Human Resource Strategy",
     credits: 3,
+    grade: "A",
+    isRepeated: false,
+    assessments: {
+      midterm: 45,
+      project: 40,
+      quizzes: 15
+    },
     description: "Align HR practices with organizational goals.",
     instructor: "Dr. Emily Park",
     department: "Human Resources",
@@ -252,3 +336,18 @@ export const courses = [
     ]
   }
 ];
+
+// Shared academic data
+export const academicSummary = {
+  finalGPA: 3.75,
+  extraCurricularMarks: "85%",
+  examDateRange: "March 2025 - April 2025",
+  gradeMeanings: {
+    "A+": "Excellent",
+    "A": "Very Good",
+    "B+": "Good",
+    "B": "Above Average",
+    "C+": "Average",
+    "C": "Below Average"
+  }
+};

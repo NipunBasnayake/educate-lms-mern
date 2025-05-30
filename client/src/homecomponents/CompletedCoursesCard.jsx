@@ -1,4 +1,3 @@
-import React from 'react';
 import img1 from '../images/img1.jpg';
 import img2 from '../images/img2.jpg';
 import img3 from '../images/img3.jpg';
@@ -67,7 +66,7 @@ const CompletedCoursesCard = () => {
                 <Link
                   to={`/course/${course.id}`}
                   state={{ course: course }}
-                  className="text-sm px-3 py-1 bg-white text-blue-600 border border-blue-600 rounded-md shadow-sm hover:bg-blue-600 hover:text-white transition duration-300 ease-in-out"
+                  className="text-sm px-3 py-1 bg-black text-white  rounded-md shadow-sm hover:bg-gray-600 hover:text-white transition duration-300 ease-in-out"
                 >
                   View
                 </Link>
