@@ -2,27 +2,29 @@ import React from 'react';
 import img1 from '../images/img1.jpg';
 import img2 from '../images/img2.jpg';
 import img3 from '../images/img3.jpg';
+import { Link } from "react-router-dom";
+
 
 const courses = [
   {
-    id: 'CS501',
-    title: 'Advanced Data Structures',
-    details: ['✔ Grade: A (95%)', '📅 Dec 2023'],
-    description: 'Mastered complex data structures and algorithms with practical implementations.',
+    id: 'BUS301',
+    title: 'Strategic Management',
+    details: ['📅 Dec 2023'],
+    description: 'Understand market forces and develop competitive strategies..',
     image: img1
   },
   {
-    id: 'CS502',
-    title: 'Machine Learning',
-    details: ['✔ Honors (Top 10%)', '📅 Mar 2024'],
-    description: 'Developed predictive models using supervised and unsupervised learning techniques.',
+    id: 'BUS205',
+    title: 'Business Ethics',
+    details: ['📅 Mar 2024'],
+    description: 'Explore ethical decision-making in corporate environments.',
     image: img2
   },
   {
-    id: 'CS503',
-    title: 'Web Development',
-    details: ['✔ Capstone: A+', '📅 May 2024'],
-    description: 'Built full-stack applications with modern frameworks and responsive design.',
+    id: 'MKT310',
+    title: 'Marketing Analytics',
+    details: ['📅 May 2024'],
+    description: 'Use data to drive marketing decisions and measure impact.',
     image: img3
   },
 ];
@@ -30,7 +32,7 @@ const courses = [
 const CompletedCoursesCard = () => {
   return (
     <div className="bg-white bordershadow-sm p-2 rounded-xl">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">Completed Courses</h2>
+      <h2 className="text-lg font-semibold text-gray-800 mb-6">Recent Courses</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
@@ -62,15 +64,13 @@ const CompletedCoursesCard = () => {
               <p className="text-xs font-mono text-gray-500">ID: {course.id}</p>
               <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
               <div className="flex justify-end">
-                <button 
-                  className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
-                  onClick={() => console.log(`Details for ${course.id}`)}
+                <Link
+                  to={`/course/${course.id}`}
+                  state={{ course: course }}
+                  className="text-sm px-3 py-1 bg-white text-blue-600 border border-blue-600 rounded-md shadow-sm hover:bg-blue-600 hover:text-white transition duration-300 ease-in-out"
                 >
-                  See Details
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+                  View
+                </Link>
               </div>
             </div>
           </div>
