@@ -5,20 +5,29 @@ import AssignedAssessments from "../homecomponents/assigned";
 import Exm from "../homecomponents/Examr";
 import CompletedAssessmentsCard from "../homecomponents/CompletedAssessmentsCard";
 import Completed from "../homecomponents/CompletedCoursesCard";
+import Card, { CardContent } from "../components/Card";
 
 const Home = () => {
   return (
-    <div className="flex flex-col h-screen bg-gray-100 text-gray-800">
+    <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-6 overflow-y-auto">
-          <div className="max-w-8xl mx-auto space-y-8 mt-6">
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-12xl mx-auto p-1">
             <Section>
-              <Completed />
-              <CompletedAssessmentsCard />
-              <Exm />
-              <AssignedAssessments />
-              <Performance />
+              <Card className="bg-white">
+                <CardContent className="space-y-6 p-">
+                  <Completed />
+                  <div className="border-t border-gray-200 my-2"></div>
+                  <CompletedAssessmentsCard />
+                  <div className="border-t border-gray-200 my-2"></div>
+                  <Exm />
+                  <div className="border-t border-gray-200 my-2"></div>
+                  <AssignedAssessments />
+                  <div className="border-t border-gray-200 my-2"></div>
+                  <Performance />
+                </CardContent>
+              </Card>
             </Section>
           </div>
         </main>

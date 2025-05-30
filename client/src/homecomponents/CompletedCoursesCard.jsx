@@ -29,7 +29,7 @@ const courses = [
 
 const CompletedCoursesCard = () => {
   return (
-    <div className="bg-white border border-gray-300 shadow-sm p-6 rounded-xl">
+    <div className="bg-white bordershadow-sm p-2 rounded-xl">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">Completed Courses</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,10 +57,21 @@ const CompletedCoursesCard = () => {
               ))}
             </div>
             
-            {/* Bottom: ID and Description */}
-            <div className="mt-auto">
-              <p className="text-xs font-mono text-gray-500 mb-1">ID: {course.id}</p>
+            {/* Bottom: ID and Description with See Details button */}
+            <div className="mt-auto space-y-2">
+              <p className="text-xs font-mono text-gray-500">ID: {course.id}</p>
               <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
+              <div className="flex justify-end">
+                <button 
+                  className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
+                  onClick={() => console.log(`Details for ${course.id}`)}
+                >
+                  See Details
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         ))}
