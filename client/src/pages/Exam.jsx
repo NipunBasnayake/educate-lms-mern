@@ -730,7 +730,7 @@ const ExamApplication = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-20">
       {/* Fixed Sidebar */}
       <aside className="fixed top-0 left-0 z-10 w-64 h-full border-r border-gray-200 bg-white">
         <Sidebar />
