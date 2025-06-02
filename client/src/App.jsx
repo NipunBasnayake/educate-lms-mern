@@ -18,6 +18,8 @@ import Terms from "./pages/Terms"; // Assuming you have a Terms of Service page
 import Accessibility from "./pages/Accessibility"; // Assuming you have an Accessibility page
 import CourseList from "./pages/CourseList";
 import CourseDetails from "./pages/CourseDetails"; // Ensure CourseDetails has a default export
+import Exam from './pages/Exam'; // Make sure the path is correct
+
 
 function App() {
   return (
@@ -40,8 +42,9 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/accessibility" element={<Accessibility />} />
-        
-  <Route path="/course/:id" element={<CourseDetails />} />
+
+        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/exam-application" element={<Exam />} />
       </Routes>
     </Router>
   );
