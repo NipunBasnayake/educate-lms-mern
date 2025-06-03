@@ -20,6 +20,7 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const formatResponse = require("./middleware/response");
 
 console.log("Environment Variables:");
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
@@ -35,6 +36,7 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(formatResponse);
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/auth", authRoutes);
