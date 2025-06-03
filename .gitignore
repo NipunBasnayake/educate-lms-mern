@@ -38,11 +38,11 @@ coverage/
 dump/
 
 # React (Client) specific
-/client/node_modules/
+client/node_modules/
 client/build/
 
 # Server specific
-/server/node_modules/
+server/node_modules/
 server/dist/
 
 # Optional: testing outputs
