@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AssignmentsTab = ({
   assignments,
@@ -12,6 +12,38 @@ const AssignmentsTab = ({
   const [comments, setComments] = useState("");
   const [showSubmissionSuccess, setShowSubmissionSuccess] = useState(false);
   const [submissionStatusState, setSubmissionStatusState] = useState({});
+  const [timeRemaining, setTimeRemaining] = useState({});
+
+  // Calculate time remaining for each assignment
+  useEffect(() => {
+    const calculateTimeRemaining = () => {
+      const now = new Date();
+      const newTimeRemaining = {};
+      
+      assignments.forEach(assignment => {
+        const dueDate = new Date(assignment.dueDate);
+        const diff = dueDate - now;
+        
+        if (diff > 0) {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          newTimeRemaining[assignment.id] = `${days}d ${hours}h remaining`;
+        } else {
+          const lateBy = Math.abs(diff);
+          const days = Math.floor(lateBy / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((lateBy % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          newTimeRemaining[assignment.id] = `Late by ${days}d ${hours}h`;
+        }
+      });
+      
+      setTimeRemaining(newTimeRemaining);
+    };
+
+    calculateTimeRemaining();
+    const interval = setInterval(calculateTimeRemaining, 3600000); // Update every hour
+    
+    return () => clearInterval(interval);
+  }, [assignments]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -40,7 +72,12 @@ const AssignmentsTab = ({
           return { 
             ...assignment, 
             status: status,
-            submittedAt: submittedAt
+            submittedAt: submittedAt,
+            studentName: studentName,
+            fileName: file.name,
+            lastModified: now.toISOString(),
+            isLate: isLate,
+            comments: comments
           };
         }
         return assignment;
@@ -54,7 +91,8 @@ const AssignmentsTab = ({
         timestamp: now.toLocaleString(),
         status: status,
         isLate: isLate,
-        dueDate: assignment.dueDate
+        dueDate: assignment.dueDate,
+        comments: comments
       });
 
       setShowSubmissionSuccess(true);
@@ -79,6 +117,21 @@ const AssignmentsTab = ({
     setAssignments(updatedAssignments);
   };
 
+  const getAssignmentStatusColor = (status) => {
+    switch(status) {
+      case "Submitted On Time":
+        return "bg-green-100 text-green-800";
+      case "Submitted Late":
+        return "bg-red-100 text-red-800";
+      case "Graded":
+        return "bg-purple-100 text-purple-800";
+      case "Not Graded":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-6 text-gray-900">Assignments</h2>
@@ -96,7 +149,10 @@ const AssignmentsTab = ({
                     {assignment.title}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
-                    Due: {assignment.dueDate}
+                    Due: {formatDateTime(assignment.dueDate)}
+                  </p>
+                  <p className="text-xs mt-1">
+                    {timeRemaining[assignment.id]}
                   </p>
                   {assignment.submittedAt && (
                     <p className="text-sm mt-1">
@@ -106,15 +162,7 @@ const AssignmentsTab = ({
                 </div>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    assignment.status === "Submitted On Time"
-                      ? "bg-green-100 text-green-800"
-                      : assignment.status === "Submitted Late"
-                      ? "bg-red-100 text-red-800"
-                      : assignment.status === "Graded"
-                      ? "bg-purple-100 text-purple-800"
-                      : assignment.status === "Not Graded"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-800"
+                    getAssignmentStatusColor(assignment.status)
                   }`}
                 >
                   {assignment.status}
@@ -124,9 +172,7 @@ const AssignmentsTab = ({
               <div className="mt-4 flex space-x-2 flex-wrap gap-2">
                 <button
                   className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 flex items-center"
-                  onClick={() =>
-                    window.open("/sample-assignment.pdf", "_blank")
-                  }
+                  onClick={() => window.open("/sample-assignment.pdf", "_blank")}
                 >
                   <svg
                     className="h-4 w-4 mr-1"
@@ -349,6 +395,11 @@ const AssignmentsTab = ({
                 <p className="text-sm text-gray-500">
                   Submitted on: {submissionStatus.timestamp}
                 </p>
+                {submissionStatus.comments && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Comments: {submissionStatus.comments}
+                  </p>
+                )}
               </div>
             </div>
           ) : (
@@ -372,7 +423,7 @@ const AssignmentsTab = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M5 13l4 4L19 7"
+                d={submissionStatusState.isLate ? "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" : "M5 13l4 4L19 7"}
               />
             </svg>
             <div>
