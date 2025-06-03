@@ -8,6 +8,8 @@ const InstructorSchema = new Schema({
   courses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
   notifications: [{ type: Schema.Types.ObjectId, ref: 'Notification' }],
   calendarEvents: [{ type: Schema.Types.ObjectId, ref: 'CalendarEvent' }],
+  resetPasswordOTP: { type: String },
+  resetPasswordExpires: { type: Number },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
