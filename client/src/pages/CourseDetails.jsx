@@ -20,7 +20,7 @@ const CourseDetails = () => {
     {
       id: 1,
       title: "Assignment 1",
-      dueDate: "jun 03, 2025 12:00",
+      dueDate: "jun 09, 2025 12:00",
       status: "Not Submitted",
       submittedAt: null,
     },
