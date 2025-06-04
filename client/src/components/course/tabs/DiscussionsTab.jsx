@@ -94,11 +94,11 @@ const DiscussionsTab = () => {
               {selectedDiscussion.replies > 0 && (
                 <>
                   <div className="bg-gray-50 p-3 rounded-md">
-                    <p className="text-sm text-gray-500 mb-1">Alice Johnson</p>
-                    <p>I had the same issue. Try checking the documentation on page 45.</p>
+                    <p className="text-sm text-gray-500 mb-1">Lecture</p>
+                    <p> Good question — Slide 15 focuses on the concept of module resolution in Vite. This involves how Vite locates and optimizes dependencies during development and build time.</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">
-                    <p className="text-sm text-gray-500 mb-1">Bob Wilson</p>
+                    <p className="text-sm text-gray-500 mb-1">Lecture</p>
                     <p>Here's a code example that might help: [example]</p>
                   </div>
                 </>

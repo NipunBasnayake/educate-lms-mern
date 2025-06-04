@@ -11,6 +11,7 @@ import ExamsTab from "../components/course/tabs/ExamsTab";
 import MaterialsTab from "../components/course/tabs/MaterialsTab";
 import DiscussionsTab from "../components/course/tabs/DiscussionsTab";
 import AssignmentsTab from "../components/course/tabs/AssignmentsTab";
+import OnlineSessionTab from "../components/course/tabs/OnlineSessionTabs";
 
 const CourseDetails = () => {
   const { id } = useParams();
@@ -111,6 +112,25 @@ const CourseDetails = () => {
     },
   ];
 
+  const onlineSessions = [
+    {
+      id: 1,
+      title: "Live Q&A Session",
+      date: "Oct 10, 2023",
+      time: "14:00 - 15:30",
+      instructor: "Prof. Wilson",
+      meetingLink: "https://meet.example.com/abc123",
+    },
+    {
+      id: 2,
+      title: "Guest Lecture: Industry Trends",
+      date: "Oct 24, 2023",
+      time: "10:00 - 11:30",
+      instructor: "Dr. Smith (Guest)",
+      meetingLink: "https://meet.example.com/xyz456",
+    },
+  ];
+
   const formatDateTime = (dateString) => {
     if (!dateString) return "Not submitted";
     const date = new Date(dateString);
@@ -137,7 +157,7 @@ const CourseDetails = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {activeTab === "overview" && <OverviewTab course={course} />}
           {activeTab === "lessons" && <LessonsTab lessons={lessons} />}
-          {activeTab === "assessments" && (
+          {activeTab === "Quizes" && (
             <AssessmentsTab assessments={assessments} />
           )}
           {activeTab === "exams" && <ExamsTab exams={exams} />}
@@ -154,6 +174,9 @@ const CourseDetails = () => {
               submissionStatus={submissionStatus}
               formatDateTime={formatDateTime}
             />
+          )}
+          {activeTab === "online-session" && (
+            <OnlineSessionTab sessions={onlineSessions} />
           )}
         </div>
       </main>

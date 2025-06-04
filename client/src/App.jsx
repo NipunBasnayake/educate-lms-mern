@@ -21,6 +21,7 @@ import CourseDetails from "./pages/CourseDetails"; // Ensure CourseDetails has a
 import Exam from './pages/Exam'; // Make sure the path is correct
 
 
+
 function App() {
   return (
     <Router>
