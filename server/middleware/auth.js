@@ -9,8 +9,7 @@ const authMiddleware = (roles = []) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
 
       if (roles.length && !roles.includes(req.user.role)) {
         return res.error('Access denied',FORBIDDEN);
