@@ -81,23 +81,23 @@ apiClient.interceptors.response.use(
 
     // Handle 403 Forbidden (role-based access)
     if (status === 403) {
-      swal({
+      /* swal({
         title: "Access Denied",
         text: "You don't have permission to access this resource.",
         icon: "error",
         button: "OK",
-      });
+      }); */
       return Promise.reject(error);
     }
 
     // Handle other errors
     if (status >= 500) {
-      swal({
+      /* swal({
         title: "Server Error",
         text: "Something went wrong on our end. Please try again later.",
         icon: "error",
         button: "OK",
-      });
+      }); */
     }
 
     return Promise.reject(error);
