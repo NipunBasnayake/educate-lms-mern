@@ -33,7 +33,7 @@ const register = async (req, res) => {
 
     try {
         if (!["Student", "Instructor", "SuperAdmin"].includes(role)) {
-            return res.error("Invalid Role",HttpsStatus.BAD_REQUEST);
+            return res.error("Invalid Role", HttpsStatus.BAD_REQUEST);
         }
 
         let user;
@@ -46,7 +46,7 @@ const register = async (req, res) => {
         }
 
         if (user) {
-            return res.error("User already exists",HttpsStatus.CONFLICT);
+            return res.error("User already exists", HttpsStatus.CONFLICT);
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -94,7 +94,7 @@ const register = async (req, res) => {
         )
     } catch (error) {
         console.error("Register Error", error);
-        res.error("Error registering user",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error registering user", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -103,7 +103,7 @@ const login = async (req, res) => {
 
     try {
         if (!email || !password) {
-            return res.error("Email and password are required",HttpsStatus.BAD_REQUEST);
+            return res.error("Email and password are required", HttpsStatus.BAD_REQUEST);
         }
 
         let user, role;
@@ -123,12 +123,12 @@ const login = async (req, res) => {
         }
 
         if (!user) {
-            return res.error("User not found",HttpsStatus.NOT_FOUND)
+            return res.error("User not found", HttpsStatus.NOT_FOUND)
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.error("Invalid credentials",HttpsStatus.UNAUTHORIZED)
+            return res.error("Invalid credentials", HttpsStatus.UNAUTHORIZED)
         }
 
         const payload = {id: user._id, role};
@@ -145,7 +145,7 @@ const login = async (req, res) => {
             HttpsStatus.OK,
         );
     } catch (error) {
-        res.error("Error logging in",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error logging in", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -161,12 +161,12 @@ const getProfile = async (req, res) => {
         }
 
         if (!user) {
-            return res.status(404).json({message: "User not found"});
+            return res.error("User not found", HttpsStatus.NOT_FOUND);
         }
 
-        res.json(user);
+        res.success(user, "User Profile Fetched Successfully", HttpsStatus.OK);
     } catch (error) {
-        res.status(500).json({message: "Error fetching profile", error: error.message});
+        res.error("Error fetching profile", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -178,12 +178,12 @@ const getUserById = async (req, res) => {
         if (!user) user = await SuperAdmin.findById(req.params.id).select("-password");
 
         if (!user) {
-            return res.status(404).json({message: "User not found"});
+            return res.error("User not found", HttpsStatus.NOT_FOUND);
         }
 
-        res.json(user);
+        res.success(user, "User Fetched Successfully", HttpsStatus.OK);
     } catch (error) {
-        res.status(500).json({message: "Error fetching user", error: error.message});
+        res.error("Error fetching user", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -194,7 +194,7 @@ const updateProfile = async (req, res) => {
 
         if (req.user.role === "Student") {
             user = await Student.findById(req.user.id);
-            if (!user) return res.status(404).json({message: "User not found"});
+            if (!user) return res.error("Error fetching user", HttpsStatus.NOT_FOUND);
             user.name = name || user.name;
             user.email = email || user.email;
             if (phone || address || preferences) {
@@ -206,23 +206,24 @@ const updateProfile = async (req, res) => {
             }
         } else if (req.user.role === "Instructor") {
             user = await Instructor.findById(req.user.id);
-            if (!user) return res.status(404).json({message: "User not found"});
+            if (!user) return res.error("Error fetching user", HttpsStatus.NOT_FOUND);
             user.name = name || user.name;
             user.email = email || user.email;
         } else if (req.user.role === "SuperAdmin") {
             user = await SuperAdmin.findById(req.user.id);
-            if (!user) return res.status(404).json({message: "User not found"});
+            if (!user) return res.error("Error fetching user", HttpsStatus.NOT_FOUND);
             user.name = name || user.name;
             user.email = email || user.email;
         }
 
         await user.save();
-        res.json({
-            message: "Profile updated successfully",
-            user: user.toObject({getters: true}),
-        });
+        res.success(
+            {user: user.toObject({getters: true})},
+            "Profile updated successfully",
+            HttpsStatus.OK
+        )
     } catch (error) {
-        res.status(500).json({message: "Error updating profile", error: error.message});
+        res.error("Error updating profile", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -257,16 +258,17 @@ const updateUserById = async (req, res) => {
         }
 
         if (!user) {
-            return res.status(404).json({message: "User not found"});
+            return res.error("User not found", HttpsStatus.NOT_FOUND);
         }
 
         await user.save();
-        res.json({
-            message: "User updated successfully",
-            user: user.toObject({getters: true}),
-        });
+        res.success(
+            {user: user.toObject({getters: true})},
+            "User Updated Successfully",
+            HttpsStatus.OK,
+        )
     } catch (error) {
-        res.status(500).json({message: "Error updating user", error: error.message});
+        res.error("Error updating user", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -278,12 +280,12 @@ const deleteUser = async (req, res) => {
         if (!user) user = await SuperAdmin.findByIdAndDelete(req.params.id);
 
         if (!user) {
-            return res.status(404).json({message: "User not found"});
+            return res.error("User not found", HttpsStatus.NOT_FOUND);
         }
 
-        res.json({message: "User deleted successfully"});
+        res.success(null, "User deleted successfully", HttpsStatus.OK);
     } catch (error) {
-        res.status(500).json({message: "Error deleting user", error: error.message});
+        res.error("Error deleting user", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -296,7 +298,7 @@ const forgotPassword = async (req, res) => {
                 EMAIL_USER: process.env.EMAIL_USER,
                 EMAIL_PASS: process.env.EMAIL_PASS ? "[REDACTED]" : undefined,
             });
-            return res.status(500).json({message: "Email configuration missing"});
+            return res.error("Email configuration missing", HttpsStatus.INTERNAL_SERVER_ERROR);
         }
 
         let user;
@@ -306,13 +308,13 @@ const forgotPassword = async (req, res) => {
 
         if (!user) {
             console.log(`No user found for email: ${email}`);
-            return res.status(404).json({message: "User not found"});
+            return res.error("User not found", HttpsStatus.NOT_FOUND);
         }
 
         // Prevent generating new OTP if an active one exists
         if (user.resetPasswordExpires && Date.now() < user.resetPasswordExpires) {
             console.log(`Active OTP exists for ${email}, expires at ${user.resetPasswordExpires}`);
-            return res.status(400).json({message: "An active OTP already exists. Please wait before requesting a new one."});
+            return res.error("An active OTP already exists. Please wait before requesting a new one.", HttpsStatus.BAD_REQUEST);
         }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -324,7 +326,7 @@ const forgotPassword = async (req, res) => {
             console.log(`OTP ${otp} saved for user ${email}, expires at ${user.resetPasswordExpires}`);
         } catch (saveError) {
             console.error(`Error saving OTP for ${email}:`, saveError);
-            return res.status(500).json({message: "Error saving OTP", error: saveError.message});
+            return res.error("Error saving OTP", HttpsStatus.INTERNAL_SERVER_ERROR, saveError);
         }
 
         const mailOptions = {
@@ -346,13 +348,13 @@ const forgotPassword = async (req, res) => {
             console.log(`OTP email sent to ${email}`);
         } catch (emailError) {
             console.error(`Error sending OTP email to ${email}:`, emailError);
-            return res.status(500).json({message: "Error sending OTP email", error: emailError.message});
+            return res.error("Error sending OTP email", HttpsStatus.INTERNAL_SERVER_ERROR, emailError);
         }
 
-        res.json({message: "OTP sent to email"});
+        res.success(null, "OTP sent to email", HttpsStatus.OK);
     } catch (error) {
         console.error("Error in forgotPassword:", error);
-        res.status(500).json({message: "Error sending OTP", error: error.message});
+        res.error("Error sending OTP", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -367,7 +369,7 @@ const verifyOTP = async (req, res) => {
 
         if (!user) {
             console.log(`No user found for email: ${email}`);
-            return res.status(404).json({message: "User not found"});
+            return res.error(`No User Found For email ${email}`, HttpsStatus.NOT_FOUND);
         }
 
         console.log("Stored OTP:", user.resetPasswordOTP);
@@ -377,17 +379,17 @@ const verifyOTP = async (req, res) => {
 
         if (!user.resetPasswordOTP || !user.resetPasswordExpires) {
             console.log("No OTP found for user");
-            return res.status(400).json({message: "No OTP found. Please request a new one."});
+            return res.error("No OTP found. Please request a new one.",HttpsStatus.NOT_FOUND);
         }
 
         if (String(user.resetPasswordOTP).trim() !== String(otp).trim()) {
             console.log("OTP mismatch");
-            return res.status(400).json({message: "Invalid OTP"});
+            return res.error("Invalid OTP",HttpsStatus.BAD_REQUEST);
         }
 
         if (Date.now() > user.resetPasswordExpires) {
             console.log("OTP expired");
-            return res.status(400).json({message: "Expired OTP"});
+            return res.error("Expired OTP",HttpsStatus.BAD_REQUEST);
         }
 
         const payload = {
@@ -406,13 +408,17 @@ const verifyOTP = async (req, res) => {
             console.log(`OTP cleared for user ${email}`);
         } catch (saveError) {
             console.error(`Error clearing OTP for ${email}:`, saveError);
-            return res.status(500).json({message: "Error clearing OTP", error: saveError.message});
+            return res.error("Error clearing OTP",HttpsStatus.INTERNAL_SERVER_ERROR,saveError);
         }
 
-        res.json({message: "OTP verified", resetToken: token});
+        res.success(
+            {resetToken: token},
+            "OTP Verified",
+            HttpsStatus.OK,
+        )
     } catch (error) {
         console.error("Error in verifyOTP:", error);
-        res.status(500).json({message: "Error verifying OTP", error: error.message});
+        res.error("Error verifying OTP",HttpsStatus.INTERNAL_SERVER_ERROR,error);
     }
 };
 
@@ -430,7 +436,7 @@ const resetPassword = async (req, res) => {
         }
 
         if (!user) {
-            return res.status(404).json({message: "User not found"});
+            return res.error("user Not Found",HttpsStatus.NOT_FOUND);
         }
 
         user.password = await bcrypt.hash(password, 10);
@@ -438,9 +444,9 @@ const resetPassword = async (req, res) => {
         user.resetPasswordExpires = undefined;
         await user.save();
 
-        res.json({message: "Password reset successfully"});
+        res.success(null,"Password reset successfully",HttpsStatus.OK);
     } catch (error) {
-        res.status(500).json({message: "Error resetting password", error: error.message});
+        res.error("Error resetting password",HttpsStatus.INTERNAL_SERVER_ERROR,error);
     }
 };
 
@@ -451,7 +457,7 @@ const testEmail = async (req, res) => {
                 EMAIL_USER: process.env.EMAIL_USER,
                 EMAIL_PASS: process.env.EMAIL_PASS ? "[REDACTED]" : undefined,
             });
-            return res.status(500).json({message: "Email configuration missing"});
+            return res.error("Email configuration missing",HttpsStatus.INTERNAL_SERVER_ERROR);
         }
 
         const mailOptions = {
@@ -462,10 +468,10 @@ const testEmail = async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-        res.json({message: "Test email sent"});
+        res.success(null,"Test email sent",HttpsStatus.OK);
     } catch (error) {
         console.error("Error in testEmail:", error);
-        res.status(500).json({message: "Error sending test email", error: error.message});
+        res.error("Error sending test email",HttpsStatus.INTERNAL_SERVER_ERROR,error);
     }
 };
 
