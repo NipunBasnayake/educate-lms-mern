@@ -1,9 +1,9 @@
+const flowbiteReact = require("flowbite-react/plugin/tailwindcss");
+
 // tailwind.config.js
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}", // ✅ Adjust if needed based on your folder structure
-  ],
+  content: ["./index.html", // ✅ Adjust if needed based on your folder structure
+  "./src/**/*.{js,jsx,ts,tsx}", ".flowbite-react\\class-list.json"],
   theme: {
     extend: {
       keyframes: {
@@ -22,5 +22,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [flowbiteReact],
 };
