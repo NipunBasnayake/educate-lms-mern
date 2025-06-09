@@ -4,8 +4,12 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
+import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
+import { logout } from "../redux/features/authSlice";
 
 const Logout = () => {
+  const dispatch = useAppDispatch();
+  const {isAuthenticated} = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
   const [countdown, setCountdown] = React.useState(10);
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
@@ -17,9 +21,12 @@ const Logout = () => {
     // Simulate logout API call
     setTimeout(() => {
       // Clear user session
-      localStorage.removeItem("authToken");
+      dispatch(logout());
+
+      
+/*       localStorage.removeItem("authToken");
       localStorage.removeItem("userData");
-      sessionStorage.clear();
+      sessionStorage.clear(); */
       
       // Redirect to login page
       navigate("/login");
