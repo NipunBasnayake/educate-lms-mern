@@ -40,8 +40,6 @@ dump/
 # React (Client) specific
 client/node_modules/
 client/build/
-client/.env
-client/.env.development
 
 # Server specific
 server/node_modules/
