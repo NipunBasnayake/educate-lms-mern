@@ -22,8 +22,6 @@
     "bootstrap": "^5.3.6",
     "cdbreact": "^1.5.19",
     "dotenv": "^16.5.0",
-    "flowbite": "^3.1.2",
-    "flowbite-react": "^0.11.7",
     "formik": "^2.4.6",
     "framer-motion": "^12.12.1",
     "lucide-react": "^0.510.0",
