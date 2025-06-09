@@ -34,11 +34,12 @@ const app = express();
 connectDB();
 
 app.use(express.json());
-app.use(cookieParser());
+/*app.use(cookieParser());
 app.use(cors({
     origin: process.env.FRONTEND_ORIGIN,
     credentials: true,
-}));
+}));*/
+app.use(cors())
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(responseFormatter())
