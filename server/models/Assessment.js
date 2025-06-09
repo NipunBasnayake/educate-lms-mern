@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { mod } = require("three/tsl");
+//const { mod } = require("three/tsl");
 const Schema = mongoose.Schema;
 
 const AssessmentSchema = new Schema({
