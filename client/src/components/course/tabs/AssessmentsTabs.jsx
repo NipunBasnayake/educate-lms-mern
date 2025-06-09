@@ -1,165 +1,326 @@
-import React, { useState, useEffect } from "react";
-import { IntlProvider, useIntl } from "react-intl";
-import { messages, sampleQuestions } from "../../../data/assetdata";
+import React, { useState, useEffect, useMemo } from 'react';
+import { Assessmentss } from '../../../data/assetdata';
 
+function QuizApp() {
+  const [courseCode, setCourseCode] = useState('');
+  const [assessments, setAssessments] = useState([]);
+  const [attempts, setAttempts] = useState([]);
+  const [activeAssessment, setActiveAssessment] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [currentAttempt, setCurrentAttempt] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all'); // 'all', 'completed', 'pending'
 
+  // Get all available course codes
+  const courseCodes = Object.keys(Assessmentss);
 
-
-const QuizModal = ({ 
-  questions, 
-  onClose, 
-  onComplete, 
-  timeLimit, 
-  availableUntil,
-  attemptNumber
-}) => {
-  const intl = useIntl();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [writtenAnswer, setWrittenAnswer] = useState("");
-  const [codeAnswer, setCodeAnswer] = useState("");
-  const [timeLeft, setTimeLeft] = useState(timeLimit * 60); // Convert minutes to seconds
-  const [answers, setAnswers] = useState([]);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
-  const [attemptData, setAttemptData] = useState({
-    startedAt: new Date(),
-    finishedAt: null,
-    answers: [],
-    score: 0,
-    totalMarks: questions.reduce((sum, q) => sum + q.marks, 0),
-    attemptNumber: attemptNumber
-  });
-
-  // Check if quiz is expired during the attempt
-  const isQuizExpired = availableUntil && new Date() > new Date(availableUntil);
-
+  // Load assessments when a course is selected
   useEffect(() => {
-    if (isQuizExpired) {
-      handleAutoSubmit();
-      return;
-    }
+    if (!courseCode) return;
 
-    if (timeLeft <= 0 || isSubmitted) {
-      if (timeLeft <= 0 && !isSubmitted) {
-        handleAutoSubmit();
-      }
-      return;
-    }
+    const assessmentsArray = Object.keys(Assessmentss)
+      .filter(code => code === courseCode)
+      .map(code => ({
+        id: code,
+        code,
+        title: `${code}: ${Assessmentss[code].name}`,
+        name: Assessmentss[code].name,
+        description: Assessmentss[code].description || `Assessment for ${Assessmentss[code].name}`,
+        questions: Assessmentss[code].questions,
+        timeLimit: Assessmentss[code].timeLimit || 30,
+        attemptsAllowed: Assessmentss[code].attemptsAllowed || 3,
+        passingScore: Assessmentss[code].passingScore || 70
+      }));
 
-    const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
-    }, 1000);
+    setAssessments(assessmentsArray);
+  }, [courseCode]);
 
-    return () => clearTimeout(timer);
-  }, [timeLeft, isSubmitted, isQuizExpired]);
+  // Filter and search assessments
+  const filteredAssessments = useMemo(() => {
+    return assessments.filter(assessment => {
+      const matchesSearch =
+        assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        assessment.code.toLowerCase().includes(searchTerm.toLowerCase());
 
-  useEffect(() => {
-    setSelectedAnswer(null);
-    setWrittenAnswer("");
-    setCodeAnswer("");
-    
-    const prevAnswer = answers[currentQuestionIndex];
-    if (prevAnswer) {
-      if (questions[currentQuestionIndex].type === "mcq") {
-        setSelectedAnswer(prevAnswer.answer);
-      } else if (questions[currentQuestionIndex].type === "written") {
-        setWrittenAnswer(prevAnswer.answer);
-      } else if (questions[currentQuestionIndex].type === "coding") {
-        setCodeAnswer(prevAnswer.answer);
-      }
-    }
-  }, [currentQuestionIndex]);
+      const attemptsForAssessment = attempts.filter(a => a.assessmentId === assessment.id);
+      const isCompleted = attemptsForAssessment.some(a => a.scorePercentage >= assessment.passingScore);
 
-  const handleAnswerSelect = (answer) => {
-    setSelectedAnswer(answer);
-    saveAnswer(answer);
+      if (filter === 'completed') return matchesSearch && isCompleted;
+      if (filter === 'pending') return matchesSearch && !isCompleted;
+      return matchesSearch;
+    });
+  }, [assessments, attempts, searchTerm, filter]);
+
+  const startAssessment = (assessment) => {
+    setActiveAssessment(assessment);
+    setShowInstructions(true);
   };
 
-  const saveAnswer = (answer) => {
-    const newAnswers = [...answers];
-    newAnswers[currentQuestionIndex] = {
-      questionId: questions[currentQuestionIndex].id,
-      answer: answer,
-      type: questions[currentQuestionIndex].type,
-      marks: questions[currentQuestionIndex].marks,
-      answeredAt: new Date()
-    };
-    setAnswers(newAnswers);
-  };
+  const handleQuizComplete = (score, answers) => {
+    const totalMarks = activeAssessment.questions.reduce((sum, q) => sum + q.marks, 0);
+    const scorePercentage = Math.round((score / totalMarks) * 100);
+    const attemptNumber = attempts.filter(a => a.assessmentId === activeAssessment.id).length + 1;
 
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      setShowSubmitConfirmation(true);
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
-  const handleAutoSubmit = () => {
-    const finishedAt = new Date();
-    const score = calculateScore();
-    
-    const attempt = {
-      ...attemptData,
-      finishedAt,
-      answers: [...answers],
+    const newAttempt = {
+      assessmentId: activeAssessment.id,
+      assessmentTitle: activeAssessment.title,
+      attemptNumber,
+      date: new Date(),
       score,
-      wasAutoSubmitted: timeLeft <= 0,
-      wasExpired: isQuizExpired
+      totalMarks,
+      scorePercentage,
+      passed: scorePercentage >= activeAssessment.passingScore,
+      answers,
+      questions: activeAssessment.questions
     };
-    
-    setAttemptData(attempt);
-    setIsSubmitted(true);
-    onComplete(attempt);
+
+    setAttempts([...attempts, newAttempt]);
+    setCurrentAttempt(newAttempt);
+    setActiveAssessment(null);
+    setShowResults(true);
   };
 
-  const handleSubmit = () => {
-    const finishedAt = new Date();
-    const score = calculateScore();
-    
-    const attempt = {
-      ...attemptData,
-      finishedAt,
-      answers: [...answers],
-      score
-    };
-    
-    setAttemptData(attempt);
-    setIsSubmitted(true);
-    onComplete(attempt);
-  };
 
-  const calculateScore = () => {
-    return answers.reduce((score, answer) => {
-      if (!answer) return score;
-      
-      const question = questions.find(q => q.id === answer.questionId);
-      if (!question) return score;
-      
-      if (question.type === "mcq" && answer.answer === question.correctAnswer) {
-        return score + question.marks;
-      }
-      if ((question.type === "coding" || question.type === "written") && answer.answer.trim().length > 0) {
-        return score + (question.marks * 0.5); // Partial credit for non-MCQ answers
-      }
-      
-      return score;
-    }, 0);
-  };
+  return (
+    <div className="max-w-8xl mx-auto p-4 md:p-6 rounded-lg">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">Assessments for {courseCode}</h1>
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <select
+            className="border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mb-2 sm:mb-0"
+            value={courseCode}
+            onChange={(e) => setCourseCode(e.target.value)}
+          >
+            <option value="">Select Course</option>
+            {courseCodes.map(code => (
+              <option key={code} value={code}>{Assessmentss[code].name || code}</option>
+            ))}
+          </select>
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="Search assessments..."
+              className="w-full pl-10 pr-4 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          
+          <select 
+            className="border rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="all">All Assessments</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
 
-  const currentQuestion = questions[currentQuestionIndex];
+      {filteredAssessments.length === 0 ? (
+        <div className="text-center py-10">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="mt-2 text-lg font-medium text-gray-900">No assessments found</h3>
+          <p className="mt-1 text-gray-500">
+            {searchTerm || filter !== 'all' 
+              ? "Try adjusting your search or filter" 
+              : `No assessments available for ${courseCode}`}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:gap-6">
+          {filteredAssessments.map(assessment => {
+            const assessmentAttempts = attempts.filter(a => a.assessmentId === assessment.id);
+            const lastAttempt = assessmentAttempts[0];
+            const attemptsLeft = assessment.attemptsAllowed - assessmentAttempts.length;
+            
+            return (
+              <div key={assessment.id} className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow bg-white">
+                <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-start gap-3">
+                      <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
+                        lastAttempt?.passed ? 'bg-green-100' : 
+                        assessmentAttempts.length > 0 ? 'bg-yellow-100' : 'bg-gray-100'
+                      }`}>
+                        {lastAttempt?.passed ? (
+                          <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : assessmentAttempts.length > 0 ? (
+                          <span className="text-yellow-600 font-medium">!</span>
+                        ) : (
+                          <span className="text-gray-500 font-medium">?</span>
+                        )}
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900">{assessment.title}</h2>
+                        <p className="text-gray-600">{assessment.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex gap-4 text-sm">
+                      <span className="text-gray-500">Time: {assessment.timeLimit} mins</span>
+                      <span className={`font-medium ${
+                        attemptsLeft <= 0 ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        Attempts: {assessmentAttempts.length}/{assessment.attemptsAllowed}
+                      </span>
+                    </div>
+                    
+                    {lastAttempt ? (
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Last attempt: {lastAttempt.score}/{lastAttempt.totalMarks}</p>
+                        <p className={`text-sm font-medium ${
+                          lastAttempt.passed ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {lastAttempt.scorePercentage}% ({lastAttempt.passed ? 'Passed' : 'Failed'})
+                        </p>
+                      </div>
+                    ) : null}
+                    
+                    <button
+                      onClick={() => startAssessment(assessment)}
+                      disabled={attemptsLeft <= 0}
+                      className={`px-4 py-2 rounded-md transition-colors ${
+                        attemptsLeft <= 0 
+                          ? 'bg-gray-300 text-gray-600 cursor-not-allowed' 
+                          : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      }`}
+                    >
+                      {assessmentAttempts.length > 0 ? 'Retake' : 'Start'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-  const handleCopy = (e) => {
-    e.preventDefault();
-    return false;
-  };
+      {/* Modals */}
+      {showInstructions && activeAssessment && (
+        <QuizInstructions
+          assessment={activeAssessment}
+          onStart={() => setShowInstructions(false)}
+          onCancel={() => setActiveAssessment(null)}
+          attemptNumber={attempts.filter(a => a.assessmentId === activeAssessment.id).length + 1} 
+          attemptsLeft={activeAssessment.attemptsAllowed - attempts.filter(a => a.assessmentId === activeAssessment.id).length}
+        />
+      )}
+
+      {activeAssessment && !showInstructions && (
+        <Quiz
+          questions={activeAssessment.questions}
+          timeLimit={activeAssessment.timeLimit}
+          onComplete={handleQuizComplete}
+          onCancel={() => setActiveAssessment(null)} 
+        />
+      )}
+
+      {showResults && currentAttempt && (
+        <QuizResults
+          attempt={currentAttempt}
+          assessment={assessments.find(a => a.id === currentAttempt.assessmentId)}
+          onClose={() => setShowResults(false)}
+          onRetry={() => {
+            setShowResults(false);
+            startAssessment(assessments.find(a => a.id === currentAttempt.assessmentId));
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+const QuizInstructions = ({ assessment, onStart, onCancel, attemptNumber, attemptsLeft }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl">
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-xl font-bold text-gray-800">{assessment.title}</h2>
+          <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+            Attempt {attemptNumber} of {assessment.attemptsAllowed}
+          </span>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Instructions</h3>
+            <ul className="list-disc pl-5 space-y-2 text-gray-700">
+              <li>Time limit: {assessment.timeLimit} minutes</li>
+              <li>Some questions may have multiple correct answers</li>
+              <li>You can't go back after submitting</li>
+              <li>Passing score: {assessment.passingScore}%</li>
+              {attemptsLeft < assessment.attemptsAllowed && (
+                <li className="font-medium">You have {attemptsLeft} attempt{attemptsLeft !== 1 ? 's' : ''} remaining</li>
+              )}
+            </ul>
+          </div>
+          
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2">Assessment Breakdown</h3>
+            <div className="space-y-3">
+              {assessment.questions.map((q, i) => (
+                <div key={i} className="flex justify-between border-b border-gray-100 pb-2">
+                  <span>Question {i+1}</span>
+                  <span className="font-medium">{q.marks} mark{q.marks !== 1 ? 's' : ''}</span>
+                </div>
+              ))}
+              <div className="flex justify-between font-medium pt-2">
+                <span>Total</span>
+                <span>{assessment.questions.reduce((sum, q) => sum + q.marks, 0)} marks</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <button 
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onStart}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Begin Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Quiz = ({ questions, timeLimit, onComplete, onCancel }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const [timeLeft, setTimeLeft] = useState(timeLimit * 60);
+  const [timerActive, setTimerActive] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle timer
+  useEffect(() => {
+    let timer;
+    if (timerActive && timeLeft > 0) {
+      timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    } else if (timeLeft === 0 && timerActive) {
+      handleSubmit();
+    }
+    return () => clearTimeout(timer);
+  }, [timeLeft, timerActive]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -167,435 +328,196 @@ const QuizModal = ({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const renderQuestion = () => {
-    switch (currentQuestion.type) {
-      case "mcq":
-        return (
-          <div className="space-y-3 mb-6">
-            {currentQuestion.options.map((option, index) => (
-              <div
-                key={index}
-                className={`p-3 border rounded-md cursor-pointer ${
-                  selectedAnswer === index
-                    ? "border-indigo-600 bg-indigo-50"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-                onClick={() => handleAnswerSelect(index)}
-              >
-                {option}
-              </div>
-            ))}
-          </div>
-        );
-      case "written":
-        return (
-          <div className="mb-6">
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-md h-40"
-              value={writtenAnswer}
-              onChange={(e) => {
-                setWrittenAnswer(e.target.value);
-                saveAnswer(e.target.value);
-              }}
-              placeholder={intl.formatMessage({ id: "typeYourAnswerHere" })}
-            />
-          </div>
-        );
-      case "coding":
-        return (
-          <div className="mb-6">
-            <div className="bg-gray-800 text-gray-100 p-2 text-sm mb-2 rounded-t-md">
-              {currentQuestion.language.toUpperCase()}
-            </div>
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-b-md font-mono h-60"
-              value={codeAnswer}
-              onChange={(e) => {
-                setCodeAnswer(e.target.value);
-                saveAnswer(e.target.value);
-              }}
-              placeholder={intl.formatMessage({ id: "writeYourCodeHere" })}
-            />
-          </div>
-        );
-      default:
-        return null;
+  const currentQuestion = questions[currentIndex];
+
+  const handleAnswer = (answer) => {
+    const newAnswers = [...answers];
+    newAnswers[currentIndex] = answer;
+    setAnswers(newAnswers);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const calculateScore = () => {
+    return questions.reduce((score, question, index) => {
+      if (question.type === 'mcq' && answers[index] === question.correctAnswer) {
+        return score + question.marks;
+      } else if (question.type !== 'mcq' && answers[index]) {
+        return score + question.marks * 0.5; // Partial marks for non-MCQ answers
+      }
+      return score;
+    }, 0);
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setTimerActive(false);
+    
+    // Simulate submission delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const score = calculateScore();
+    onComplete(score, answers);
+    setIsSubmitting(false);
+  };
+
+  const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
+
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-      onCopy={handleCopy}
-      onCut={handleCopy}
-      onPaste={handleCopy}
-      onContextMenu={handleCopy}
-    >
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <div className="bg-indigo-600 text-white p-4 flex justify-between items-center">
-          <h3 className="font-semibold text-lg">
-            {intl.formatMessage({ id: "assessmentQuiz" })} (Attempt {attemptNumber})
-          </h3>
-          <div className="flex items-center space-x-4">
-            <span className="bg-indigo-700 px-3 py-1 rounded-md">
-              {intl.formatMessage({ id: "question" })} {currentQuestionIndex + 1}/{questions.length}
-            </span>
-            <span className={`px-3 py-1 rounded-md ${
-              timeLeft < 60 ? 'bg-red-600' : 'bg-indigo-700'
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl shadow-xl">
+        {/* Header with progress and timer */}
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-gray-800">
+              Question {currentIndex + 1} of {questions.length}
+            </h3>
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+              timeLeft < 60 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
             }`}>
-              {intl.formatMessage({ id: "time" })}: {formatTime(timeLeft)}
-            </span>
-            <span className="bg-indigo-700 px-3 py-1 rounded-md">
-              {intl.formatMessage({ id: "marks" })}: {currentQuestion.marks}
-            </span>
+              Time left: {formatTime(timeLeft)}
+            </div>
+          </div>
+          
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-indigo-600 h-2.5 rounded-full" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-grow">
-          {isSubmitted ? (
-            <div className="text-center py-8">
-              {attemptData.wasAutoSubmitted ? (
-                <>
-                  <h4 className="text-xl font-semibold mb-2 text-red-600">
-                    {intl.formatMessage({ id: "timeUp" })}
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    {intl.formatMessage({ id: "timeUpMessage" })}
-                  </p>
-                </>
-              ) : attemptData.wasExpired ? (
-                <>
-                  <h4 className="text-xl font-semibold mb-2 text-red-600">
-                    {intl.formatMessage({ id: "quizExpired" })}
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    {intl.formatMessage({ id: "quizExpiredMessage" })}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h4 className="text-xl font-semibold mb-2">
-                    {intl.formatMessage({ id: "assessmentSubmitted" })}
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    {intl.formatMessage({ id: "submissionConfirmation" })}
-                  </p>
-                </>
+        {/* Question */}
+        <div className="mb-6">
+          <h4 className="text-lg font-medium mb-4 text-gray-900">
+            {currentQuestion.text}
+            {currentQuestion.marks > 1 && (
+              <span className="ml-2 text-sm text-gray-500">({currentQuestion.marks} marks)</span>
+            )}
+          </h4>
+          
+          {currentQuestion.type === 'mcq' && (
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, idx) => (
+                <div 
+                  key={idx}
+                  className={`p-3 border rounded-md cursor-pointer transition-colors ${
+                    answers[currentIndex] === idx 
+                      ? 'bg-indigo-50 border-indigo-600' 
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                  onClick={() => handleAnswer(idx)}
+                >
+                  <div className="flex items-center">
+                    <div className={`flex-shrink-0 h-5 w-5 rounded-full border mr-3 flex items-center justify-center ${
+                      answers[currentIndex] === idx 
+                        ? 'border-indigo-600 bg-indigo-600 text-white' 
+                        : 'border-gray-400'
+                    }`}>
+                      {answers[currentIndex] === idx && (
+                        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                    <div>{option}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {currentQuestion.type === 'written' && (
+            <div>
+              <textarea
+                className="w-full p-3 border border-gray-300 rounded-md h-32 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value={answers[currentIndex] || ''}
+                onChange={(e) => handleAnswer(e.target.value)}
+                placeholder="Type your answer here..."
+              />
+              {currentQuestion.hint && (
+                <p className="mt-1 text-sm text-gray-500">{currentQuestion.hint}</p>
               )}
-              <button
-                onClick={onClose}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              >
-                {intl.formatMessage({ id: "close" })}
-              </button>
             </div>
-          ) : showSubmitConfirmation ? (
-            <div className="text-center py-8">
-              <h4 className="text-xl font-semibold mb-4">
-                {intl.formatMessage({ id: "submitConfirmation" })}
-              </h4>
-              <div className="flex justify-center space-x-4 mt-6">
-                <button
-                  onClick={() => setShowSubmitConfirmation(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                >
-                  {intl.formatMessage({ id: "cancel" })}
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                  {intl.formatMessage({ id: "confirm" })}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <h4 className="text-lg font-medium mb-4">{currentQuestion.text}</h4>
-              {renderQuestion()}
+          )}
 
-              <div className="flex justify-between items-center">
-                <div className="flex space-x-2">
-                  {questions.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-8 h-8 rounded-full text-sm flex items-center justify-center ${
-                        index === currentQuestionIndex
-                          ? "bg-indigo-600 text-white"
-                          : answers[index] !== undefined
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                      onClick={() => setCurrentQuestionIndex(index)}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex space-x-3">
-                  {currentQuestionIndex > 0 && (
-                    <button
-                      onClick={handlePreviousQuestion}
-                      className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
-                    >
-                      {intl.formatMessage({ id: "previous" })}
-                    </button>
-                  )}
-                  <button
-                    onClick={handleNextQuestion}
-                    className={`px-4 py-2 rounded-md ${
-                      currentQuestion.type === "mcq" && selectedAnswer === null
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-indigo-600 text-white hover:bg-indigo-700"
-                    }`}
-                    disabled={currentQuestion.type === "mcq" && selectedAnswer === null}
-                  >
-                    {currentQuestionIndex === questions.length - 1
-                      ? intl.formatMessage({ id: "submit" })
-                      : intl.formatMessage({ id: "next" })}
+          {currentQuestion.type === 'coding' && (
+            <div className="border border-gray-300 rounded-md overflow-hidden">
+              <div className="bg-gray-800 text-white p-2 text-sm font-mono flex justify-between items-center">
+                <span>{currentQuestion.language.toUpperCase()}</span>
+                {currentQuestion.expectedOutput && (
+                  <button className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">
+                    View Expected Output
                   </button>
-                </div>
+                )}
               </div>
-            </>
+              <textarea
+                className="w-full p-3 font-mono text-sm h-48 focus:outline-none bg-gray-50"
+                value={answers[currentIndex] || ''}
+                onChange={(e) => handleAnswer(e.target.value)}
+                placeholder={`Write your ${currentQuestion.language} code here...`}
+              />
+            </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-};
 
-const QuizInstructions = ({ 
-  quiz, 
-  onStart, 
-  onCancel,
-  attemptNumber,
-  totalAttemptsAllowed 
-}) => {
-  const intl = useIntl();
-  const availableFromDate = quiz.availableFrom ? new Date(quiz.availableFrom) : null;
-  const availableUntilDate = quiz.availableUntil ? new Date(quiz.availableUntil) : null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
-        <div className="bg-indigo-600 text-white p-4">
-          <h3 className="font-semibold text-lg">
-            {quiz.title} - {intl.formatMessage({ id: "quizInstructions" })}
-          </h3>
-        </div>
-
-        <div className="p-6 overflow-y-auto flex-grow">
-          <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">
-              {intl.formatMessage({ id: "readCarefully" })}
-            </h4>
-            <ul className="list-disc pl-5 space-y-2 text-gray-700">
-              <li>{intl.formatMessage({ id: "instruction1" }, { time: quiz.timeLimit })}</li>
-              <li>{intl.formatMessage({ id: "instruction2" })}</li>
-              <li>{intl.formatMessage({ id: "instruction3" })}</li>
-              <li>{intl.formatMessage({ id: "instruction4" })}</li>
-            </ul>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {availableFromDate && (
-              <div className="bg-gray-50 p-3 rounded-md">
-                <p className="font-medium text-sm text-gray-600">
-                  {intl.formatMessage({ id: "availableFrom" })}
-                </p>
-                <p>{availableFromDate.toLocaleDateString()} at {availableFromDate.toLocaleTimeString()}</p>
-              </div>
-            )}
-            {availableUntilDate && (
-              <div className="bg-gray-50 p-3 rounded-md">
-                <p className="font-medium text-sm text-gray-600">
-                  {intl.formatMessage({ id: "availableUntil" })}
-                </p>
-                <p>{availableUntilDate.toLocaleDateString()} at {availableUntilDate.toLocaleTimeString()}</p>
-              </div>
-            )}
-            <div className="bg-gray-50 p-3 rounded-md">
-              <p className="font-medium text-sm text-gray-600">
-                {intl.formatMessage({ id: "timeLimit" })}
-              </p>
-              <p>{quiz.timeLimit} {intl.formatMessage({ id: "minutes" })}</p>
-            </div>
-            {totalAttemptsAllowed && (
-              <div className="bg-gray-50 p-3 rounded-md">
-                <p className="font-medium text-sm text-gray-600">
-                  {intl.formatMessage({ id: "remainingAttempts" })}
-                </p>
-                <p>{totalAttemptsAllowed - attemptNumber + 1} of {totalAttemptsAllowed}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-200 flex justify-end space-x-3">
+        {/* Navigation buttons */}
+        <div className="flex flex-col-reverse md:flex-row justify-between gap-3">
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+            disabled={isSubmitting}
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            {intl.formatMessage({ id: "cancel" })}
+            Cancel Quiz
           </button>
-          <button
-            onClick={onStart}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-          >
-            {intl.formatMessage({ id: "beginQuiz" })}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AttemptDetails = ({ attempt, questions, onClose }) => {
-  const intl = useIntl();
-
-  if (!attempt) return null;
-
-  const getQuestionText = (id) => {
-    const question = questions.find(q => q.id === id);
-    return question ? question.text : "Unknown question";
-  };
-
-  const getQuestionType = (id) => {
-    const question = questions.find(q => q.id === id);
-    return question ? question.type : "unknown";
-  };
-
-  const formatAnswer = (answer, type) => {
-    if (type === "mcq") {
-      const question = questions.find(q => q.id === answer.questionId);
-      if (question && question.options) {
-        return question.options[answer.answer] || `Option ${answer.answer + 1}`;
-      }
-      return `Option ${answer.answer + 1}`;
-    }
-    if (answer.answer.length > 100) {
-      return `${answer.answer.substring(0, 100)}...`;
-    }
-    return answer.answer;
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "N/A";
-    return new Date(date).toLocaleString();
-  };
-
-  const calculateDuration = (start, end) => {
-    if (!start || !end) return "N/A";
-    const seconds = Math.round((new Date(end) - new Date(start)) / 1000);
-    return `${seconds} seconds`;
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">
-              {intl.formatMessage({ id: "attemptDetails" })} - {intl.formatMessage({ id: "attemptNumber" }, { number: attempt.attemptNumber })}
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-700 mb-2">
-                {intl.formatMessage({ id: "attemptSummary" })}
-              </h4>
-              <div className="space-y-2">
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "startedAt" })}:</span>{" "}
-                  {formatDate(attempt.startedAt)}
-                </p>
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "finishedAt" })}:</span>{" "}
-                  {formatDate(attempt.finishedAt)}
-                </p>
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "duration" })}:</span>{" "}
-                  {calculateDuration(attempt.startedAt, attempt.finishedAt)}
-                </p>
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "score" })}:</span>{" "}
-                  {attempt.score} / {attempt.totalMarks}
-                </p>
-                {attempt.wasAutoSubmitted && (
-                  <p className="text-red-600">
-                    {intl.formatMessage({ id: "timeUp" })}
-                  </p>
-                )}
-                {attempt.wasExpired && (
-                  <p className="text-red-600">
-                    {intl.formatMessage({ id: "quizExpired" })}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium text-gray-700 mb-2">
-                {intl.formatMessage({ id: "questionBreakdown" })}
-              </h4>
-              <div className="space-y-2">
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "totalQuestions" })}:</span>{" "}
-                  {questions.length}
-                </p>
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "answered" })}:</span>{" "}
-                  {attempt.answers.filter(a => a !== undefined).length}
-                </p>
-                <p>
-                  <span className="font-medium">{intl.formatMessage({ id: "unanswered" })}:</span>{" "}
-                  {questions.length - attempt.answers.filter(a => a !== undefined).length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <h4 className="font-medium text-gray-700 mb-4">
-            {intl.formatMessage({ id: "questionDetails" })}
-          </h4>
-          <div className="space-y-4">
-            {attempt.answers.map((answer, index) => (
-              answer && (
-                <div key={index} className="border-b border-gray-200 pb-4">
-                  <p className="font-medium mb-1">
-                    Q{index + 1}: {getQuestionText(answer.questionId)}
-                  </p>
-                  <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-2">
-                    <span>
-                      <span className="font-medium">{intl.formatMessage({ id: "answeredAt" })}:</span>{" "}
-                      {formatDate(answer.answeredAt)}
-                    </span>
-                    <span>
-                      <span className="font-medium">{intl.formatMessage({ id: "type" })}:</span>{" "}
-                      {getQuestionType(answer.questionId)}
-                    </span>
-                    <span>
-                      <span className="font-medium">{intl.formatMessage({ id: "marks" })}:</span>{" "}
-                      {answer.marks}
-                    </span>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <p className="font-medium text-sm mb-1">{intl.formatMessage({ id: "yourAnswer" })}:</p>
-                    <pre className="text-sm whitespace-pre-wrap break-all">{formatAnswer(answer, answer.type)}</pre>
-                  </div>
-                </div>
-              )
-            ))}
+          
+          <div className="flex gap-2 justify-end">
+            {currentIndex > 0 && (
+              <button
+                onClick={handlePrev}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Previous
+              </button>
+            )}
+            
+            {currentIndex < questions.length - 1 ? (
+              <button
+                onClick={handleNext}
+                disabled={answers[currentIndex] === null || isSubmitting}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={answers[currentIndex] === null || isSubmitting}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Submitting...
+                  </>
+                ) : 'Submit Quiz'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -603,351 +525,147 @@ const AttemptDetails = ({ attempt, questions, onClose }) => {
   );
 };
 
-const AttemptHistory = ({ 
-  attempts, 
-  onClose, 
-  onViewAttempt,
-  assessmentTitle 
-}) => {
-  const intl = useIntl();
+const QuizResults = ({ attempt, assessment, onClose, onRetry }) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-xl font-semibold">
-                {intl.formatMessage({ id: "attemptHistory" })}
-              </h3>
-              <p className="text-gray-600">{assessmentTitle}</p>
-            </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl shadow-xl">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Assessment Results</h2>
+            <p className="text-gray-600">{attempt.assessmentTitle}</p>
+          </div>
+          <div className="flex gap-2">
+            {attempt.attemptNumber < assessment.attemptsAllowed && (
+              <button
+                onClick={onRetry}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors"
+              >
+                Retry
+              </button>
+            )}
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              Close
             </button>
           </div>
+        </div>
 
-          {attempts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              {intl.formatMessage({ id: "noAttempts" })}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="text-3xl font-bold text-center mb-1">{attempt.score}</div>
+            <div className="text-sm text-gray-600 text-center">Your Score</div>
+          </div>
+          
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="text-3xl font-bold text-center mb-1">{attempt.totalMarks}</div>
+            <div className="text-sm text-gray-600 text-center">Total Marks</div>
+          </div>
+          
+          <div className={`p-4 rounded-lg ${
+            attempt.passed ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+          }`}>
+            <div className="text-3xl font-bold text-center mb-1">{attempt.scorePercentage}%</div>
+            <div className="text-sm text-center">
+              {attempt.passed ? 'Passed' : 'Failed'} (Requires {assessment.passingScore}%)
             </div>
-          ) : (
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-gray-900">Question Breakdown</h3>
+            <button 
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-sm text-indigo-600 hover:text-indigo-800"
+            >
+              {showDetails ? 'Hide details' : 'Show details'}
+            </button>
+          </div>
+          
+          {showDetails ? (
             <div className="space-y-4">
-              {attempts.map((attempt, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-center">
+              {attempt.questions.map((question, index) => (
+                <div 
+                  key={index} 
+                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                    selectedQuestion === index 
+                      ? 'border-indigo-500 bg-indigo-50' 
+                      : 'border-gray-200 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setSelectedQuestion(index)}
+                >
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-medium">
-                        {intl.formatMessage({ id: "attemptNumber" }, { number: attempt.attemptNumber })}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {intl.formatMessage({ id: "dateSubmitted" })}: {new Date(attempt.finishedAt).toLocaleString()}
+                      <h4 className="font-medium text-gray-900">Q{index + 1}: {question.text}</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Your answer: <span className="font-mono bg-gray-100 px-1 rounded">
+                          {attempt.answers[index] !== null ? attempt.answers[index].toString() : 'No answer'}
+                        </span>
                       </p>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {intl.formatMessage({ id: "finalScore" })}: {attempt.score}/{attempt.totalMarks}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {Math.round((attempt.score / attempt.totalMarks) * 100)}%
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => onViewAttempt(index)}
-                        className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
-                      >
-                        {intl.formatMessage({ id: "view" })}
-                      </button>
-                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      question.type === 'mcq' && attempt.answers[index] === question.correctAnswer
+                        ? 'bg-green-100 text-green-800'
+                        : question.type === 'mcq'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {question.type === 'mcq' 
+                        ? attempt.answers[index] === question.correctAnswer 
+                          ? `${question.marks} mark${question.marks !== 1 ? 's' : ''}`
+                          : '0 marks'
+                        : 'Partial marks'}
+                    </span>
                   </div>
-                  {attempt.wasAutoSubmitted && (
-                    <p className="text-sm text-red-600 mt-2">
-                      {intl.formatMessage({ id: "timeUp" })}
-                    </p>
+                  
+                  {selectedQuestion === index && question.type === 'mcq' && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700">Correct answer: {question.options[question.correctAnswer]}</p>
+                      {question.explanation && (
+                        <p className="text-sm text-gray-600 mt-1">{question.explanation}</p>
+                      )}
+                    </div>
                   )}
-                  {attempt.wasExpired && (
-                    <p className="text-sm text-red-600 mt-2">
-                      {intl.formatMessage({ id: "quizExpired" })}
-                    </p>
-                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-5 gap-2">
+              {attempt.questions.map((question, index) => (
+                <div 
+                  key={index}
+                  className={`h-10 rounded-md flex items-center justify-center ${
+                    question.type === 'mcq' && attempt.answers[index] === question.correctAnswer
+                      ? 'bg-green-100 text-green-800'
+                      : question.type === 'mcq'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}
+                  title={`Q${index+1}: ${question.text}`}
+                >
+                  {index + 1}
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Return to Assessments
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-const AssessmentsTab = ({ assessments }) => {
-  const intl = useIntl();
-  const [activeQuiz, setActiveQuiz] = useState(null);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [attemptDetails, setAttemptDetails] = useState(null);
-  const [attemptHistory, setAttemptHistory] = useState(null);
-  const [attemptHistoryForAssessment, setAttemptHistoryForAssessment] = useState(null);
-  const [attemptHistoryVisible, setAttemptHistoryVisible] = useState(false);
-
-  // Initialize attempt history from localStorage or empty object
-  useEffect(() => {
-    const savedAttempts = localStorage.getItem('quizAttemptHistory');
-    if (savedAttempts) {
-      setAttemptHistory(JSON.parse(savedAttempts));
-    } else {
-      setAttemptHistory({});
-    }
-  }, []);
-
-  // Save attempt history to localStorage whenever it changes
-  useEffect(() => {
-    if (attemptHistory) {
-      localStorage.setItem('quizAttemptHistory', JSON.stringify(attemptHistory));
-    }
-  }, [attemptHistory]);
-
-  const startAssessment = (assessment) => {
-    // Check if quiz is available
-    const now = new Date();
-    const availableFrom = assessment.availableFrom ? new Date(assessment.availableFrom) : null;
-    const availableUntil = assessment.availableUntil ? new Date(assessment.availableUntil) : null;
-
-    if (availableFrom && now < availableFrom) {
-      alert(intl.formatMessage({ id: "quizNotStartedMessage" }, { 
-        date: availableFrom.toLocaleDateString(), 
-        time: availableFrom.toLocaleTimeString() 
-      }));
-      return;
-    }
-
-    if (availableUntil && now > availableUntil) {
-      alert(intl.formatMessage({ id: "quizExpiredMessage" }));
-      return;
-    }
-
-    // Check remaining attempts
-    const attemptsForQuiz = attemptHistory[assessment.id] || [];
-    if (assessment.attemptsAllowed && attemptsForQuiz.length >= assessment.attemptsAllowed) {
-      alert(`You have used all ${assessment.attemptsAllowed} attempts for this quiz.`);
-      return;
-    }
-
-    setActiveQuiz(assessment);
-    setShowInstructions(true);
-  };
-
-  const handleComplete = (attempt) => {
-    const assessmentId = activeQuiz.id;
-    setAttemptHistory(prev => ({
-      ...prev,
-      [assessmentId]: [...(prev[assessmentId] || []), attempt]
-    }));
-    setActiveQuiz(null);
-    setShowInstructions(false);
-  };
-
-  const viewAttemptDetails = (assessmentId, attemptIndex) => {
-    setAttemptDetails(attemptHistory[assessmentId][attemptIndex]);
-  };
-
-  const viewAttemptHistory = (assessment) => {
-    setAttemptHistoryForAssessment({
-      id: assessment.id,
-      title: assessment.title,
-      attempts: attemptHistory[assessment.id] || []
-    });
-    setAttemptHistoryVisible(true);
-  };
-
-  const getAssessmentStatus = (assessment) => {
-    const now = new Date();
-    const availableFrom = assessment.availableFrom ? new Date(assessment.availableFrom) : null;
-    const availableUntil = assessment.availableUntil ? new Date(assessment.availableUntil) : null;
-
-    if (availableFrom && now < availableFrom) {
-      return {
-        status: "Not Started",
-        color: "bg-gray-100 text-gray-800",
-        message: intl.formatMessage({ id: "quizNotStartedMessage" }, { 
-          date: availableFrom.toLocaleDateString(), 
-          time: availableFrom.toLocaleTimeString() 
-        })
-      };
-    }
-
-    if (availableUntil && now > availableUntil) {
-      return {
-        status: "Expired",
-        color: "bg-red-100 text-red-800",
-        message: intl.formatMessage({ id: "quizExpiredMessage" })
-      };
-    }
-
-    const attempts = attemptHistory ? (attemptHistory[assessment.id] || []) : [];
-    if (assessment.attemptsAllowed && attempts.length >= assessment.attemptsAllowed) {
-      return {
-        status: "Attempts Used",
-        color: "bg-yellow-100 text-yellow-800",
-        message: `You have used all ${assessment.attemptsAllowed} attempts.`
-      };
-    }
-
-    return {
-      status: "Available",
-      color: "bg-green-100 text-green-800",
-      message: ""
-    };
-  };
-
-  const getNextAttemptNumber = (assessmentId) => {
-    const attempts = attemptHistory ? (attemptHistory[assessmentId] || []) : [];
-    return attempts.length + 1;
-  };
-
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-6 text-gray-900">
-        {intl.formatMessage({ id: "assessments" })}
-      </h2>
-      <div className="space-y-4">
-        {assessments.map((assessment) => {
-          const statusInfo = getAssessmentStatus(assessment);
-          const attempts = attemptHistory ? (attemptHistory[assessment.id] || []) : [];
-          const lastAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
-
-          return (
-            <div
-              key={assessment.id}
-              className="border border-gray-200 rounded-lg p-4"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-medium text-gray-900">{assessment.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {assessment.description}
-                  </p>
-                  {assessment.due && (
-                    <p className="text-sm mt-1">
-                      <span className="font-medium">Due:</span> {new Date(assessment.due).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}
-                  title={statusInfo.message}
-                >
-                  {statusInfo.status}
-                </span>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {statusInfo.status === "Available" && (
-                  <button 
-                    onClick={() => startAssessment(assessment)}
-                    className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700"
-                  >
-                    {intl.formatMessage({ id: "startAssessment" })}
-                  </button>
-                )}
-                {attempts.length > 0 && (
-                  <>
-                    <button 
-                      onClick={() => viewAttemptDetails(assessment.id, attempts.length - 1)}
-                      className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50"
-                    >
-                      {intl.formatMessage({ id: "viewDetails" })}
-                    </button>
-                    <button 
-                      onClick={() => viewAttemptHistory(assessment)}
-                      className="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50"
-                    >
-                      {intl.formatMessage({ id: "viewAttempts" })} ({attempts.length})
-                    </button>
-                  </>
-                )}
-              </div>
-              {lastAttempt && (
-                <div className="mt-3 pt-3 border-t border-gray-200 text-sm">
-                  <p>
-                    <span className="font-medium">Last attempt:</span> {new Date(lastAttempt.finishedAt).toLocaleString()} - Score: {lastAttempt.score}/{lastAttempt.totalMarks}
-                  </p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {showInstructions && activeQuiz && (
-        <QuizInstructions
-          quiz={activeQuiz}
-          onStart={() => setShowInstructions(false)}
-          onCancel={() => setActiveQuiz(null)}
-          attemptNumber={getNextAttemptNumber(activeQuiz.id)}
-          totalAttemptsAllowed={activeQuiz.attemptsAllowed}
-        />
-      )}
-
-      {activeQuiz && !showInstructions && (
-        <QuizModal
-          questions={sampleQuestions}
-          onClose={() => setActiveQuiz(null)}
-          onComplete={handleComplete}
-          timeLimit={activeQuiz.timeLimit}
-          availableUntil={activeQuiz.availableUntil}
-          attemptNumber={getNextAttemptNumber(activeQuiz.id)}
-          totalAttemptsAllowed={activeQuiz.attemptsAllowed}
-        />
-      )}
-
-      {attemptDetails && (
-        <AttemptDetails
-          attempt={attemptDetails}
-          questions={sampleQuestions}
-          onClose={() => setAttemptDetails(null)}
-        />
-      )}
-
-      {attemptHistoryVisible && attemptHistoryForAssessment && (
-        <AttemptHistory
-          attempts={attemptHistoryForAssessment.attempts}
-          questions={sampleQuestions}
-          onClose={() => setAttemptHistoryVisible(false)}
-          onViewAttempt={(index) => {
-            setAttemptHistoryVisible(false);
-            setAttemptDetails(attemptHistoryForAssessment.attempts[index]);
-          }}
-          assessmentTitle={attemptHistoryForAssessment.title}
-        />
-      )}
-    </div>
-  );
-};
-
-// Main exported component with IntlProvider
-export default function InternationalizedAssessmentsTab({ assessments }) {
-  const [locale] = useState("en");
-  
-  // Enhanced assessments data with availability and attempt limits
-  const enhancedAssessments = assessments.map(assessment => ({
-    ...assessment,
-    timeLimit: assessment.timeLimit || 30, // Default 30 minutes
-    attemptsAllowed: assessment.attemptsAllowed || 3, // Default 3 attempts
-    availableFrom: assessment.availableFrom || null,
-    availableUntil: assessment.availableUntil || assessment.due || null
-  }));
-  
-  return (
-    <IntlProvider locale={locale} messages={messages[locale]}>
-      <AssessmentsTab assessments={enhancedAssessments} />
-    </IntlProvider>
-  );
-}
-
-// Export messages if needed elsewhere
-export { messages, sampleQuestions };
+export default QuizApp;
