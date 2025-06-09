@@ -36,7 +36,7 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
-// app.use(responseFormatter())
+app.use(responseFormatter())
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/auth", authRoutes);
