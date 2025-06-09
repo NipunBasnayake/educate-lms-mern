@@ -11,7 +11,7 @@ class ApiService {
         ? "multipart/form-data"
         : "application/json",
     };
-    if (apiObject.authentication) {
+    if (apiObject.authentication) {      
       const token = localStorage.getItem(constant.ACCESS_TOKEN);
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;

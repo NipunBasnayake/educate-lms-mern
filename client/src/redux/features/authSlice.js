@@ -24,6 +24,11 @@ export const loginUserAPI = createAsyncThunk(
     try {
       const response = await loginUser(credentils);
       console.log("Login User Response _>> ", response);
+
+      // set access token
+      // result.data.token
+      localStorage.setItem("user", response.data.user.id);
+
       return response;
     } catch (error) {
       return rejectWithValue("User Login Falied", error);
