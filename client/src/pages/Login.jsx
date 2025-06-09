@@ -23,7 +23,6 @@ const Login = () => {
 
         {/* Overlay */}
         <div className="absolute inset-0 bg-black opacity-40 z-10"></div>
-
         {/* Login Card */}
         <div className="relative z-20 w-full lg:w-1/2 flex justify-center px-4 lg:px-0">
           <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg backdrop-blur-sm bg-opacity-95">
