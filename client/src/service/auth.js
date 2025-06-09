@@ -9,3 +9,13 @@ export const registerUser = async (userCredentials) => {
   apiObject.body = userCredentials;
   return await ApiService.callApi(apiObject);
 };
+
+export const loginUser = async (userCredentials) => {
+  const apiObject = {};
+  apiObject.method = "POST";
+  apiObject.authentication = false;
+  apiObject.prefix = "auth";
+  apiObject.endpoint = "login";
+  apiObject.body = userCredentials;
+  return await ApiService.callApi(apiObject);
+};

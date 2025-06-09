@@ -12,6 +12,6 @@ const store = configureStore({
 })
 
 export const useAppDispatch = () => useDispatch();
-export const useAppSelector = () => useSelector();
+export const useAppSelector = () => useSelector;
 
 export default store;
