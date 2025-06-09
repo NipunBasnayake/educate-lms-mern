@@ -1,22 +1,22 @@
 const jwt = require('jsonwebtoken');
+const {UNAUTHORIZED,FORBIDDEN} = require("../config/statusCode");
 
 const authMiddleware = (roles = []) => {
   return (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ success: false, message: 'No token, authorization denied' });
+      return res.error('No token, authorization denied',UNAUTHORIZED);
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
 
       if (roles.length && !roles.includes(req.user.role)) {
-        return res.status(403).json({ success: false, message: 'Access denied' });
+        return res.error('Access denied',FORBIDDEN);
       }
       next();
     } catch (error) {
-      res.status(401).json({ success: false, message: 'Invalid token', error: error.message });
+      res.error('Invalid token',UNAUTHORIZED,error);
     }
   };
 };
