@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
@@ -20,6 +21,7 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const responseFormatter = require("./middleware/responseFormatter")
 
 console.log("Environment Variables:");
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
@@ -31,10 +33,15 @@ console.log("PORT:", process.env.PORT);
 const app = express();
 connectDB();
 
-app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+    origin: process.env.FRONTEND_ORIGIN,
+    credentials: true,
+}));
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(responseFormatter())
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/auth", authRoutes);
@@ -51,12 +58,14 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/students", studentRoutes);
 
+app.use(require("./middleware/errorHandler"));
+
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err.stack);
+    res.status(500).json({message: "Server error", error: err.message});
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
