@@ -20,7 +20,6 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
-const responseFormatter = require("./middleware/responseFormatter")
 
 console.log("Environment Variables:");
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
@@ -36,7 +35,6 @@ app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
-app.use(responseFormatter())
 
 app.use("/api/courses", courseRoutes);
 app.use("/api/auth", authRoutes);
@@ -52,8 +50,6 @@ app.use("/api/lessons", lessonRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/students", studentRoutes);
-
-app.use(require("./middleware/errorHandler"));
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

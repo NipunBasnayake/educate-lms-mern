@@ -1,8 +1,8 @@
 // tailwind.config.js
 module.exports = {
   content: [
-    "./index.html", // ✅ Adjust if needed based on your folder structure
-    "./src/**/*.{js,jsx,ts,tsx}", // Keep this to scan your React files
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}", // ✅ Adjust if needed based on your folder structure
   ],
   theme: {
     extend: {
