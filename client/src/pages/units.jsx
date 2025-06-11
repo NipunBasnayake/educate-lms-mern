@@ -2,86 +2,96 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Card from "../components/Card";
 import { Link } from "react-router-dom";
+import { assignment } from "../data/updateAssignmentn";
 
-const Institution = () => {
+const Units = () => {
   const [enrolledCourses, setEnrolledCourses] = useState({});
   const [progressData, setProgressData] = useState({});
-  const [totalCredits, setTotalCredits] = useState(0);
-  const [completedCredits, setCompletedCredits] = useState(0);
-  const [overallProgress, setOverallProgress] = useState(0);
 
   const cards = [
     {
       title: "Strategic Management",
       courseId: "BUS301",
       credits: 3,
-      content: "Understand market forces and develop competitive strategies.",
+      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      // Source: Unsplash, no attribution required
     },
     {
       title: "Business Ethics",
       courseId: "BUS205",
       credits: 2,
-      content: "Explore ethical decision-making in corporate environments.",
+      image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      // Source: Unsplash, no attribution required
     },
     {
       title: "Marketing Analytics",
       courseId: "MKT310",
       credits: 3,
-      content: "Use data to drive marketing decisions and measure impact.",
+      image: "https://img.freepik.com/free-photo/business-teamwork-join-hands-together_53876-135517.jpg?size=626&ext=jpg",
+      // Source: Unsplash, no attribution required
     },
     {
       title: "Operations Research",
       courseId: "OPS320",
       credits: 3,
-      content: "Model business processes for better efficiency and productivity.",
+      image: "https://img.freepik.com/free-photo/business-teamwork-join-hands-together_53876-135517.jpg?size=626&ext=jpg",
+      // Source: Pixabay, no attribution required
     },
     {
       title: "Organizational Behavior",
       courseId: "HRM210",
       credits: 3,
-      content: "Analyze how individuals and groups impact organizational dynamics.",
+      image: "https://img.freepik.com/free-photo/business-teamwork-join-hands-together_53876-135517.jpg?size=626&ext=jpg",
+      // Source: Freepik, attribution required: "Designed by Freepik"
     },
     {
       title: "Financial Accounting",
       courseId: "ACC101",
       credits: 3,
-      content: "Interpret financial statements and track business performance.",
+      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      // Source: Unsplash, no attribution required
     },
     {
       title: "Leadership & Influence",
       courseId: "HRM315",
       credits: 2,
-      content: "Develop skills to lead teams and manage change.",
+      image: "https://cdn.pixabay.com/photo/2017/08/06/12/06/people-2591874_1280.jpg",
+      // Source: Pixabay, no attribution required
     },
     {
       title: "Innovation Management",
       courseId: "ENT302",
       credits: 2,
-      content: "Foster creativity and bring new products to market.",
+      image: "https://img.freepik.com/free-photo/light-bulb-ideas-creative-diagram-concept_53876-144053.jpg?size=626&ext=jpg",
+      // Source: Freepik, attribution required: "Designed by Freepik"
     },
     {
       title: "Supply Chain Management",
       courseId: "OPS410",
       credits: 3,
-      content: "Coordinate logistics and inventory across global networks.",
+      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      // Source: Unsplash, no attribution required
     },
     {
       title: "Data-Driven Decision Making",
       courseId: "BUS350",
       credits: 3,
-      content: "Leverage analytics for smarter business strategies.",
+      image: "https://cdn.pixabay.com/photo/2016/11/27/21/42/stock-1863880_1280.jpg",
+      // Source: Pixabay, no attribution required
     },
     {
       title: "International Business",
       courseId: "BUS220",
       credits: 3,
-      content: "Navigate global trade, markets, and cultural differences.",
+      image: "https://img.freepik.com/free-photo/global-business-internet-network-connection_53876-124672.jpg?size=626&ext=jpg",
+      // Source: Freepik, attribution required: "Designed by Freepik"
     },
     {
       title: "Human Resource Strategy",
       courseId: "HRM405",
       credits: 3,
-      content: "Align HR practices with organizational goals.",
+      image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80",
+      // Source: Unsplash, no attribution required
     },
   ];
 
@@ -89,25 +99,18 @@ const Institution = () => {
   const calculateProgress = (enrolled, progress) => {
     const enrolledCards = cards.filter(course => enrolled[course.courseId]);
     
-    // Calculate total and completed credits
-    const total = enrolledCards.reduce((sum, course) => sum + course.credits, 0);
-    const completed = enrolledCards.reduce((sum, course) => 
-      progress[course.courseId] === 100 ? sum + course.credits : sum, 0);
-    
-    // Calculate weighted overall progress
-    let weightedProgress = 0;
-    let totalPossibleWeight = 0;
-    
-    enrolledCards.forEach(course => {
-      weightedProgress += (progress[course.courseId] / 100) * course.credits;
-      totalPossibleWeight += course.credits;
-    });
-    
-    const overall = totalPossibleWeight > 0 ? Math.round((weightedProgress / totalPossibleWeight) * 100) : 0;
-    
-    setTotalCredits(total);
-    setCompletedCredits(completed);
-    setOverallProgress(overall);
+    const activeCourses = enrolledCards.length;
+    const now = new Date();
+    const upcomingDeadlines = assignment.filter(
+      (a) => a.dueDate && a.dueDate > now && a.dueDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    ).length;
+    const avgProgress = enrolledCards.length > 0 
+      ? Math.round(
+          enrolledCards.reduce((sum, course) => sum + (progress[course.courseId] || 0), 0) / enrolledCards.length
+        ) 
+      : 0;
+
+    return { activeCourses, upcomingDeadlines, avgProgress };
   };
 
   // Initialize progress data
@@ -120,16 +123,11 @@ const Institution = () => {
     });
     setProgressData(initialProgress);
     setEnrolledCourses(initialEnrolled);
-    calculateProgress(initialEnrolled, initialProgress);
+    
+    const { activeCourses, upcomingDeadlines, avgProgress } = calculateProgress(initialEnrolled, initialProgress);
+    setEnrolledCourses(prev => ({ ...prev, activeCourses }));
+    setProgressData(prev => ({ ...prev, upcomingDeadlines, avgProgress }));
   }, []);
-
-  const handleEnrollToggle = (courseId) => {
-    setEnrolledCourses(prev => {
-      const newEnrolled = {...prev, [courseId]: !prev[courseId]};
-      calculateProgress(newEnrolled, progressData);
-      return newEnrolled;
-    });
-  };
 
   const ProgressBar = ({ progress }) => {
     return (
@@ -153,22 +151,22 @@ const Institution = () => {
           <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Course Progress</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-800">Enrolled Courses</h3>
-                <p className="text-2xl font-bold text-blue-600">
-                  {Object.values(enrolledCourses).filter(Boolean).length}
-                </p>
-              </div>
               <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-green-800">Credits Completed</h3>
+                <h3 className="text-sm font-medium text-green-800">Active Courses</h3>
                 <p className="text-2xl font-bold text-green-600">
-                  {completedCredits} / {totalCredits}
+                  {enrolledCourses.activeCourses || 0}
                 </p>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-purple-800">Overall Progress</h3>
+                <h3 className="text-sm font-medium text-purple-800">Upcoming Deadlines</h3>
                 <p className="text-2xl font-bold text-purple-600">
-                  {overallProgress}%
+                  {progressData.upcomingDeadlines || 0}
+                </p>
+              </div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-blue-800">Average Course Progress</h3>
+                <p className="text-2xl font-bold text-blue-600">
+                  {progressData.avgProgress || 0}%
                 </p>
               </div>
             </div>
@@ -195,6 +193,10 @@ const Institution = () => {
                     className={`rounded-2xl shadow-sm border ${enrolledCourses[card.courseId] ? 'border-blue-300' : 'border-gray-200'} bg-white p-6 hover:shadow-md transition flex flex-col justify-between`}
                   >
                     <div>
+                      <img 
+                        src={card.image}
+                        alt={`${card.title} course`}
+                        className="w-full h-32 object-cover rounded-lg mb-4" />
                       <h2 className="text-lg font-semibold mb-1">{card.title}</h2>
 
                       <p className="text-sm text-gray-700 mb-1">
@@ -210,8 +212,6 @@ const Institution = () => {
                           {card.credits}
                         </span>
                       </p>
-
-                      <p className="text-sm text-gray-600 mb-4">{card.content}</p>
                     </div>
 
                     {enrolledCourses[card.courseId] && (
@@ -225,15 +225,6 @@ const Institution = () => {
                     )}
 
                     <div className="flex justify-between items-center mt-auto">
-                      <button
-                        onClick={() => handleEnrollToggle(card.courseId)}
-                        className={`text-sm px-3 py-1 rounded-md ${enrolledCourses[card.courseId] 
-                          ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                          : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}
-                      >
-                        {enrolledCourses[card.courseId] ? 'Unenroll' : 'Enroll'}
-                      </button>
-                      
                       <Link
                         to={`/course/${card.courseId}`}
                         state={{ course: card }}
@@ -246,6 +237,9 @@ const Institution = () => {
                 ))}
               </div>
             </div>
+            <div className="text-xs text-gray-500 mt-4">
+              Images sourced from Freepik, Unsplash, and Pixabay. Freepik images: Designed by Freepik.
+            </div>
           </div>
         </Card>
       </main>
@@ -253,4 +247,4 @@ const Institution = () => {
   );
 };
 
-export default Institution;
+export default Units;

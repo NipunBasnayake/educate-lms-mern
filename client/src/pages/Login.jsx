@@ -1,7 +1,6 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import Footer from "../components/Footer";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +9,14 @@ const Login = () => {
     e.preventDefault();
     // TODO: Add authentication logic here
     navigate("/dashboard");
+  };
+
+  const handleLectureNavigation = () => {
+    navigate("/Lecdashboard");
+  };
+
+  const handleAdminNavigation = () => {
+    navigate("/Admindashboard");
   };
 
   return (
@@ -28,7 +35,7 @@ const Login = () => {
         <div className="relative z-20 w-full lg:w-1/2 flex justify-center px-4 lg:px-0">
           <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg backdrop-blur-sm bg-opacity-95">
             <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              Welcome to University 
+              Welcome to University
             </h2>
             <p className="text-sm text-gray-500 mb-6">
               Login to access your account
@@ -95,10 +102,34 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don’t have an account?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline">
+                <a
+                  href="/register"
+                  className="text-blue-600 hover:underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/register");
+                  }}
+                >
                   Create one
-                </Link>
+                </a>
               </p>
+            </div>
+
+            {/* Bottom Center Links */}
+            <div className="flex justify-center items-center gap-4 mt-4">
+              <button
+                onClick={handleLectureNavigation}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
+              >
+                Lecture
+              </button>
+              <span className="text-sm text-gray-400">|</span>
+              <button
+                onClick={handleAdminNavigation}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
+              >
+                Admin
+              </button>
             </div>
           </div>
         </div>
