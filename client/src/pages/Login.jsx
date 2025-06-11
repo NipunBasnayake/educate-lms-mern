@@ -41,7 +41,13 @@ const Login = () => {
       console.log("Login user Result ", result);
 
       if (result.success) {
-        navigate("/dashboard");
+        if(result.data.user.role == "Student"){
+          navigate("/dashboard");
+        }else if(result.data.user.role == "Instructor"){
+          navigate("/register");
+        }else if(result.data.user.role == "SuperAdmin"){
+          navigate("/courses ");
+        }
       }
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
