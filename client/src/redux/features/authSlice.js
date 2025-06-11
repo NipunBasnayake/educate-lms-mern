@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loginUser, registerUser } from "../../service/auth";
+import { loginUser, refreshToken, registerUser } from "../../service/auth";
 
 // Async thunk to handle APIs
 
@@ -36,6 +36,21 @@ export const loginUserAPI = createAsyncThunk(
   }
 );
 
+// Refersh Token 
+export const refreshTokenAPI = createAsyncThunk(
+  "refreshTokenAPI",
+  async(_, {rejectWithValue}) => {
+    try{
+      const response = await refreshToken();
+      console.log("Refresh Token Response ->> ", response);
+      return response;
+      
+    }catch(error){
+      return rejectWithValue(error.result || "refresh Token Failed..",error);
+    }
+  }
+)
+
 const initialState = {
   loading: false,
   isAuthenticated: false,
@@ -47,11 +62,16 @@ const authSlice = createSlice({
   name: "authSlice",
   initialState,
   reducers: {
-    logout: (state) => {
-      localStorage.removeItem("secure_access");
+    logout(state) {
+      // localStorage.removeItem("secure_access");
       state.isAuthenticated = false;
       state.data = null;
+      state.error = null;
     },
+    refreshTokenSuccess(state,action) {
+      state.data = action.payload.user || state.data;    // this is optonal....this is update the redux store in new refresh token sucess.....
+      state.isAuthenticated = true;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -74,16 +94,31 @@ const authSlice = createSlice({
       })
       .addCase(loginUserAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
-        state.isAuthenticated = false;
+        state.data = action.payload.data || action.payload;
+        state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(loginUserAPI.rejected, (state, action) => {
         state.loading = true;
+        state.error = action.payload;
+      })
+
+      .addCase(refreshTokenAPI.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(refreshTokenAPI.fulfilled, (state,action) => {
+        state.loading = false;
+        state.data = action.payload.data || action.payload;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(refreshTokenAPI.rejected, (state,action) => {
+        state.loading = false;
         state.error = action.error;
+        state.isAuthenticated = false;    // Logout on refresh fail
       })
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout,refreshTokenSuccess } = authSlice.actions;
 export default authSlice.reducer;

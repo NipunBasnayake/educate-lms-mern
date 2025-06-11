@@ -1,15 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Footer from "../components/Footer";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
-import { loginUserAPI } from "../redux/features/authSlice";
+import {
+  loginUserAPI,
+  refreshTokenAPI,
+  refreshTokenSuccess,
+} from "../redux/features/authSlice";
 
 const Login = () => {
   const dispatch = useAppDispatch();
-  const {loading, data, isAuthenticated,error} = useAppSelector((state) => state.auth);
+  const { loading, data, isAuthenticated, error } = useAppSelector(
+    (state) => state.auth
+  );
 
   const navigate = useNavigate();
 
@@ -35,18 +41,35 @@ const Login = () => {
     try {
       // Login API
       const result = await dispatch(loginUserAPI(values)).unwrap();
-      console.log("Login user Result ",result);
+      console.log("Login user Result ", result);
 
-      if(result.success){
+      if (result.success) {
         navigate("/dashboard");
       }
-
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if(isAuthenticated){
+      dispatch(refreshTokenAPI());
+    }
+  }, [isAuthenticated, dispatch]);
+
+/*   const refreshToken = async () => {
+    try {
+      const result = await dispatch(refreshTokenAPI()).unwrap();
+      console.log("Refresh Token Result ", result);
+      if (result.success) {
+        dispatch(refreshTokenSuccess({ user: result.data.user }));
+      }
+    } catch (error) {
+      console.error("refresh Token Error", error);
+    }
+  }; */
 
   return (
     <div className="font-sans">

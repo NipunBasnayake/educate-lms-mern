@@ -1,20 +1,22 @@
 import axios from "axios";
 import store from "../redux/store-config/store";
+import { logout, refreshTokenSuccess } from "../redux/features/authSlice";
 
 const API_BASE_URL = "http://localhost:5000";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 // Request Interceptor
-/* apiClient.interceptors.request.use(
-    (config) => {
-        const token = store.getState().auth.token;
+apiClient.interceptors.request.use(
+  (config) => {
+    /*         const token = store.getState().auth.token;
         if(token){
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -23,14 +25,14 @@ const apiClient = axios.create({
         const role = store.getState().auth.user?.role;
         if(role){
             config.headers['X-User-Role'] = role;
-        }
+        } */
 
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-); */
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response Interceptor
 apiClient.interceptors.response.use(
@@ -42,31 +44,43 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     // Handle 401 Unauthorized (token expired)
-    /* if (status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        const refreshTokenValue = store.getState().auth.refreshToken;
-        const response = await axios.post(
-          `${API_BASE_URL}/api/auth/refresh`,
+        //const refreshTokenValue = store.getState().auth.refreshToken;
+        const response = await apiClient.post(
+          `${API_BASE_URL}/api/auth/refresh-token`,
           {},
-          {
+          /* {
             headers: {
               Authorization: `Bearer ${refreshTokenValue}`,
             },
+          } */
+          {
+            withCredentials: true,
           }
         );
 
-        const { token: newToken, user } = response.data;
+        /*         const { token: newToken, user } = response.data;
         store.dispatch(refreshToken({ token: newToken, user }));
 
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return apiClient(originalRequest);
+        return apiClient(originalRequest); */
+
+        if (response.data.success) {
+          const { acessToken, user } = response.data.data || response.data;
+          store.dispatch(refreshTokenSuccess({ user }));
+          return apiClient(originalRequest);
+        }
+
       } catch (refreshError) {
         // Refresh token failed - logout user
         store.dispatch(logout());
-        swal({
+        window.location.href = "/login"  // Rediret on refresh Failure...
+
+        /* swal({
           title: "Session Expired",
           text: "Your session has expired. Please log in again.",
           icon: "warning",
@@ -74,10 +88,13 @@ apiClient.interceptors.response.use(
           dangerMode: true,
         }).then(() => {
           window.location.href = "/login";
-        });
+        }); */
+        
         return Promise.reject(refreshError);
+      }finally{
+        originalRequest._retry = false;
       }
-    } */
+    }
 
     // Handle 403 Forbidden (role-based access)
     if (status === 403) {
@@ -101,7 +118,6 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-
   }
 );
 

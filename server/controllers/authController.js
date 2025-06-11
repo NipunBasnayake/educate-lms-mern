@@ -155,6 +155,9 @@ const login = async (req, res) => {
         const accessToken = generateToken(payload, "15m");
         const refreshToken = generateToken(payload, "7d");
 
+        user.refreshToken = refreshToken
+        await user.save();
+
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -171,7 +174,7 @@ const login = async (req, res) => {
 
         res.success(
             {
-                token,
+
                 user: {id: user._id, name: user.name, email: user.email, role},
             },
             "User Login Successfully",
@@ -508,6 +511,44 @@ const testEmail = async (req, res) => {
     }
 };
 
+// Refresh Token
+const refreshToken = async (req,res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken){
+        return res.error("No refresh Token Provided", HttpsStatus.UNAUTHORIZED);
+    }
+
+    try{
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+        const user = await Student.findOne({_id: decoded.id}).or([
+            {_id: decoded.id, role: "Instructor"},
+            {_id:decoded.id, role: "SuperAdmin"},
+        ]);
+
+        if(!user || user.refreshToken !== refreshToken){
+            return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
+        }
+
+        const payload = {id: user._id, role: user.role};
+        const newAccessToken = generateToken(payload, "15m");
+
+        res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        res.success(
+            {accessToken: newAccessToken},
+            "Token Refresh",
+            HttpsStatus.OK
+        );
+    }catch (error) {
+        res.error("Invalid refresh token", HttpsStatus.FORBIDDEN, error);
+    }
+}
+
 module.exports = {
     register,
     login,
@@ -520,4 +561,5 @@ module.exports = {
     verifyOTP,
     resetPassword,
     testEmail,
+    refreshToken
 };
