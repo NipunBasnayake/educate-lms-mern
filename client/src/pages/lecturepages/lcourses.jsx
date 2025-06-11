@@ -51,10 +51,10 @@ const Leccorces = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (currentCourse) {
       // Update existing course
-      const updatedCourses = courses.map(course =>
+      const updatedCourses = courses.map((course) =>
         course.id === currentCourse.id ? { ...course, ...formData } : course
       );
       setCourses(updatedCourses);
@@ -68,13 +68,13 @@ const Leccorces = () => {
       };
       setCourses([...courses, newCourse]);
     }
-    
+
     setIsModalOpen(false);
   };
 
   const handleDelete = (courseId) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter(course => course.id !== courseId));
+      setCourses(courses.filter((course) => course.id !== courseId));
     }
   };
 
@@ -88,24 +88,30 @@ const Leccorces = () => {
             <div className="flex border border-gray-300 rounded-lg overflow-hidden">
               <button
                 onClick={() => setActiveTab("table")}
-                className={`px-4 py-2 ${activeTab === "table" ? "bg-blue-600 text-white" : "bg-white"}`}
+                className={`px-4 py-2 ${
+                  activeTab === "table" ? "bg-blue-600 text-white" : "bg-white"
+                }`}
               >
                 Table
               </button>
               <button
                 onClick={() => setActiveTab("cards")}
-                className={`px-4 py-2 ${activeTab === "cards" ? "bg-blue-600 text-white" : "bg-white"}`}
+                className={`px-4 py-2 ${
+                  activeTab === "cards" ? "bg-blue-600 text-white" : "bg-white"
+                }`}
               >
                 Cards
               </button>
               <button
                 onClick={() => setActiveTab("both")}
-                className={`px-4 py-2 ${activeTab === "both" ? "bg-blue-600 text-white" : "bg-white"}`}
+                className={`px-4 py-2 ${
+                  activeTab === "both" ? "bg-blue-600 text-white" : "bg-white"
+                }`}
               >
                 Both
               </button>
             </div>
-            <button 
+            <button
               onClick={openCreateModal}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
@@ -129,18 +135,21 @@ const Leccorces = () => {
                 </thead>
                 <tbody>
                   {courses.map((course) => (
-                    <tr key={`table-${course.id}`} className="border-t border-neutral-200">
+                    <tr
+                      key={`table-${course.id}`}
+                      className="border-t border-neutral-200"
+                    >
                       <td className="p-4">{course.title}</td>
                       <td className="p-4">{course.code}</td>
                       <td className="p-4">{course.students}</td>
                       <td className="p-4 space-x-2">
-                        <button 
+                        <button
                           onClick={() => openEditModal(course)}
                           className="text-blue-600 hover:underline"
                         >
                           Edit
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(course.id)}
                           className="text-red-600 hover:underline"
                         >
@@ -155,42 +164,42 @@ const Leccorces = () => {
           </div>
         )}
 
-        {(activeTab === "cards" || activeTab === "both") && (
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Card View</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course) => (
-                <div key={`card-${course.id}`} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-semibold text-neutral-800">{course.title}</h3>
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                        {course.code}
-                      </span>
-                    </div>
-                    <p className="text-neutral-600 mb-4">
-                      <span className="font-medium">Students:</span> {course.students}
-                    </p>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => openEditModal(course)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(course.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+       {(activeTab === "cards" || activeTab === "both") && (
+  <div>
+    <h3 className="text-lg font-semibold mb-4">Card View</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {courses.map((course) => (
+        <div
+          key={`card-${course.id}`}
+          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+        >
+          <div className="p-6">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-xl font-semibold text-neutral-800">
+                {course.title}
+              </h3>
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                {course.code}
+              </span>
+            </div>
+            <p className="text-neutral-600 mb-4">
+              <span className="font-medium">Students:</span> {course.students}
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => openEditModal(course)}
+                className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+              >
+                Access
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
         {/* Modal for Create/Edit */}
         {isModalOpen && (
@@ -202,7 +211,10 @@ const Leccorces = () => {
                 </h3>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-4">
-                    <label className="block text-neutral-700 mb-2" htmlFor="title">
+                    <label
+                      className="block text-neutral-700 mb-2"
+                      htmlFor="title"
+                    >
                       Course Title
                     </label>
                     <input
@@ -216,7 +228,10 @@ const Leccorces = () => {
                     />
                   </div>
                   <div className="mb-4">
-                    <label className="block text-neutral-700 mb-2" htmlFor="code">
+                    <label
+                      className="block text-neutral-700 mb-2"
+                      htmlFor="code"
+                    >
                       Course Code
                     </label>
                     <input
@@ -230,7 +245,10 @@ const Leccorces = () => {
                     />
                   </div>
                   <div className="mb-6">
-                    <label className="block text-neutral-700 mb-2" htmlFor="students">
+                    <label
+                      className="block text-neutral-700 mb-2"
+                      htmlFor="students"
+                    >
                       Students Enrolled
                     </label>
                     <input
