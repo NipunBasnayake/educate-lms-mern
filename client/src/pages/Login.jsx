@@ -51,7 +51,7 @@ const Login = () => {
   };
 
   const handleLectureNavigation = () => {
-    navigate("/Lecdashboard");
+    navigate("/lecturepages/lecturedashboard");
   };
 
   const handleAdminNavigation = () => {

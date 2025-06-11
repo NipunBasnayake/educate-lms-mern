@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import LecSidebar from "../lecturepages/Lecsidebar";
+import LecSidebar from "./Lecsidebar";
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -23,8 +23,8 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-const Assignments = () => {
-  const [assignments, setAssignments] = useState([]);
+const Lstudents = () => {
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [instructorId, setInstructorId] = useState(null);
@@ -56,31 +56,31 @@ const Assignments = () => {
     fetchInstructorId();
   }, [navigate]);
 
-  // Fetch assignments
+  // Fetch students
   useEffect(() => {
     if (!instructorId) return;
 
-    const fetchAssignments = async () => {
+    const fetchStudents = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`{{baseUrl}}instructors/${instructorId}/assignments`, {
+        const response = await axios.get(`{{baseUrl}}instructors/${instructorId}/students`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("Assignments API Response:", response.data);
+        console.log("Students API Response:", response.data);
 
-        const fetchedAssignments = Array.isArray(response.data)
+        const fetchedStudents = Array.isArray(response.data)
           ? response.data
-          : response.data.assignments || response.data.data?.assignments || [];
+          : response.data.students || response.data.data?.students || [];
 
-        setAssignments(fetchedAssignments);
+        setStudents(fetchedStudents);
         setLoading(false);
       } catch (err) {
-        console.error("Assignments fetch error:", err);
-        setError(err.message || "Failed to fetch assignments");
+        console.error("Students fetch error:", err);
+        setError(err.message || "Failed to fetch students");
         setLoading(false);
       }
     };
-    fetchAssignments();
+    fetchStudents();
   }, [instructorId]);
 
   const handleLogout = () => {
@@ -111,34 +111,34 @@ const Assignments = () => {
       <div className="flex min-h-screen">
         <LecSidebar onLogout={handleLogout} />
         <div className="flex-1 p-6 bg-neutral-100">
-          <h2 className="text-2xl font-bold text-neutral-800 mb-6">Assignments</h2>
+          <h2 className="text-2xl font-bold text-neutral-800 mb-6">Students</h2>
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-neutral-200 text-neutral-700">
-                  <th className="p-4">Assignment Title</th>
+                  <th className="p-4">Name</th>
+                  <th className="p-4">Email</th>
                   <th className="p-4">Course</th>
-                  <th className="p-4">Due Date</th>
-                  <th className="p-4">Submissions</th>
+                  <th className="p-4">Grades</th>
                   <th className="p-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {assignments.length === 0 ? (
+                {students.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="p-4 text-center text-neutral-500">
-                      No assignments found
+                      No students found
                     </td>
                   </tr>
                 ) : (
-                  assignments.map((assignment) => (
-                    <tr key={assignment.id || assignment._id} className="border-t border-neutral-200">
-                      <td className="p-4">{assignment.title || "N/A"}</td>
-                      <td className="p-4">{assignment.course || "N/A"}</td>
-                      <td className="p-4">{assignment.dueDate || "N/A"}</td>
-                      <td className="p-4">{assignment.submissions || 0}</td>
+                  students.map((student) => (
+                    <tr key={student.id || student._id} className="border-t border-neutral-200">
+                      <td className="p-4">{student.name || "N/A"}</td>
+                      <td className="p-4">{student.email || "N/A"}</td>
+                      <td className="p-4">{student.course || "N/A"}</td>
+                      <td className="p-4">{student.grades || "N/A"}</td>
                       <td className="p-4">
-                        <button className="text-blue-600 hover:underline">View</button>
+                        <button className="text-blue-600 hover:underline">View Profile</button>
                       </td>
                     </tr>
                   ))
@@ -146,13 +146,10 @@ const Assignments = () => {
               </tbody>
             </table>
           </div>
-          <button className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-            Create New Assignment
-          </button>
         </div>
       </div>
     </ErrorBoundary>
   );
 };
 
-export default Assignments;
+export default Lstudents;

@@ -19,13 +19,40 @@ import Accessibility from "../pages/Accessibility";
 import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
+import Lassignments from "../pages/lecturepages/lassignments";
+import Lecdashboard from "../pages/lecturepages/lecturedashboard";
+import Leccorces from "../pages/lecturepages/lcourses";
+import Lstudents from "../pages/lecturepages/lstudents";
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
 
-      <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
+      <Route
+        element={
+          <ProtectedRoute
+            allowedRoles={["Student", "SuperAdmin", "Instructor"]}
+          />
+        }
+      >
+        <Route path="/lecturepages/lassignments" element={<Lassignments />} />
+        <Route
+          path="/lecturepages/lecturedashboard"
+          element={<Lecdashboard />}
+        />
+        <Route path="/lecturepages/lcourses" element={<Leccorces />} />
+        <Route path="/lecturepages/lassignments" element={<Lassignments />} />
+        <Route path="/lecturepages/lstudents" element={<Lstudents />} />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        {/* <Route path="/lecturepages/lectureashboard" element={<Lecdashboard />} /> */}
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
+        {/* Add SuperAdmin-specific routes here if needed */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/courses" element={<Courses />} />
@@ -44,14 +71,6 @@ const AppRoutes = () => {
         <Route path="/accessibility" element={<Accessibility />} />
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/exam-application" element={<Exam />} />
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
-        {/* Add Instructor-specific routes here if needed */}
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
-        {/* Add SuperAdmin-specific routes here if needed */}
       </Route>
     </Routes>
   );
