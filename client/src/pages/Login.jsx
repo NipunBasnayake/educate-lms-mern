@@ -44,7 +44,7 @@ const Login = () => {
         if(result.data.user.role == "Student"){
           navigate("/dashboard");
         }else if(result.data.user.role == "Instructor"){
-          navigate("/register");
+          navigate("/dashboard/lecture");
         }else if(result.data.user.role == "SuperAdmin"){
           navigate("/courses ");
         }
@@ -188,22 +188,6 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Bottom Center Links */}
-            <div className="flex justify-center items-center gap-4 mt-4">
-              <button
-                onClick={handleLectureNavigation}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
-              >
-                Lecture
-              </button>
-              <span className="text-sm text-gray-400">|</span>
-              <button
-                onClick={handleAdminNavigation}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition"
-              >
-                Admin
-              </button>
-            </div>
           </div>
         </div>
       </main>

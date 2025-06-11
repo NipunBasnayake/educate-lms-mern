@@ -19,6 +19,10 @@ import Accessibility from "../pages/Accessibility";
 import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
+import Leccorces from "../pages/lecturepages/lcourses";
+import Lecdashboard from "../pages/lecturepages/lecturedashboard" 
+import Lstudents from "../pages/lecturepages/lstudents" 
+import Lassignments from "../pages/lecturepages/lassignments" 
 
 const AppRoutes = () => {
   return (
@@ -49,6 +53,10 @@ const AppRoutes = () => {
 
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
         {/* Add Instructor-specific routes here if needed */}
+        <Route path="dashboard/lecture" element={<Lecdashboard />} />
+        <Route path="courses/lecture" element={<Leccorces />} />
+        <Route path="assignments/lecture" element={<Lassignments />} />
+        <Route path="students/lecture" element={<Lstudents />} />`
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
