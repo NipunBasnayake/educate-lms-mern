@@ -56,11 +56,11 @@ const Login = () => {
     }
   };
 
-  useEffect(() => {
+/*   useEffect(() => {
     if(isAuthenticated){
       dispatch(refreshTokenAPI());
     }
-  }, [isAuthenticated, dispatch]);
+  }, [isAuthenticated, dispatch]); */
 
 /*   const refreshToken = async () => {
     try {

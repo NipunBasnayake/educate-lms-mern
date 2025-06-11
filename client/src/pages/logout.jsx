@@ -21,7 +21,8 @@ const Logout = () => {
     setIsLoggingOut(true);
     
     // Simulate logout API call
-    dispatch(logout());
+    sessionStorage.removeItem("lastPath");
+    dispatch(logout());    
     setTimeout(() => {
       // Clear user session
       localStorage.removeItem("authToken");
