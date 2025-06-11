@@ -150,7 +150,7 @@ exports.getStudentById = async (req, res) => {
 
 exports.updateStudent = async (req, res) => {
   try {
-    const { name, email, password, profile, enrolledCourses, completedCourses, assessments, exams, certificates, notifications, calendarEvents, performance } = req.body;
+    const { name, email, password, profile } = req.body;
 
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, 'Invalid student ID');
@@ -158,10 +158,6 @@ exports.updateStudent = async (req, res) => {
 
     if (req.user.role === 'Student' && req.user.id !== req.params.id) {
       return sendError(res, 403, 'Students can only update their own data');
-    }
-
-    if (req.user.role === 'Student' && (enrolledCourses || completedCourses || assessments || exams || certificates || notifications || calendarEvents || performance)) {
-      return sendError(res, 403, 'Students can only update name, email, password, or profile');
     }
 
     const student = await Student.findById(req.params.id);
@@ -184,14 +180,6 @@ exports.updateStudent = async (req, res) => {
       name: name ? sanitize(name) : undefined,
       email: email ? sanitize(email) : undefined,
       profile: profile ? sanitize(profile) : undefined,
-      enrolledCourses: enrolledCourses || undefined,
-      completedCourses: completedCourses || undefined,
-      assessments: assessments || undefined,
-      exams: exams || undefined,
-      certificates: certificates || undefined,
-      notifications: notifications || undefined,
-      calendarEvents: calendarEvents || undefined,
-      performance: performance || undefined,
       updatedAt: new Date()
     };
 
@@ -204,6 +192,7 @@ exports.updateStudent = async (req, res) => {
       updateData.password = await bcrypt.hash(password, salt);
     }
 
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
     Object.assign(student, updateData);
     await student.save();
 
@@ -219,6 +208,75 @@ exports.updateStudent = async (req, res) => {
     });
   } catch (error) {
     sendError(res, 500, 'Error updating student', error);
+  }
+};
+
+exports.updateStudentByAdmin = async (req, res) => {
+  try {
+    if (req.user.role === 'Student') {
+      return sendError(res, 403, 'Only instructors and admins can update this data');
+    }
+
+    const {
+      enrolledCourse,
+      completedCourses,
+      assessments,
+      exams,
+      certificates,
+      notifications,
+      calendarEvents,
+      performance
+    } = req.body || {};
+
+    const enrolledCourses = enrolledCourse;
+
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return sendError(res, 400, 'Invalid student ID');
+    }
+
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return sendError(res, 404, 'Student not found');
+    }
+
+    if (enrolledCourses && student.enrolledCourses && mongoose.isValidObjectId(enrolledCourses) && enrolledCourses !== student.enrolledCourses.toString()) {
+      return sendError(res, 400, 'Student can only be enrolled in one course at a time');
+    }
+
+    const updateData = {
+      enrolledCourses: mongoose.isValidObjectId(enrolledCourses) ? enrolledCourses : undefined,
+      completedCourses: Array.isArray(completedCourses) ? completedCourses.filter(id => mongoose.isValidObjectId(id)) : undefined,
+      assessments: Array.isArray(assessments) ? assessments : undefined,
+      exams: Array.isArray(exams) ? exams : undefined,
+      certificates: Array.isArray(certificates) ? certificates.filter(id => mongoose.isValidObjectId(id)) : undefined,
+      notifications: Array.isArray(notifications) ? notifications.filter(id => mongoose.isValidObjectId(id)) : undefined,
+      calendarEvents: Array.isArray(calendarEvents) ? calendarEvents.filter(id => mongoose.isValidObjectId(id)) : undefined,
+      performance: performance && typeof performance === 'object' ? performance : undefined,
+      updatedAt: new Date()
+    };
+
+    Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    if (Object.keys(updateData).length === 0) {
+      return sendError(res, 400, 'No valid data provided for update');
+    }
+
+    Object.assign(student, updateData);
+    await student.save();
+
+    const updatedStudent = await Student.findById(student._id)
+      .select('-password')
+      .populate('enrolledCourses', 'title description')
+      .populate('completedCourses', 'title description');
+
+    res.status(200).json({
+      success: true,
+      message: 'Student data updated successfully by admin',
+      data: updatedStudent
+    });
+  } catch (error) {
+    console.error('Error in updateStudentByAdmin:', error);
+    sendError(res, 500, 'Error updating student data', error);
   }
 };
 

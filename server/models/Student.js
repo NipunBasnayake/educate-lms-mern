@@ -13,7 +13,7 @@ const StudentSchema = new Schema({
       language: { type: String, default: 'en' }
     }
   },
-  enrolledCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+  enrolledCourses: { type: Schema.Types.ObjectId, ref: 'Course' },
   completedCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
   assessments: [{
     assessment: { type: Schema.Types.ObjectId, ref: 'Assessment' },
@@ -32,7 +32,10 @@ const StudentSchema = new Schema({
     overallAverage: { type: Number, default: 0 },
     assessmentAverage: { type: Number, default: 0 },
     examAverage: { type: Number, default: 0 },
-    progress: [{ course: { type: Schema.Types.ObjectId, ref: 'Course' }, percentage: { type: Number } }]
+    progress: {
+      course: { type: Schema.Types.ObjectId, ref: 'Course' },
+      percentage: { type: Number }
+    }
   },
   resetPasswordOTP: { type: String },
   resetPasswordExpires: { type: Number },

@@ -8,6 +8,9 @@ router.post('/login', studentController.loginStudent);
 router.get('/', authMiddleware(['SuperAdmin', 'Instructor']), studentController.getAllStudents);
 router.get('/:id', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.getStudentById);
 router.put('/:id', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.updateStudent);
+
+router.put('/:id/admin', authMiddleware(['SuperAdmin', 'Instructor']), studentController.updateStudentByAdmin);
+
 router.delete('/:id', authMiddleware(['SuperAdmin', 'Instructor']), studentController.deleteStudent);
 router.get('/:id/enrolled-courses', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.getStudentEnrolledCourses);
 router.get('/:id/performance', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.getStudentPerformance);
