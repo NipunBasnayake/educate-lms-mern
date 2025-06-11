@@ -20,12 +20,22 @@ import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
 
+
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
 
-      <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
+      <Route path="/login" element={<Login />} />
+      
+      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
+
+      </Route>
+      
+      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
+
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/courses" element={<Courses />} />
@@ -46,13 +56,8 @@ const AppRoutes = () => {
         <Route path="/exam-application" element={<Exam />} />
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
-        {/* Add Instructor-specific routes here if needed */}
-      </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
-        {/* Add SuperAdmin-specific routes here if needed */}
-      </Route>
+
     </Routes>
   );
 };
