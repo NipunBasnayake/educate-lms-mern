@@ -3,9 +3,27 @@ import Lecsidebar from "../lecturepages/Lecsidebar";
 
 const Leccorces = () => {
   const [courses, setCourses] = useState([
-    { id: 1, title: "Introduction to React", code: "CS101", students: 50 },
-    { id: 2, title: "Advanced JavaScript", code: "CS202", students: 35 },
-    { id: 3, title: "Web Development", code: "CS303", students: 45 },
+    { 
+      id: 1, 
+      title: "Introduction to React", 
+      code: "CS101", 
+      students: 50,
+      description: "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course."
+    },
+    { 
+      id: 2, 
+      title: "Advanced JavaScript", 
+      code: "CS202", 
+      students: 35,
+      description: "Dive deep into JavaScript concepts like closures, prototypes, async/await. Master the language that powers modern web development."
+    },
+    { 
+      id: 3, 
+      title: "Web Development", 
+      code: "CS303", 
+      students: 45,
+      description: "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch."
+    },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,8 +32,9 @@ const Leccorces = () => {
     title: "",
     code: "",
     students: "",
+    description: ""
   });
-  const [activeTab, setActiveTab] = useState("both"); // 'table', 'cards', or 'both'
+  const [activeTab, setActiveTab] = useState("both");
 
   const handleLogout = () => {
     console.log("Logout triggered");
@@ -35,6 +54,7 @@ const Leccorces = () => {
       title: "",
       code: "",
       students: "",
+      description: ""
     });
     setIsModalOpen(true);
   };
@@ -45,6 +65,7 @@ const Leccorces = () => {
       title: course.title,
       code: course.code,
       students: course.students,
+      description: course.description
     });
     setIsModalOpen(true);
   };
@@ -59,12 +80,13 @@ const Leccorces = () => {
       );
       setCourses(updatedCourses);
     } else {
-      // Create new course (appears at bottom)
+      // Create new course
       const newCourse = {
         id: Date.now(),
         title: formData.title,
         code: formData.code,
         students: parseInt(formData.students),
+        description: formData.description
       };
       setCourses([...courses, newCourse]);
     }
@@ -137,21 +159,21 @@ const Leccorces = () => {
                   {courses.map((course) => (
                     <tr
                       key={`table-${course.id}`}
-                      className="border-t border-neutral-200"
+                      className="border-t border-neutral-200 hover:bg-neutral-50"
                     >
-                      <td className="p-4">{course.title}</td>
-                      <td className="p-4">{course.code}</td>
+                      <td className="p-4 font-medium">{course.title}</td>
+                      <td className="p-4 text-neutral-600">{course.code}</td>
                       <td className="p-4">{course.students}</td>
                       <td className="p-4 space-x-2">
                         <button
                           onClick={() => openEditModal(course)}
-                          className="text-blue-600 hover:underline"
+                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
-                          className="text-red-600 hover:underline"
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                         >
                           Delete
                         </button>
@@ -164,42 +186,56 @@ const Leccorces = () => {
           </div>
         )}
 
-       {(activeTab === "cards" || activeTab === "both") && (
-  <div>
-    <h3 className="text-lg font-semibold mb-4">Card View</h3>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {courses.map((course) => (
-        <div
-          key={`card-${course.id}`}
-          className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-        >
-          <div className="p-6">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-xl font-semibold text-neutral-800">
-                {course.title}
-              </h3>
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                {course.code}
-              </span>
-            </div>
-            <p className="text-neutral-600 mb-4">
-              <span className="font-medium">Students:</span> {course.students}
-            </p>
-            <div className="flex justify-end">
-              <button
-                onClick={() => openEditModal(course)}
-                className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-              >
-                Access
-              </button>
+        {(activeTab === "cards" || activeTab === "both") && (
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Card View</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map((course) => (
+                <div
+                  key={`card-${course.id}`}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
+                >
+                  <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-neutral-800 mb-1">
+                          {course.title}
+                        </h3>
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                          {course.code}
+                        </span>
+                      </div>
+                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                        {course.students} students
+                      </span>
+                    </div>
+                    
+                    <div className="mb-4 flex-1">
+                      <p className="text-neutral-600 text-sm line-clamp-3">
+                        {course.description}
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-neutral-100">
+                      <button
+                        onClick={() => openEditModal(course)}
+                        className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors"
+                      >
+                        Edit Course
+                      </button>
+                      <button
+                        onClick={() => handleDelete(course.id)}
+                        className="px-3 py-1 text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+        )}
 
         {/* Modal for Create/Edit */}
         {isModalOpen && (
@@ -223,7 +259,7 @@ const Leccorces = () => {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      className="w-full p-2 border border-neutral-300 rounded"
+                      className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -240,11 +276,11 @@ const Leccorces = () => {
                       name="code"
                       value={formData.code}
                       onChange={handleInputChange}
-                      className="w-full p-2 border border-neutral-300 rounded"
+                      className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <label
                       className="block text-neutral-700 mb-2"
                       htmlFor="students"
@@ -257,7 +293,24 @@ const Leccorces = () => {
                       name="students"
                       value={formData.students}
                       onChange={handleInputChange}
-                      className="w-full p-2 border border-neutral-300 rounded"
+                      className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div className="mb-6">
+                    <label
+                      className="block text-neutral-700 mb-2"
+                      htmlFor="description"
+                    >
+                      Course Description
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
@@ -265,13 +318,13 @@ const Leccorces = () => {
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="px-4 py-2 text-neutral-700 border border-neutral-300 rounded hover:bg-neutral-100"
+                      className="px-4 py-2 text-neutral-700 border border-neutral-300 rounded hover:bg-neutral-100 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     >
                       {currentCourse ? "Update" : "Create"}
                     </button>
