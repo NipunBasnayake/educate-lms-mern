@@ -18,33 +18,35 @@ import Terms from "./pages/Terms"; // Assuming you have a Terms of Service page
 import Accessibility from "./pages/Accessibility"; // Assuming you have an Accessibility page
 import CourseList from "./pages/CourseList";
 import CourseDetails from "./pages/CourseDetails"; // Ensure CourseDetails has a default export
-import Exam from './pages/Exam'; // Make sure the path is correct
-
+import Exam from "./pages/Exam"; // Make sure the path is correct
+import ProtectedRoute from "./routes/protectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/institution" element={<Institution />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/Activity" element={<Goals />} />
-        <Route path="/units" element={<Units />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/messages" element={<Messenger />} />
-        <Route path="/marks" element={<Marks />} />
-        <Route path="/tools" element={<Tool />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/accessibility" element={<Accessibility />} />
 
-        <Route path="/course/:id" element={<CourseDetails />} />
-        <Route path="/exam-application" element={<Exam />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/institution" element={<Institution />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/Activity" element={<Goals />} />
+          <Route path="/units" element={<Units />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/messages" element={<Messenger />} />
+          <Route path="/marks" element={<Marks />} />
+          <Route path="/tools" element={<Tool />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/accessibility" element={<Accessibility />} />
+          <Route path="/course/:id" element={<CourseDetails />} />
+          <Route path="/exam-application" element={<Exam />} />
+        </Route>
       </Routes>
     </Router>
   );
