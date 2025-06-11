@@ -89,6 +89,13 @@ const Leccorces = () => {
     setIsModalOpen(true);
   };
 
+  const handleAccessCourse = (course) => {
+    // This function would handle what happens when a course is accessed
+    // For now, we'll just log it and show an alert
+    console.log("Accessing course:", course);
+    alert(`Accessing course: ${course.title}`);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -157,7 +164,7 @@ const Leccorces = () => {
               onClick={openCreateModal}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              Add New Course
+              + Add New Course
             </button>
           </div>
         </div>
@@ -166,12 +173,7 @@ const Leccorces = () => {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Table View</h3>
-              <button
-                onClick={openCreateModal}
-                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-              >
-                + Add Course
-              </button>
+              
             </div>
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <table className="w-full text-left">
@@ -207,7 +209,7 @@ const Leccorces = () => {
                           onClick={() => openEditModal(course)}
                           className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                         >
-                          Access
+                          Edit
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
@@ -265,7 +267,7 @@ const Leccorces = () => {
                     
                     <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100">
                       <button
-                        onClick={() => openEditModal(course)}
+                        onClick={() => handleAccessCourse(course)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                       >
                         Access
