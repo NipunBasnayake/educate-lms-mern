@@ -976,7 +976,7 @@ export const courses = [
   }
 ];
 
-// Shared academic data
+
 export const academicSummary = {
   finalGPA: 3.65,
   extraCurricularMarks: "95%",
@@ -988,6 +988,7 @@ export const academicSummary = {
     "B": "Above Average",
     "C+": "Average",
     "C": "Below Average"
+    
   },
   repeatedSubjects: ["Statistics", "Supply Chain"],
   assessmentBreakdown: {
@@ -995,4 +996,20 @@ export const academicSummary = {
     project: "30%",
     quizzes: "85%"
   }
+};
+
+
+// Shared insitution page Dashboard Apexchart data
+export const trendData = [
+  { month: 'Jan', value: 80 },
+  { month: 'Feb', value: 50 },
+  { month: 'Mar', value: 70 },
+  { month: 'Apr', value: 75 },
+  { month: 'May', value: 80 },
+  { month: 'Jun', value: 85 },
+];
+export const assessmentBreakdown = {
+  midterm: "75%",
+  project: "90%",
+  quizzes: "85%"
 };

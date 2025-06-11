@@ -9,17 +9,14 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import { assessmentBreakdown  , trendData } from "../data/marks";
 
-const trendData = [
-  { month: 'Jan', value: 65 },
-  { month: 'Feb', value: 72 },
-  { month: 'Mar', value: 80 },
-  { month: 'Apr', value: 85 },
-  { month: 'May', value: 88 },
-  { month: 'Jun', value: 92 },
-];
+
 
 const RadialChart = ({ label, value, color = '#6366F1' }) => {
+  // Remove percentage sign if present and convert to number
+  const numericValue = typeof value === 'string' ? parseInt(value.replace('%', '')) : value;
+  
   const chartOptions = {
     chart: {
       type: 'radialBar',
@@ -72,7 +69,7 @@ const RadialChart = ({ label, value, color = '#6366F1' }) => {
     <div className="w-full h-full">
       <Chart 
         options={chartOptions} 
-        series={[value]} 
+        series={[numericValue]} 
         type="radialBar" 
         height={160}
       />
@@ -81,6 +78,29 @@ const RadialChart = ({ label, value, color = '#6366F1' }) => {
 };
 
 const Performance = () => {
+  // Ensure assessmentBreakdown exists and has values
+  if (!assessmentBreakdown) {
+    return <div>Loading performance data...</div>;
+  }
+
+  // Convert percentage strings to numbers for calculation
+  const midterm = typeof assessmentBreakdown.midterm === 'string' 
+    ? parseInt(assessmentBreakdown.midterm.replace('%', '')) 
+    : assessmentBreakdown.midterm || 0;
+    
+  const project = typeof assessmentBreakdown.project === 'string' 
+    ? parseInt(assessmentBreakdown.project.replace('%', '')) 
+    : assessmentBreakdown.project || 0;
+    
+  const quizzes = typeof assessmentBreakdown.quizzes === 'string' 
+    ? parseInt(assessmentBreakdown.quizzes.replace('%', '')) 
+    : assessmentBreakdown.quizzes || 0;
+
+  // Calculate overall average
+  const sum = midterm + project + quizzes;
+  const count = 3; // We always have 3 components
+  const overallAverage = Math.round(sum / count);
+
   return (
     <div className="flex flex-col">
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 space-y-6">
@@ -93,7 +113,7 @@ const Performance = () => {
         </div>
 
         {/* Grade Highlight */}
-        <div className="p-4 bg-gradient-to-r from-gray-100  to-gray-90  rounded-xl flex justify-between items-center">
+        <div className="p-4 bg-gradient-to-r from-gray-100 to-gray-90 rounded-xl flex justify-between items-center">
           <div>
             <p className="text-sm font-medium text-gray-500">Top Performance</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">A+</p>
@@ -106,23 +126,39 @@ const Performance = () => {
           </div>
         </div>
 
-        {/* Radial Charts Section (Now includes Course Progress) */}
+        {/* Radial Charts Section */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 text-center">
           <div className="flex flex-col items-center justify-center">
-            <RadialChart label="Overall" value={92} color="#6366F1" />
+            <RadialChart 
+              label="Overall" 
+              value={overallAverage} 
+              color="#6366F1" 
+            />
             <p className="text-sm font-medium text-gray-700 mt-2">Overall Performance</p>
           </div>
           <div className="flex flex-col items-center justify-center">
-            <RadialChart label="Assessments" value={89} color="#3B82F6" />
-            <p className="text-sm font-medium text-gray-700 mt-2">Assessment Score</p>
+            <RadialChart 
+              label="Midterm" 
+              value={assessmentBreakdown.midterm} 
+              color="#3B82F6" 
+            />
+            <p className="text-sm font-medium text-gray-700 mt-2">Midterm Exam</p>
           </div>
           <div className="flex flex-col items-center justify-center">
-            <RadialChart label="Exams" value={95} color="#10B981" />
-            <p className="text-sm font-medium text-gray-700 mt-2">Exam Score</p>
+            <RadialChart 
+              label="Project" 
+              value={assessmentBreakdown.project} 
+              color="#10B981" 
+            />
+            <p className="text-sm font-medium text-gray-700 mt-2">Project Work</p>
           </div>
           <div className="flex flex-col items-center justify-center">
-            <RadialChart label="Progress" value={92} color="#F59E0B" />
-            <p className="text-sm font-medium text-gray-700 mt-2">Course Progress</p>
+            <RadialChart 
+              label="Quizzes" 
+              value={assessmentBreakdown.quizzes} 
+              color="#F59E0B" 
+            />
+            <p className="text-sm font-medium text-gray-700 mt-2">Quizzes</p>
           </div>
         </div>
 
