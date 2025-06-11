@@ -1,11 +1,12 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Footer from "../components/Footer";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
 import { loginUserAPI } from "../redux/features/authSlice";
+
 
 const Login = () => {
   const dispatch = useAppDispatch();
@@ -43,7 +44,7 @@ const Login = () => {
         if(result.data.user.role == "Student"){
           navigate("/dashboard");
         }else if(result.data.user.role == "Instructor"){
-          navigate("/register");
+          navigate("/dashboard/lecture");
         }else if(result.data.user.role == "SuperAdmin"){
           navigate("/courses ");
         }
@@ -53,6 +54,14 @@ const Login = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleLectureNavigation = () => {
+    navigate("/lecturepages/lecturedashboard");
+  };
+
+  const handleAdminNavigation = () => {
+    navigate("/Admindashboard");
   };
 
   return (
@@ -166,11 +175,19 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don’t have an account?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline">
+                <a
+                  href="/register"
+                  className="text-blue-600 hover:underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/register");
+                  }}
+                >
                   Create one
-                </Link>
+                </a>
               </p>
             </div>
+
           </div>
         </div>
       </main>

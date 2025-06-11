@@ -6,6 +6,8 @@ const ProtectedRoute = ({ allowedRoles }) => {
   let isAuthenticated = false;
   let userRole = null;
 
+  console.log("awa");
+
   if (token) {
     try {
       const decoded = jwtDecode(token);

@@ -19,23 +19,18 @@ import Accessibility from "../pages/Accessibility";
 import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
-
+import Leccorces from "../pages/lecturepages/lcourses";
+import Lecdashboard from "../pages/lecturepages/lecturedashboard" 
+import Lstudents from "../pages/lecturepages/lstudents" 
+import Lassignments from "../pages/lecturepages/lassignments" 
 
 const AppRoutes = () => {
   return (
     <Routes>
 
       <Route path="/login" element={<Login />} />
-      
-      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
 
-      </Route>
-      
-      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
-
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={["Student"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
         <Route path="/courses" element={<Courses />} />
@@ -56,8 +51,17 @@ const AppRoutes = () => {
         <Route path="/exam-application" element={<Exam />} />
       </Route>
 
+      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
+        {/* Add Instructor-specific routes here if needed */}
+        <Route path="dashboard/lecture" element={<Lecdashboard />} />
+        <Route path="courses/lecture" element={<Leccorces />} />
+        <Route path="assignments/lecture" element={<Lassignments />} />
+        <Route path="students/lecture" element={<Lstudents />} />`
+      </Route>
 
-
+      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
+        {/* Add SuperAdmin-specific routes here if needed */}
+      </Route>
     </Routes>
   );
 };
