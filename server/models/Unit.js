@@ -3,10 +3,12 @@ const Schema = mongoose.Schema;
 
 const UnitSchema = new Schema({
   title: { type: String, required: true },
-  course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
+  course: { type: Schema.Types.ObjectId, ref: 'Course' },
   subUnits: [{ type: Schema.Types.ObjectId, ref: 'Unit' }],
   lessons: [{ type: Schema.Types.ObjectId, ref: 'Lesson' }],
+  image: { type: String },
   assessments: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],
+  credits: { type: String },
   exams: [{ type: Schema.Types.ObjectId, ref: 'Exam' }],
   studyMaterials: [{ url: String, title: String, type: String }],
   discussions: [{
