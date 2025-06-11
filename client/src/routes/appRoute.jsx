@@ -27,9 +27,7 @@ import Lassignments from "../pages/lecturepages/lassignments"
 const AppRoutes = () => {
   return (
     <Routes>
-
       <Route path="/login" element={<Login />} />
-
       <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
@@ -50,7 +48,6 @@ const AppRoutes = () => {
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/exam-application" element={<Exam />} />
       </Route>
-
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
         {/* Add Instructor-specific routes here if needed */}
         <Route path="dashboard/lecture" element={<Lecdashboard />} />
@@ -58,7 +55,6 @@ const AppRoutes = () => {
         <Route path="assignments/lecture" element={<Lassignments />} />
         <Route path="students/lecture" element={<Lstudents />} />`
       </Route>
-
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
         {/* Add SuperAdmin-specific routes here if needed */}
       </Route>

@@ -23,22 +23,22 @@ const Lecsidebar = ({ onLogout }) => {
   const navItems = [
     {
       name: "Dashboard",
-      path: "/lecturepages/lecturedashboard",
+      path: "/dashboard/lecture",
       icon: <FiHome className="text-lg" />,
     },
     {
       name: "My Courses",
-      path: "/lecturepages/lcourses",
+      path: "/courses/lecture",
       icon: <FiBook className="text-lg" />,
     },
     {
       name: "Assignments",
-      path: "/lecturepages/lassignments",
+      path: "/assignments/lecture",
       icon: <FiFileText className="text-lg" />,
     },
     {
       name: "Students",
-      path: "/lecturepages/lstudents",
+      path: "/students/lecture",
       icon: <FiUsers className="text-lg" />,
     },
   ];
