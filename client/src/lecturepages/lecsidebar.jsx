@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FiBook, FiFileText, FiUsers, FiLogOut, FiHome } from "react-icons/fi";
 import PropTypes from "prop-types";
 
+
 // Sidebar component for lecturer navigation
 const Lecsidebar = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -10,10 +11,10 @@ const Lecsidebar = ({ onLogout }) => {
 
   // Navigation items with icons and routes
   const navItems = [
-    { name: "Dashboard", path: "/lecturer/dashboard", icon: <FiHome className="text-lg" /> },
-    { name: "My Courses", path: "/lecturer/courses", icon: <FiBook className="text-lg" /> },
-    { name: "Assignments", path: "/lecturer/assignments", icon: <FiFileText className="text-lg" /> },
-    { name: "Students", path: "/lecturer/students", icon: <FiUsers className="text-lg" /> },
+    { name: "Dashboard", path: "/lecturepages/lectureashboard", icon: <FiHome className="text-lg" /> },
+    { name: "My Courses", path: "/lecturepages/lcourses", icon: <FiBook className="text-lg" /> },
+    { name: "Assignments", path: "/lecturepages/lassignments", icon: <FiFileText className="text-lg" /> },
+    { name: "Students", path: "/lecturepages/lstudents", icon: <FiUsers className="text-lg" /> },
   ];
 
   return (

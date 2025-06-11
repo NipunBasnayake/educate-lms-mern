@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Lecsidebar from "../Lecsidebar";
+import Lecsidebar from "./Lecsidebar";
 import { FiAlertCircle, FiBook, FiFileText, FiUsers, FiBell } from "react-icons/fi";
 
 const Lecdashboard = () => {
@@ -45,7 +45,7 @@ const Lecdashboard = () => {
           setDashboardData(mockData);
           setLoading(false);
         }, 1000);
-      } catch (err) {
+      } catch {
         setError("Failed to load dashboard data. Please try again.");
         setLoading(false);
       }

@@ -20,7 +20,9 @@ import CourseList from "./pages/CourseList";
 import CourseDetails from "./pages/CourseDetails"; 
 import Exam from './pages/Exam'; 
 import Lecdashboard from "./lecturepages/lectureashboard";
-
+import Leccorces from "./lecturepages/lcourses"; 
+import Lassignments from "./lecturepages/lassignments";
+import Lstudents from "./lecturepages/lstudents";
 
 
 
@@ -48,6 +50,10 @@ function App() {
         <Route path="/course/:id" element={<CourseDetails />} />
         <Route path="/exam-application" element={<Exam />} />
         <Route path="lecdashboard" element={<Lecdashboard />} />
+        <Route path="lecturepages/lectureashboard" element={<Lecdashboard />} />
+        <Route path="lecturepages/lcourses" element={<Leccorces />} />
+        <Route path="lecturepages/lassignments" element={<Lassignments />} />
+        <Route path="lecturepages/lstudents" element={<Lstudents />} />``
       </Routes>
     </Router>
   );
