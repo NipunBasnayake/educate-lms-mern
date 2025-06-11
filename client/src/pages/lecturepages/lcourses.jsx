@@ -8,21 +8,24 @@ const Leccorces = () => {
       title: "Introduction to React", 
       code: "CS101", 
       students: 50,
-      description: "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course."
+      description: "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course.",
+      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
     },
     { 
       id: 2, 
       title: "Advanced JavaScript", 
       code: "CS202", 
       students: 35,
-      description: "Dive deep into JavaScript concepts like closures, prototypes, async/await. Master the language that powers modern web development."
+      description: "Dive deep into JavaScript concepts like closures, prototypes, async/await. Master the language that powers modern web development.",
+      image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
     },
     { 
       id: 3, 
       title: "Web Development", 
       code: "CS303", 
       students: 45,
-      description: "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch."
+      description: "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch.",
+      image: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80"
     },
   ]);
 
@@ -32,7 +35,8 @@ const Leccorces = () => {
     title: "",
     code: "",
     students: "",
-    description: ""
+    description: "",
+    image: ""
   });
   const [activeTab, setActiveTab] = useState("both");
 
@@ -48,13 +52,27 @@ const Leccorces = () => {
     });
   };
 
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData({
+          ...formData,
+          image: event.target.result
+        });
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
   const openCreateModal = () => {
     setCurrentCourse(null);
     setFormData({
       title: "",
       code: "",
       students: "",
-      description: ""
+      description: "",
+      image: ""
     });
     setIsModalOpen(true);
   };
@@ -65,7 +83,8 @@ const Leccorces = () => {
       title: course.title,
       code: course.code,
       students: course.students,
-      description: course.description
+      description: course.description,
+      image: course.image
     });
     setIsModalOpen(true);
   };
@@ -86,7 +105,8 @@ const Leccorces = () => {
         title: formData.title,
         code: formData.code,
         students: parseInt(formData.students),
-        description: formData.description
+        description: formData.description,
+        image: formData.image
       };
       setCourses([...courses, newCourse]);
     }
@@ -144,11 +164,20 @@ const Leccorces = () => {
 
         {(activeTab === "table" || activeTab === "both") && (
           <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4">Table View</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Table View</h3>
+              <button
+                onClick={openCreateModal}
+                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+              >
+                + Add Course
+              </button>
+            </div>
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-neutral-200 text-neutral-700">
+                    <th className="p-4">Image</th>
                     <th className="p-4">Course Title</th>
                     <th className="p-4">Course Code</th>
                     <th className="p-4">Students</th>
@@ -161,6 +190,15 @@ const Leccorces = () => {
                       key={`table-${course.id}`}
                       className="border-t border-neutral-200 hover:bg-neutral-50"
                     >
+                      <td className="p-4">
+                        {course.image && (
+                          <img 
+                            src={course.image} 
+                            alt={course.title}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                      </td>
                       <td className="p-4 font-medium">{course.title}</td>
                       <td className="p-4 text-neutral-600">{course.code}</td>
                       <td className="p-4">{course.students}</td>
@@ -169,7 +207,7 @@ const Leccorces = () => {
                           onClick={() => openEditModal(course)}
                           className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                         >
-                          Edit
+                          Access
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
@@ -195,6 +233,15 @@ const Leccorces = () => {
                   key={`card-${course.id}`}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
                 >
+                  {course.image && (
+                    <div className="h-48 overflow-hidden">
+                      <img 
+                        src={course.image} 
+                        alt={course.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-3">
                       <div>
@@ -216,18 +263,12 @@ const Leccorces = () => {
                       </p>
                     </div>
                     
-                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-neutral-100">
+                    <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100">
                       <button
                         onClick={() => openEditModal(course)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm transition-colors"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                       >
-                        Edit Course
-                      </button>
-                      <button
-                        onClick={() => handleDelete(course.id)}
-                        className="px-3 py-1 text-red-600 hover:text-red-800 text-sm"
-                      >
-                        Delete
+                        Access
                       </button>
                     </div>
                   </div>
@@ -247,10 +288,41 @@ const Leccorces = () => {
                 </h3>
                 <form onSubmit={handleSubmit}>
                   <div className="mb-4">
-                    <label
-                      className="block text-neutral-700 mb-2"
-                      htmlFor="title"
-                    >
+                    <label className="block text-neutral-700 mb-2">Course Image</label>
+                    <div className="flex items-center space-x-4">
+                      {formData.image && (
+                        <img 
+                          src={formData.image} 
+                          alt="Course preview" 
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      )}
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="block w-full text-sm text-neutral-500
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-blue-50 file:text-blue-700
+                            hover:file:bg-blue-100"
+                        />
+                        <p className="text-xs text-neutral-500 mt-1">Or enter image URL:</p>
+                        <input
+                          type="text"
+                          name="image"
+                          value={formData.image}
+                          onChange={handleInputChange}
+                          placeholder="https://example.com/image.jpg"
+                          className="w-full p-2 border border-neutral-300 rounded mt-1 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-neutral-700 mb-2" htmlFor="title">
                       Course Title
                     </label>
                     <input
@@ -264,10 +336,7 @@ const Leccorces = () => {
                     />
                   </div>
                   <div className="mb-4">
-                    <label
-                      className="block text-neutral-700 mb-2"
-                      htmlFor="code"
-                    >
+                    <label className="block text-neutral-700 mb-2" htmlFor="code">
                       Course Code
                     </label>
                     <input
@@ -281,10 +350,7 @@ const Leccorces = () => {
                     />
                   </div>
                   <div className="mb-4">
-                    <label
-                      className="block text-neutral-700 mb-2"
-                      htmlFor="students"
-                    >
+                    <label className="block text-neutral-700 mb-2" htmlFor="students">
                       Students Enrolled
                     </label>
                     <input
@@ -298,10 +364,7 @@ const Leccorces = () => {
                     />
                   </div>
                   <div className="mb-6">
-                    <label
-                      className="block text-neutral-700 mb-2"
-                      htmlFor="description"
-                    >
+                    <label className="block text-neutral-700 mb-2" htmlFor="description">
                       Course Description
                     </label>
                     <textarea
