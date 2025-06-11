@@ -9,7 +9,7 @@ class ApiError extends Error {
 }
 
 const validateObjectId = (id, name = 'ID') => {
-  if (!mongoose.isValidObjectId(id)) {
+  if (id && !mongoose.isValidObjectId(id)) {
     throw new ApiError(400, `Invalid ${name}`);
   }
 };
@@ -49,10 +49,10 @@ const populateOptions = [
 
 exports.createUnit = async (req, res) => {
   try {
-    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials } = req.body;
+    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials, image, credits } = req.body;
 
-    validateRequiredFields(['title', 'course', 'order'], { title, course, order });
-    validateObjectId(course, 'course ID');
+    validateRequiredFields(['title', 'order'], { title, order }); // Removed 'course' from required fields
+    if (course) validateObjectId(course, 'course ID');
     validateObjectIdArray(subUnits, 'subUnit');
     validateObjectIdArray(lessons, 'lesson');
     validateObjectIdArray(assessments, 'assessment');
@@ -60,13 +60,15 @@ exports.createUnit = async (req, res) => {
 
     const unit = new Unit({
       title,
-      course,
+      course: course || null,
       order,
       subUnits: subUnits || [],
       lessons: lessons || [],
       assessments: assessments || [],
       exams: exams || [],
       studyMaterials: studyMaterials || [],
+      image: image || '',
+      credits: credits || '',
       discussions: []
     });
 
@@ -76,14 +78,17 @@ exports.createUnit = async (req, res) => {
       message: 'Unit created successfully',
       data: {
         id: unit._id,
-        title,
-        course,
-        order,
+        title: unit.title,
+        course: unit.course,
+        order: unit.order,
         subUnits: unit.subUnits,
         lessons: unit.lessons,
         assessments: unit.assessments,
         exams: unit.exams,
-        studyMaterials: unit.studyMaterials
+        studyMaterials: unit.studyMaterials,
+        image: unit.image,
+        credits: unit.credits,
+        discussions: unit.discussions
       }
     });
   } catch (error) {
@@ -105,8 +110,6 @@ exports.getAllUnits = async (req, res) => {
       query.course = course;
     }
 
-    console.log('Query:', query, 'Page:', page, 'Limit:', limit);
-
     const units = await Unit.find(query)
       .populate(populateOptions)
       .limit(Number(limit))
@@ -116,11 +119,12 @@ exports.getAllUnits = async (req, res) => {
 
     const total = await Unit.countDocuments(query);
 
-    console.log('Units found:', units.length, 'Total:', total);
-
     return res.status(200).json({
       success: true,
-      data: units,
+      data: units.map(unit => ({
+        ...unit,
+        id: unit._id
+      })),
       pagination: {
         total,
         page: Number(page),
@@ -140,7 +144,13 @@ exports.getAllUnits = async (req, res) => {
 exports.getUnitById = async (req, res) => {
   try {
     const unit = await findUnitById(req.params.id, populateOptions);
-    return res.status(200).json({ success: true, data: unit });
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...unit,
+        id: unit._id
+      }
+    });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       success: false,
@@ -152,7 +162,7 @@ exports.getUnitById = async (req, res) => {
 
 exports.updateUnit = async (req, res) => {
   try {
-    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials } = req.body;
+    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials, image, credits } = req.body;
 
     if (course) validateObjectId(course, 'course ID');
     validateObjectIdArray(subUnits, 'subUnit');
@@ -162,13 +172,15 @@ exports.updateUnit = async (req, res) => {
 
     const updateData = {
       ...(title && { title }),
-      ...(course && { course }),
+      ...(typeof course !== 'undefined' && { course: course || null }), // Allow null for course
       ...(order !== undefined && { order }),
       ...(subUnits && { subUnits }),
       ...(lessons && { lessons }),
       ...(assessments && { assessments }),
       ...(exams && { exams }),
       ...(studyMaterials && { studyMaterials }),
+      ...(image !== undefined && { image }),
+      ...(credits !== undefined && { credits }),
       updatedAt: Date.now()
     };
 
@@ -194,7 +206,10 @@ exports.updateUnit = async (req, res) => {
         lessons: unit.lessons,
         assessments: unit.assessments,
         exams: unit.exams,
-        studyMaterials: unit.studyMaterials
+        studyMaterials: unit.studyMaterials,
+        image: unit.image,
+        credits: unit.credits,
+        discussions: unit.discussions
       }
     });
   } catch (error) {
