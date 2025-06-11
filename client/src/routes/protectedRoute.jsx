@@ -1,22 +1,40 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({ allowedRoles }) => {
   const token = localStorage.getItem("ACCESS_TOKEN");
-  let isAuthenticate = false;
+  let isAuthenticated = false;
+  let userRole = null;
+
   if (token) {
     try {
       const decoded = jwtDecode(token);
-      const role = decoded.role;
-      if (role == "Student" || role == "SuperAdmin") {
-        isAuthenticate = true;
+      const currentTime = Date.now() / 1000; 
+
+      // Check if token is expired
+      if (decoded.exp && decoded.exp < currentTime) {
+        localStorage.removeItem("ACCESS_TOKEN"); 
+        return <Navigate to="/login" state={{ message: "Session expired. Please log in again." }} />;
       }
-      console.log("User role:", role);
+
+      userRole = decoded.role;
+      isAuthenticated = allowedRoles ? allowedRoles.includes(userRole) : true;
+      console.log("User role:", userRole);
     } catch (err) {
       console.error("Invalid token:", err);
+      localStorage.removeItem("ACCESS_TOKEN"); 
+      return <Navigate to="/login" state={{ message: "Invalid token. Please log in again." }} />;
     }
   }
-  return isAuthenticate ? <Outlet /> : <Navigate to="/login" />;
+
+  return isAuthenticated ? (
+    <Outlet />
+  ) : (
+    <Navigate
+      to="/login"
+      state={{ message: userRole ? "You don't have permission to access this page." : "Please log in to access this page." }}
+    />
+  );
 };
 
 export default ProtectedRoute;
