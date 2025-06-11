@@ -1,8 +1,11 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { useAppSelector } from "../redux/store-config/store";
+import Cookies from "js-cookie";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const token = localStorage.getItem("ACCESS_TOKEN");
+  // const token = localStorage.getItem("ACCESS_TOKEN");
+  /* const token = Cookies.get('accessToken')
   let isAuthenticated = false;
   let userRole = null;
 
@@ -25,14 +28,26 @@ const ProtectedRoute = ({ allowedRoles }) => {
       localStorage.removeItem("ACCESS_TOKEN"); 
       return <Navigate to="/login" state={{ message: "Invalid token. Please log in again." }} />;
     }
-  }
+  } */
 
-  return isAuthenticated ? (
+    const {isAuthenticated, loading, data } = useAppSelector((state) => state.auth);
+    const userRole = data?.role;
+
+    if(loading) return null;
+
+    console.log("data", userRole);
+    
+    
+
+    // Checking Authentication and role
+    const hasAccess = isAuthenticated && (!allowedRoles || allowedRoles.includes(userRole))
+
+  return hasAccess ? (
     <Outlet />
   ) : (
     <Navigate
       to="/login"
-      state={{ message: userRole ? "You don't have permission to access this page." : "Please log in to access this page." }}
+      state={{ message: !isAuthenticated ? "Please log in to access this page." : "You don't have permission to access this page." }}
     />
   );
 };

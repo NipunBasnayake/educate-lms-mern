@@ -189,11 +189,11 @@ const getProfile = async (req, res) => {
     try {
         let user;
         if (req.user.role === "Student") {
-            user = await Student.findById(req.user.id).select("-password");
+            user = await Student.findById(req.user.id).select("-password -refreshToken");
         } else if (req.user.role === "Instructor") {
-            user = await Instructor.findById(req.user.id).select("-password");
+            user = await Instructor.findById(req.user.id).select("-password -refreshToken");
         } else if (req.user.role === "SuperAdmin") {
-            user = await SuperAdmin.findById(req.user.id).select("-password");
+            user = await SuperAdmin.findById(req.user.id).select("-password -refreshToken");
         }
 
         if (!user) {
@@ -514,6 +514,7 @@ const testEmail = async (req, res) => {
 // Refresh Token
 const refreshToken = async (req,res) => {
     const refreshToken = req.cookies.refreshToken;
+    console.log("refresh Token", refreshToken);
     if(!refreshToken){
         return res.error("No refresh Token Provided", HttpsStatus.UNAUTHORIZED);
     }

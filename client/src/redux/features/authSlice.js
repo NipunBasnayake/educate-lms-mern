@@ -82,7 +82,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUserAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
+        state.data = action.payload.data || action.payload;
         state.isAuthenticated = false;
         state.error = null;
       })
@@ -96,7 +96,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUserAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload.data || action.payload;
+        state.data = action.payload.data?.user || action.payload.data || action.payload;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -110,13 +110,13 @@ const authSlice = createSlice({
       })
       .addCase(refreshTokenAPI.fulfilled, (state,action) => {
         state.loading = false;
-        state.data = action.payload.data || action.payload;
+        state.data = action.payload.data?.user || action.payload.data || state.data;
         state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(refreshTokenAPI.rejected, (state,action) => {
         state.loading = false;
-        state.error = action.error;
+        state.error = action.payload;
         state.isAuthenticated = false;    // Logout on refresh fail
       })
   },

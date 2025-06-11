@@ -17,6 +17,9 @@ const Login = () => {
     (state) => state.auth
   );
 
+  console.log("logging page auth data", data);
+  
+
   const navigate = useNavigate();
 
   // Validation Schema using Yup
