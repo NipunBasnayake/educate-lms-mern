@@ -9,7 +9,9 @@ import { loginUserAPI } from "../redux/features/authSlice";
 
 const Login = () => {
   const dispatch = useAppDispatch();
-  const {loading, data, isAuthenticated,error} = useAppSelector((state) => state.auth);
+  const { loading, data, isAuthenticated, error } = useAppSelector(
+    (state) => state.auth
+  );
 
   const navigate = useNavigate();
 
@@ -35,12 +37,11 @@ const Login = () => {
     try {
       // Login API
       const result = await dispatch(loginUserAPI(values)).unwrap();
-      console.log("Login user Result ",result);
+      console.log("Login user Result ", result);
 
-      if(result.success){
+      if (result.success) {
         navigate("/dashboard");
       }
-
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {

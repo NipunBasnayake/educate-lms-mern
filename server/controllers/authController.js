@@ -84,7 +84,7 @@ const register = async (req, res) => {
             expiresIn: "1h",
         });
 
-        
+
 
         res.success(
             {
