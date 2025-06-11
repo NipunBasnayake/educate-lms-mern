@@ -13,7 +13,7 @@ const StudentSchema = new Schema({
       language: { type: String, default: 'en' }
     }
   },
-  enrolledCourses: { type: Schema.Types.ObjectId, ref: 'Course' },
+  enrolledCourse: { type: Schema.Types.ObjectId, ref: 'Course' },
   completedCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
   assessments: [{
     assessment: { type: Schema.Types.ObjectId, ref: 'Assessment' },

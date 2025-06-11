@@ -108,7 +108,7 @@ exports.getAllStudents = async (req, res) => {
   try {
     const students = await Student.find()
       .select('-password')
-      .populate('enrolledCourses', 'title description')
+      .populate('enrolledCourse', 'title description')
       .populate('completedCourses', 'title description');
     res.status(200).json({ success: true, data: students });
   } catch (error) {
@@ -128,7 +128,7 @@ exports.getStudentById = async (req, res) => {
 
     const student = await Student.findById(req.params.id)
       .select('-password')
-      .populate('enrolledCourses', 'title description')
+      .populate('enrolledCourse', 'title description')
       .populate('completedCourses', 'title description')
       .populate('assessments.assessment', 'title description')
       .populate('assessments.submission', 'content score status')
@@ -198,7 +198,7 @@ exports.updateStudent = async (req, res) => {
 
     const updatedStudent = await Student.findById(student._id)
       .select('-password')
-      .populate('enrolledCourses', 'title description')
+      .populate('enrolledCourse', 'title description')
       .populate('completedCourses', 'title description');
 
     res.status(200).json({
@@ -228,8 +228,6 @@ exports.updateStudentByAdmin = async (req, res) => {
       performance
     } = req.body || {};
 
-    const enrolledCourses = enrolledCourse;
-
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, 'Invalid student ID');
     }
@@ -239,12 +237,12 @@ exports.updateStudentByAdmin = async (req, res) => {
       return sendError(res, 404, 'Student not found');
     }
 
-    if (enrolledCourses && student.enrolledCourses && mongoose.isValidObjectId(enrolledCourses) && enrolledCourses !== student.enrolledCourses.toString()) {
+    if (enrolledCourse && student.enrolledCourse && mongoose.isValidObjectId(enrolledCourse) && enrolledCourse !== student.enrolledCourse.toString()) {
       return sendError(res, 400, 'Student can only be enrolled in one course at a time');
     }
 
     const updateData = {
-      enrolledCourses: mongoose.isValidObjectId(enrolledCourses) ? enrolledCourses : undefined,
+      enrolledCourse: mongoose.isValidObjectId(enrolledCourse) ? enrolledCourse : undefined,
       completedCourses: Array.isArray(completedCourses) ? completedCourses.filter(id => mongoose.isValidObjectId(id)) : undefined,
       assessments: Array.isArray(assessments) ? assessments : undefined,
       exams: Array.isArray(exams) ? exams : undefined,
@@ -266,7 +264,7 @@ exports.updateStudentByAdmin = async (req, res) => {
 
     const updatedStudent = await Student.findById(student._id)
       .select('-password')
-      .populate('enrolledCourses', 'title description')
+      .populate('enrolledCourse', 'title description')
       .populate('completedCourses', 'title description');
 
     res.status(200).json({
@@ -297,7 +295,7 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-exports.getStudentEnrolledCourses = async (req, res) => {
+exports.getStudentEnrolledCourse = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) {
       return sendError(res, 400, 'Invalid student ID');
@@ -308,15 +306,15 @@ exports.getStudentEnrolledCourses = async (req, res) => {
     }
 
     const student = await Student.findById(req.params.id)
-      .select('enrolledCourses')
-      .populate('enrolledCourses', 'title description');
+      .select('enrolledCourse')
+      .populate('enrolledCourse', 'title description');
     if (!student) {
       return sendError(res, 404, 'Student not found');
     }
 
-    res.status(200).json({ success: true, data: student.enrolledCourses });
+    res.status(200).json({ success: true, data: student.enrolledCourse });
   } catch (error) {
-    sendError(res, 500, 'Error fetching enrolled courses', error);
+    sendError(res, 500, 'Error fetching enrolled course', error);
   }
 };
 
