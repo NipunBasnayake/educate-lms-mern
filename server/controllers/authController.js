@@ -5,6 +5,7 @@ const Student = require("../models/Student");
 const Instructor = require("../models/Instructor");
 const SuperAdmin = require("../models/SuperAdmin");
 const HttpsStatus = require("../config/statusCode");
+const generateToken = require("../utils/generateToken");
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -80,15 +81,28 @@ const register = async (req, res) => {
         await user.save();
 
         const payload = {id: user._id, role};
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
+        });*/
+        const accessToken = generateToken(payload, "15m");
+        const refreshToken = generateToken(payload, "7d");
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
         });
 
-        
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
         res.success(
             {
-                token,
                 user: {id: user._id, name, email, role},
             },
             "User Registered Successfully",
@@ -134,8 +148,25 @@ const login = async (req, res) => {
         }
 
         const payload = {id: user._id, role};
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
+        });*/
+
+        const accessToken = generateToken(payload, "15m");
+        const refreshToken = generateToken(payload, "7d");
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         res.success(
@@ -381,17 +412,17 @@ const verifyOTP = async (req, res) => {
 
         if (!user.resetPasswordOTP || !user.resetPasswordExpires) {
             console.log("No OTP found for user");
-            return res.error("No OTP found. Please request a new one.",HttpsStatus.NOT_FOUND);
+            return res.error("No OTP found. Please request a new one.", HttpsStatus.NOT_FOUND);
         }
 
         if (String(user.resetPasswordOTP).trim() !== String(otp).trim()) {
             console.log("OTP mismatch");
-            return res.error("Invalid OTP",HttpsStatus.BAD_REQUEST);
+            return res.error("Invalid OTP", HttpsStatus.BAD_REQUEST);
         }
 
         if (Date.now() > user.resetPasswordExpires) {
             console.log("OTP expired");
-            return res.error("Expired OTP",HttpsStatus.BAD_REQUEST);
+            return res.error("Expired OTP", HttpsStatus.BAD_REQUEST);
         }
 
         const payload = {
@@ -410,7 +441,7 @@ const verifyOTP = async (req, res) => {
             console.log(`OTP cleared for user ${email}`);
         } catch (saveError) {
             console.error(`Error clearing OTP for ${email}:`, saveError);
-            return res.error("Error clearing OTP",HttpsStatus.INTERNAL_SERVER_ERROR,saveError);
+            return res.error("Error clearing OTP", HttpsStatus.INTERNAL_SERVER_ERROR, saveError);
         }
 
         res.success(
@@ -420,7 +451,7 @@ const verifyOTP = async (req, res) => {
         )
     } catch (error) {
         console.error("Error in verifyOTP:", error);
-        res.error("Error verifying OTP",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error verifying OTP", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -438,7 +469,7 @@ const resetPassword = async (req, res) => {
         }
 
         if (!user) {
-            return res.error("user Not Found",HttpsStatus.NOT_FOUND);
+            return res.error("user Not Found", HttpsStatus.NOT_FOUND);
         }
 
         user.password = await bcrypt.hash(password, 10);
@@ -446,9 +477,9 @@ const resetPassword = async (req, res) => {
         user.resetPasswordExpires = undefined;
         await user.save();
 
-        res.success(null,"Password reset successfully",HttpsStatus.OK);
+        res.success(null, "Password reset successfully", HttpsStatus.OK);
     } catch (error) {
-        res.error("Error resetting password",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error resetting password", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -459,7 +490,7 @@ const testEmail = async (req, res) => {
                 EMAIL_USER: process.env.EMAIL_USER,
                 EMAIL_PASS: process.env.EMAIL_PASS ? "[REDACTED]" : undefined,
             });
-            return res.error("Email configuration missing",HttpsStatus.INTERNAL_SERVER_ERROR);
+            return res.error("Email configuration missing", HttpsStatus.INTERNAL_SERVER_ERROR);
         }
 
         const mailOptions = {
@@ -470,10 +501,10 @@ const testEmail = async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-        res.success(null,"Test email sent",HttpsStatus.OK);
+        res.success(null, "Test email sent", HttpsStatus.OK);
     } catch (error) {
         console.error("Error in testEmail:", error);
-        res.error("Error sending test email",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error sending test email", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
