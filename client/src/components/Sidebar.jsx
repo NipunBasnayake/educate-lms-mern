@@ -67,7 +67,7 @@ const Sidebar = () => {
             },
             {
               icon: <Package size={20} />,
-              label: "Courses",
+              label: "Units",
               to: "/units",
             },
             {

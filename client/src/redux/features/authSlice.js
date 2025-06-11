@@ -27,6 +27,7 @@ export const loginUserAPI = createAsyncThunk(
 
       // set access token
       // result.data.token
+
       localStorage.setItem("user", response.data.user.id);
       localStorage.setItem("ACCESS_TOKEN", response.data.token);
 
