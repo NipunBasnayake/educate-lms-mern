@@ -12,7 +12,7 @@ class ApiService {
         : "application/json",
     };
     if (apiObject.authentication) {      
-      const token = localStorage.getItem(constant.ACCESS_TOKEN);
+      const token = localStorage.getItem("ACCESS_TOKEN");
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
