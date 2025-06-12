@@ -235,15 +235,7 @@ const Leccorces = () => {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
-                          <span
-                            className={`text-sm ${
-                              course.state === "enabled"
-                                ? "text-green-600"
-                                : "text-gray-600"
-                            }`}
-                          >
-                            {course.state === "enabled" ? "Enabled" : "Disabled"}
-                          </span>
+                         
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
