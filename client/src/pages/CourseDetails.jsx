@@ -534,19 +534,17 @@ const CourseDetails = () => {
               title: "Accounting Principles",
               duration: "50 min",
               completed: true,
+              lectureVideo:"https://www.youtube.com/watch?v=4_HOnhB64Dg&t=32s&ab_channel=Telusko",
+              doc:"https://documents.gov.lk/view/gazettes/2025/6/2025-06-06(I-I)E.pdf"
             },
             {
               id: 2,
               title: "Double-Entry Bookkeeping",
               duration: "60 min",
               completed: true,
-            },
-            {
-              id: 3,
-              title: "Financial Statements Preparation",
-              duration: "65 min",
-              completed: false,
-            },
+              lectureVideo:"https://www.youtube.com/watch?v=4_HOnhB64Dg&t=32s&ab_channel=Telusko",
+              doc:"https://documents.gov.lk/view/gazettes/2025/6/2025-06-06(I-I)E.pdf"
+            }
           ],
           assessments: [
             {
