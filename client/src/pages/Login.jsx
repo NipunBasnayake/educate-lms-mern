@@ -46,7 +46,7 @@ const Login = () => {
         }else if(result.data.user.role == "Instructor"){
           navigate("/dashboard/lecture");
         }else if(result.data.user.role == "SuperAdmin"){
-          navigate("dashboard/lecture ");
+          navigate("/dashboard/admin");
         }
       }
     } catch (error) {

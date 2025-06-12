@@ -23,6 +23,8 @@ import Leccorces from "../pages/lecturepages/lcourses";
 import Lecdashboard from "../pages/lecturepages/lecturedashboard" 
 import Lstudents from "../pages/lecturepages/lstudents" 
 import Lassignments from "../pages/lecturepages/lassignments" 
+import SuperAdmin from "../pages/Adminpages/admindashboard"
+
 
 const AppRoutes = () => {
   return (
@@ -49,15 +51,13 @@ const AppRoutes = () => {
         <Route path="/exam-application" element={<Exam />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
-        {/* Add Instructor-specific routes here if needed */}
         <Route path="dashboard/lecture" element={<Lecdashboard />} />
         <Route path="courses/lecture" element={<Leccorces />} />
         <Route path="assignments/lecture" element={<Lassignments />} />
         <Route path="students/lecture" element={<Lstudents />} />`
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
-        {/* Add SuperAdmin-specific routes here if needed */}
-         <Route path="dashboard/lecture" element={<Lecdashboard />} />
+         <Route path="/dashboard/admin" element={<SuperAdmin/>} />
       </Route>
     </Routes>
   );
