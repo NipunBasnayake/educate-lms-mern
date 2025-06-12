@@ -187,7 +187,7 @@ export const courses = [
     ],
   },
   {
-    id: "ENT302",
+    id: "684a59a641510d80c8f8bcb6",
     name: "Innovation Management",
     credits: 2,
     grade: "A+",
