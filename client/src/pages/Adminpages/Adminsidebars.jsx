@@ -24,16 +24,16 @@ const Adminsidebar = ({ onLogout }) => {
         <div className="p-4 sm:p-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8">Admin Panel</h2>
           <nav className="space-y-3 sm:space-y-4">
-            <a href="/admin/dashboard" className="block text-sm hover:text-teal-200">
+            <a href="/dashboard/admin" className="block text-sm hover:text-teal-200">
               Dashboard
             </a>
-            <a href="/admin/students" className="block text-sm hover:text-teal-200">
+            <a href="/students/admin" className="block text-sm hover:text-teal-200">
               Students
             </a>
-            <a href="/admin/lectures" className="block text-sm hover:text-teal-200">
+            <a href="/lectures/admin" className="block text-sm hover:text-teal-200">
               Lectures
             </a>
-            <a href="/admin/notifications" className="block text-sm hover:text-teal-200">
+            <a href="/notifications/admin" className="block text-sm hover:text-teal-200">
               Notifications
             </a>
             <button

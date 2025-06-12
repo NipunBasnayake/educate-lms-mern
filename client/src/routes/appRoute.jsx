@@ -24,6 +24,10 @@ import Lecdashboard from "../pages/lecturepages/lecturedashboard"
 import Lstudents from "../pages/lecturepages/lstudents" 
 import Lassignments from "../pages/lecturepages/lassignments" 
 import SuperAdmin from "../pages/Adminpages/admindashboard"
+import SuperAdminstudentcontrol from "../pages/Adminpages/adminstudents"
+import SuperAdminlecturercontrol from "../pages/Adminpages/adminlecturer"
+import SuperAdminnotifications from "../pages/Adminpages/adminnotifications"
+
 
 
 const AppRoutes = () => {
@@ -58,6 +62,12 @@ const AppRoutes = () => {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
          <Route path="/dashboard/admin" element={<SuperAdmin/>} />
+         <Route path="/students/admin" element={<SuperAdminstudentcontrol/>} />
+         <Route path="/lectures/admin" element={<SuperAdminlecturercontrol/>} />
+         <Route path="/notifications/admin"  element={<SuperAdminnotifications/>} />
+        
+
+
       </Route>
     </Routes>
   );
