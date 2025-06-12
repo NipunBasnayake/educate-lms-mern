@@ -20,18 +20,17 @@ const Lassignments = () => {
   });
   const [activeTab, setActiveTab] = useState("both");
   const navigate = useNavigate();
+  const BASE_URL = "{{baseUrl}}"; // Replace with actual API base URL
 
-  // Fetch instructor ID
+  // GET: Fetch instructor ID
   useEffect(() => {
     const fetchInstructorId = async () => {
       try {
         const token = localStorage.getItem("ACCESS_TOKEN");
         if (!token) {
-          setError("No authentication token found. Redirecting to login...");
-          setTimeout(() => navigate("/login"), 2000);
-          return;
+          throw new Error("No authentication token found.");
         }
-        const response = await axios.get("{{baseUrl}}auth/profile", {
+        const response = await axios.get(`${BASE_URL}auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setInstructorId(response.data._id);
@@ -44,20 +43,21 @@ const Lassignments = () => {
     fetchInstructorId();
   }, [navigate]);
 
-  // Fetch assignments
+  // GET: Fetch assignments
   useEffect(() => {
     if (!instructorId) return;
 
     const fetchAssignments = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem("ACCESS_TOKEN");
-        const response = await axios.get(`{{baseUrl}}instructors/${instructorId}/assignments`, {
+        const response = await axios.get(`${BASE_URL}instructors/${instructorId}/assignments`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const fetchedAssignments = Array.isArray(response.data)
           ? response.data
           : response.data.assignments || response.data.data?.assignments || [];
-        setAssignments(fetchedAssignments);
+        setAssignments(fetchedAssignments); // Update state with fetched assignments
         setLoading(false);
       } catch (err) {
         console.error("Assignments fetch error:", err);
@@ -75,10 +75,10 @@ const Lassignments = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const openCreateModal = () => {
@@ -101,17 +101,14 @@ const Lassignments = () => {
       unit: assignment.unit,
       course: assignment.course,
       description: assignment.description,
-      dueDate: assignment.dueDate.slice(0, 16), // Format for datetime-local input
+      dueDate: assignment.dueDate.slice(0, 16), // Format for datetime-local
       maxScore: assignment.maxScore,
     });
     setIsModalOpen(true);
   };
 
-  const handleAccessAssignment = (assignment) => {
-    console.log("Accessing assignment:", assignment);
-    alert(`Accessing assignment: ${assignment.title}`);
-  };
-
+  // POST: Create new assignment
+  // PUT: Update existing assignment
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -122,25 +119,25 @@ const Lassignments = () => {
       };
 
       if (currentAssignment) {
-        // Update existing assignment
+        // PUT: Update assignment
         const response = await axios.put(
-          `{{baseUrl}}instructors/${instructorId}/assignments/${currentAssignment._id}`,
+          `${BASE_URL}instructors/${instructorId}/assignments/${currentAssignment._id}`,
           assignmentData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAssignments(
-          assignments.map((assignment) =>
+        setAssignments((prev) =>
+          prev.map((assignment) =>
             assignment._id === currentAssignment._id ? response.data : assignment
           )
-        );
+        ); // Update state with modified assignment
       } else {
-        // Create new assignment
+        // POST: Create assignment
         const response = await axios.post(
-          `{{baseUrl}}instructors/${instructorId}/assignments`,
+          `${BASE_URL}instructors/${instructorId}/assignments`,
           assignmentData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAssignments([...assignments, response.data]);
+        setAssignments((prev) => [...prev, response.data]); // Append new assignment to state
       }
       setIsModalOpen(false);
     } catch (err) {
@@ -149,19 +146,25 @@ const Lassignments = () => {
     }
   };
 
+  // DELETE: Remove assignment
   const handleDelete = async (assignmentId) => {
     if (window.confirm("Are you sure you want to delete this assignment?")) {
       try {
         const token = localStorage.getItem("ACCESS_TOKEN");
-        await axios.delete(`{{baseUrl}}instructors/${instructorId}/assignments/${assignmentId}`, {
+        await axios.delete(`${BASE_URL}instructors/${instructorId}/assignments/${assignmentId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAssignments(assignments.filter((assignment) => assignment._id !== assignmentId));
+        setAssignments((prev) => prev.filter((assignment) => assignment._id !== assignmentId)); // Remove deleted assignment from state
       } catch (err) {
         console.error("Assignment delete error:", err);
         setError(err.message || "Failed to delete assignment");
       }
     }
+  };
+
+  const handleAccessAssignment = (assignment) => {
+    console.log("Accessing assignment:", assignment);
+    alert(`Accessing assignment: ${assignment.title}`);
   };
 
   if (loading) {
@@ -194,9 +197,7 @@ const Lassignments = () => {
       <div className="flex-1 ml-64 bg-neutral-100 overflow-x-auto">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-            <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">
-              My Assignments
-            </h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">My Assignments</h2>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                 <button
@@ -235,9 +236,7 @@ const Lassignments = () => {
 
           {(activeTab === "table" || activeTab === "both") && (
             <div className="mb-8">
-              <h3 className="text-base sm:text-lg font-semibold mb-4">
-                Table View
-              </h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Table View</h3>
               <div className="bg-white rounded-lg shadow-md overflow-x-auto">
                 <table className="w-full text-left table-auto">
                   <thead>
@@ -327,9 +326,7 @@ const Lassignments = () => {
 
           {(activeTab === "cards" || activeTab === "both") && (
             <div>
-              <h3 className="text-base sm:text-lg font-semibold mb-4">
-                Card View
-              </h3>
+              <h3 className="text-base sm:text-lg font-semibold mb-4">Card View</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {assignments.map((assignment) => (
                   <div
@@ -339,7 +336,7 @@ const Lassignments = () => {
                     <div className="p-4 sm:p-6 flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className the="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
+                          <h3 className="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
                             {assignment.title}
                           </h3>
                           <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
@@ -494,7 +491,7 @@ const Lassignments = () => {
   );
 };
 
-// Wrap with ErrorBoundary
+// ErrorBoundary Component
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
 
