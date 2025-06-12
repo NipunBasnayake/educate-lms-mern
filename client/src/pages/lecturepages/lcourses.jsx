@@ -204,113 +204,127 @@ const Leccorces = () => {
           </div>
 
           {(activeTab === "table" || activeTab === "both") && (
-  <div className="mb-8">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-base sm:text-lg font-semibold">Table View</h3>
-    </div>
-    <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-      <table className="w-full text-left table-auto">
-        <thead>
-          <tr className="bg-neutral-200 text-neutral-700">
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Image</th>
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course Title</th>
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course Code</th>
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Students</th>
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Actions</th>
-            <th className="p-3 sm:p-4 text-center text-sm sm:text-base">State Control</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.map((course) => (
-            <tr
-              key={`table-${course.id}`}
-              className="border-t border-neutral-200 hover:bg-neutral-50 transition-colors"
-            >
-              <td className="p-3 sm:p-4 text-center">
-                {course.image && (
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded mx-auto"
-                  />
-                )}
-              </td>
-              <td className="p-3 sm:p-4 font-medium text-sm sm:text-base text-center">
-                {course.title}
-              </td>
-              <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
-                {course.code}
-              </td>
-              <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
-                {course.students}
-              </td>
-              <td className="p-3 sm:p-4 text-center">
-                <div className="flex justify-center gap-2">
-                  <button
-                    onClick={() => openEditModal(course)}
-                    className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                    aria-label={`Edit course ${course.title}`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(course.id)}
-                    className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                    aria-label={`Delete course ${course.title}`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Delete
-                  </button>
-                </div>
-              </td>
-              <td className="p-3 sm:p-4 text-center">
-                <div className="flex items-center justify-center space-x-2">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={course.state === "enabled"}
-                      onChange={() => toggleCourseState(course.id)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
-                    <div className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-4 sm:peer-checked:translate-x-5 transition-transform duration-200"></div>
-                  </label>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
-)}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base sm:text-lg font-semibold">
+                  Table View
+                </h3>
+              </div>
+              <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+                <table className="w-full text-left table-auto">
+                  <thead>
+                    <tr className="bg-neutral-200 text-neutral-700">
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        Image
+                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        Course Title
+                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        Course Code
+                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        Students
+                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        Actions
+                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
+                        State Control
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {courses.map((course) => (
+                      <tr
+                        key={`table-${course.id}`}
+                        className="border-t border-neutral-200 hover:bg-neutral-50 transition-colors"
+                      >
+                        <td className="p-3 sm:p-4 text-center">
+                          {course.image && (
+                            <img
+                              src={course.image}
+                              alt={course.title}
+                              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded mx-auto"
+                            />
+                          )}
+                        </td>
+                        <td className="p-3 sm:p-4 font-medium text-sm sm:text-base text-center">
+                          {course.title}
+                        </td>
+                        <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
+                          {course.code}
+                        </td>
+                        <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
+                          {course.students}
+                        </td>
+                        <td className="p-3 sm:p-4 text-center">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => openEditModal(course)}
+                              className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                              aria-label={`Edit course ${course.title}`}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 mr-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(course.id)}
+                              className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
+                              aria-label={`Delete course ${course.title}`}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 mr-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                        <td className="p-3 sm:p-4 text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={course.state === "enabled"}
+                                onChange={() => toggleCourseState(course.id)}
+                                className="sr-only peer"
+                              />
+                              <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
+                              <div className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-4 sm:peer-checked:translate-x-5 transition-transform duration-200"></div>
+                            </label>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {(activeTab === "cards" || activeTab === "both") && (
             <div>
