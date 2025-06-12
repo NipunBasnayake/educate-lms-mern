@@ -307,16 +307,7 @@ const Leccorces = () => {
                     </div>
                     
                     <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={course.state === "enabled"}
-                          onChange={() => toggleCourseState(course.id)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
-                        <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-5 transition-transform duration-200"></div>
-                      </label>
+                     
                       <button
                         onClick={() => handleAccessCourse(course)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
