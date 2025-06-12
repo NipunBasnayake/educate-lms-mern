@@ -9,7 +9,8 @@ const Leccorces = () => {
       code: "CS101", 
       students: 50,
       description: "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course.",
-      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+      image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+      state: "enabled"
     },
     { 
       id: 2, 
@@ -17,7 +18,8 @@ const Leccorces = () => {
       code: "CS202", 
       students: 35,
       description: "Dive deep into JavaScript concepts like closures, prototypes, async/await. Master the language that powers modern web development.",
-      image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+      image: "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+      state: "disabled"
     },
     { 
       id: 3, 
@@ -25,7 +27,8 @@ const Leccorces = () => {
       code: "CS303", 
       students: 45,
       description: "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch.",
-      image: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80"
+      image: "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
+      state: "enabled"
     },
   ]);
 
@@ -36,7 +39,8 @@ const Leccorces = () => {
     code: "",
     students: "",
     description: "",
-    image: ""
+    image: "",
+    state: "enabled"
   });
   const [activeTab, setActiveTab] = useState("both");
 
@@ -65,6 +69,16 @@ const Leccorces = () => {
     }
   };
 
+  const toggleCourseState = (courseId) => {
+    setCourses(
+      courses.map((course) =>
+        course.id === courseId
+          ? { ...course, state: course.state === "enabled" ? "disabled" : "enabled" }
+          : course
+      )
+    );
+  };
+
   const openCreateModal = () => {
     setCurrentCourse(null);
     setFormData({
@@ -72,7 +86,8 @@ const Leccorces = () => {
       code: "",
       students: "",
       description: "",
-      image: ""
+      image: "",
+      state: "enabled"
     });
     setIsModalOpen(true);
   };
@@ -84,14 +99,13 @@ const Leccorces = () => {
       code: course.code,
       students: course.students,
       description: course.description,
-      image: course.image
+      image: course.image,
+      state: course.state
     });
     setIsModalOpen(true);
   };
 
   const handleAccessCourse = (course) => {
-    // This function would handle what happens when a course is accessed
-    // For now, we'll just log it and show an alert
     console.log("Accessing course:", course);
     alert(`Accessing course: ${course.title}`);
   };
@@ -113,7 +127,8 @@ const Leccorces = () => {
         code: formData.code,
         students: parseInt(formData.students),
         description: formData.description,
-        image: formData.image
+        image: formData.image,
+        state: formData.state
       };
       setCourses([...courses, newCourse]);
     }
@@ -173,7 +188,6 @@ const Leccorces = () => {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Table View</h3>
-              
             </div>
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <table className="w-full text-left">
@@ -183,6 +197,7 @@ const Leccorces = () => {
                     <th className="p-4">Course Title</th>
                     <th className="p-4">Course Code</th>
                     <th className="p-4">Students</th>
+                    <th className="p-4">State</th>
                     <th className="p-4">Actions</th>
                   </tr>
                 </thead>
@@ -204,6 +219,18 @@ const Leccorces = () => {
                       <td className="p-4 font-medium">{course.title}</td>
                       <td className="p-4 text-neutral-600">{course.code}</td>
                       <td className="p-4">{course.students}</td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => toggleCourseState(course.id)}
+                          className={`px-3 py-1 rounded text-sm text-white ${
+                            course.state === "enabled"
+                              ? "bg-green-600 hover:bg-green-700"
+                              : "bg-gray-600 hover:bg-gray-700"
+                          }`}
+                        >
+                          {course.state === "enabled" ? "Disable" : "Enable"}
+                        </button>
+                      </td>
                       <td className="p-4 space-x-2">
                         <button
                           onClick={() => openEditModal(course)}
@@ -254,9 +281,20 @@ const Leccorces = () => {
                           {course.code}
                         </span>
                       </div>
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                        {course.students} students
-                      </span>
+                      <div className="flex space-x-2">
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                          {course.students} students
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${
+                            course.state === "enabled"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {course.state === "enabled" ? "Enabled" : "Disabled"}
+                        </span>
+                      </div>
                     </div>
                     
                     <div className="mb-4 flex-1">
@@ -265,7 +303,17 @@ const Leccorces = () => {
                       </p>
                     </div>
                     
-                    <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100">
+                    <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
+                      <button
+                        onClick={() => toggleCourseState(course.id)}
+                        className={`px-3 py-1 rounded text-sm text-white ${
+                          course.state === "enabled"
+                            ? "bg-green-600 hover:bg-green-700"
+                            : "bg-gray-600 hover:bg-gray-700"
+                        }`}
+                      >
+                        {course.state === "enabled" ? "Disable" : "Enable"}
+                      </button>
                       <button
                         onClick={() => handleAccessCourse(course)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -280,7 +328,6 @@ const Leccorces = () => {
           </div>
         )}
 
-        {/* Modal for Create/Edit */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
@@ -364,6 +411,22 @@ const Leccorces = () => {
                       className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-neutral-700 mb-2" htmlFor="state">
+                      Course State
+                    </label>
+                    <select
+                      id="state"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="enabled">Enabled</option>
+                      <option value="disabled">Disabled</option>
+                    </select>
                   </div>
                   <div className="mb-6">
                     <label className="block text-neutral-700 mb-2" htmlFor="description">
