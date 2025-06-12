@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Lecsidebar from "../lecturepages/Lecsidebar";
+import { courses } from "../../data/courses";
 
 const Leccorces = () => {
   const [units, setUnits] = useState([
@@ -73,6 +74,19 @@ const Leccorces = () => {
       };
       reader.readAsDataURL(e.target.files[0]);
     }
+  };
+
+  const handleCodeChange = (e) => {
+    const selectedCode = e.target.value;
+    const selectedCourse = courses.find((course) => course.id === selectedCode);
+    setFormData({
+      ...formData,
+      code: selectedCode,
+      title: selectedCourse ? selectedCourse.name : formData.title,
+      students: selectedCourse ? selectedCourse.studentsEnrolled : formData.students,
+      image: selectedCourse ? selectedCourse.imageUrl : formData.image,
+      description: selectedCourse ? selectedCourse.description : formData.description,
+    });
   };
 
   const toggleUnitState = (unitId) => {
@@ -151,12 +165,10 @@ const Leccorces = () => {
 
   return (
     <div className="flex min-h-screen">
-      {/* Fixed Sidebar */}
       <div className="fixed top-0 left-0 h-full w-64 z-50">
         <Lecsidebar onLogout={handleLogout} />
       </div>
 
-      {/* Main Content with Padding to Avoid Sidebar Overlap */}
       <div className="flex-1 ml-64 bg-neutral-100 overflow-x-auto">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
@@ -463,15 +475,21 @@ const Leccorces = () => {
                       >
                         Unit Code
                       </label>
-                      <input
-                        type="text"
+                      <select
                         id="code"
                         name="code"
                         value={formData.code}
-                        onChange={handleInputChange}
+                        onChange={handleCodeChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
-                      />
+                      >
+                        <option value="">Select a course code</option>
+                        {courses.map((course) => (
+                          <option key={course.id} value={course.id}>
+                            {course.id} - {course.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="mb-4">
                       <label

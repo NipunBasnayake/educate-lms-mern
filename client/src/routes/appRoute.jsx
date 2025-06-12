@@ -57,6 +57,7 @@ const AppRoutes = () => {
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
         {/* Add SuperAdmin-specific routes here if needed */}
+         <Route path="dashboard/lecture" element={<Lecdashboard />} />
       </Route>
     </Routes>
   );
