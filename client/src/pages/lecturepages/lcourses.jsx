@@ -3,20 +3,19 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import LecSidebar from "../lecturepages/Lecsidebar";
 
-const Lassignments = () => {
-  const [assignments, setAssignments] = useState([]);
+const Leccourses = () => {
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [instructorId, setInstructorId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentAssignment, setCurrentAssignment] = useState(null);
+  const [currentCourse, setCurrentCourse] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    unit: "",
-    course: "",
+    code: "",
     description: "",
-    dueDate: "",
-    maxScore: "",
+    students: "",
+    state: "enabled",
   });
   const [activeTab, setActiveTab] = useState("both");
   const navigate = useNavigate();
@@ -43,29 +42,29 @@ const Lassignments = () => {
     fetchInstructorId();
   }, [navigate]);
 
-  // GET: Fetch assignments
+  // GET: Fetch courses
   useEffect(() => {
     if (!instructorId) return;
 
-    const fetchAssignments = async () => {
+    const fetchCourses = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("ACCESS_TOKEN");
-        const response = await axios.get(`${BASE_URL}instructors/${instructorId}/assignments`, {
+        const response = await axios.get(`${BASE_URL}instructors/${instructorId}/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const fetchedAssignments = Array.isArray(response.data)
+        const fetchedCourses = Array.isArray(response.data)
           ? response.data
-          : response.data.assignments || response.data.data?.assignments || [];
-        setAssignments(fetchedAssignments); // Update state with fetched assignments
+          : response.data.courses || response.data.data?.courses || [];
+        setCourses(fetchedCourses); // Update state with fetched courses
         setLoading(false);
       } catch (err) {
-        console.error("Assignments fetch error:", err);
-        setError(err.message || "Failed to fetch assignments");
+        console.error("Courses fetch error:", err);
+        setError(err.message || "Failed to fetch courses");
         setLoading(false);
       }
     };
-    fetchAssignments();
+    fetchCourses();
   }, [instructorId]);
 
   const handleLogout = () => {
@@ -81,90 +80,98 @@ const Lassignments = () => {
     }));
   };
 
+  const toggleCourseState = (courseId) => {
+    setCourses((prev) =>
+      prev.map((course) =>
+        course._id === courseId
+          ? { ...course, state: course.state === "enabled" ? "disabled" : "enabled" }
+          : course
+      )
+    );
+    // Note: Optionally send a PUT request to update state on backend
+  };
+
   const openCreateModal = () => {
-    setCurrentAssignment(null);
+    setCurrentCourse(null);
     setFormData({
       title: "",
-      unit: "",
-      course: "",
+      code: "",
       description: "",
-      dueDate: "",
-      maxScore: "",
+      students: "",
+      state: "enabled",
     });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (assignment) => {
-    setCurrentAssignment(assignment);
+  const openEditModal = (course) => {
+    setCurrentCourse(course);
     setFormData({
-      title: assignment.title,
-      unit: assignment.unit,
-      course: assignment.course,
-      description: assignment.description,
-      dueDate: assignment.dueDate.slice(0, 16), // Format for datetime-local
-      maxScore: assignment.maxScore,
+      title: course.title,
+      code: course.code,
+      description: course.description,
+      students: course.students,
+      state: course.state,
     });
     setIsModalOpen(true);
   };
 
-  // POST: Create new assignment
-  // PUT: Update existing assignment
+  // POST: Create new course
+  // PUT: Update existing course
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("ACCESS_TOKEN");
-      const assignmentData = {
+      const courseData = {
         ...formData,
-        maxScore: parseInt(formData.maxScore),
+        students: parseInt(formData.students),
+        instructor: instructorId,
       };
 
-      if (currentAssignment) {
-        // PUT: Update assignment
+      if (currentCourse) {
+        // PUT: Update course
         const response = await axios.put(
-          `${BASE_URL}instructors/${instructorId}/assignments/${currentAssignment._id}`,
-          assignmentData,
+          `${BASE_URL}instructors/${instructorId}/courses/${currentCourse._id}`,
+          courseData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAssignments((prev) =>
-          prev.map((assignment) =>
-            assignment._id === currentAssignment._id ? response.data : assignment
-          )
-        ); // Update state with modified assignment
+        setCourses((prev) =>
+          prev.map((course) => (course._id === currentCourse._id ? response.data : course))
+        ); // Update state with modified course
       } else {
-        // POST: Create assignment
+        // POST: Create course
         const response = await axios.post(
-          `${BASE_URL}instructors/${instructorId}/assignments`,
-          assignmentData,
+          `${BASE_URL}instructors/${instructorId}/courses`,
+          courseData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setAssignments((prev) => [...prev, response.data]); // Append new assignment to state
+        setCourses((prev) => [...prev, response.data]); // Append new course to state
       }
       setIsModalOpen(false);
     } catch (err) {
-      console.error("Assignment save error:", err);
-      setError(err.message || "Failed to save assignment");
+      console.error("Course save error:", err);
+      setError(err.message || "Failed to save course");
     }
   };
 
-  // DELETE: Remove assignment
-  const handleDelete = async (assignmentId) => {
-    if (window.confirm("Are you sure you want to delete this assignment?")) {
+  // DELETE: Remove course
+  const handleDelete = async (courseId) => {
+    if (window.confirm("Are you sure you want to delete this course?")) {
       try {
         const token = localStorage.getItem("ACCESS_TOKEN");
-        await axios.delete(`${BASE_URL}instructors/${instructorId}/assignments/${assignmentId}`, {
+        await axios.delete(`${BASE_URL}instructors/${instructorId}/courses/${courseId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setAssignments((prev) => prev.filter((assignment) => assignment._id !== assignmentId)); // Remove deleted assignment from state
+        setCourses((prev) => prev.filter((course) => course._id !== courseId)); // Remove deleted course from state
       } catch (err) {
-        console.error("Assignment delete error:", err);
-        setError(err.message || "Failed to delete assignment");
+        console.error("Course delete error:", err);
+        setError(err.message || "Failed to delete course");
       }
     }
   };
 
-  const handleAccessAssignment = (assignment) => {
-    console.log("Accessing assignment:", assignment);
-    alert(`Accessing assignment: ${assignment.title}`);
+  const handleAccessCourse = (course) => {
+    console.log("Accessing course:", course);
+    alert(`Accessing course: ${course.title}`);
   };
 
   if (loading) {
@@ -197,7 +204,7 @@ const Lassignments = () => {
       <div className="flex-1 ml-64 bg-neutral-100 overflow-x-auto">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-            <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">My Assignments</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">My Courses</h2>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                 <button
@@ -229,7 +236,7 @@ const Lassignments = () => {
                 onClick={openCreateModal}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
               >
-                + Add New Assignment
+                + Add New Course
               </button>
             </div>
           </div>
@@ -241,41 +248,34 @@ const Lassignments = () => {
                 <table className="w-full text-left table-auto">
                   <thead>
                     <tr className="bg-neutral-200 text-neutral-700">
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Title</th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Unit</th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course</th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Due Date</th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Max Score</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course Title</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course Code</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Students</th>
                       <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Actions</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">State Control</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {assignments.map((assignment) => (
+                    {courses.map((course) => (
                       <tr
-                        key={`table-${assignment._id}`}
+                        key={`table-${course._id}`}
                         className="border-t border-neutral-200 hover:bg-neutral-50 transition-colors"
                       >
                         <td className="p-3 sm:p-4 font-medium text-sm sm:text-base text-center">
-                          {assignment.title}
+                          {course.title}
                         </td>
                         <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
-                          {assignment.unit}
-                        </td>
-                        <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
-                          {assignment.course}
+                          {course.code}
                         </td>
                         <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
-                          {new Date(assignment.dueDate).toLocaleString()}
-                        </td>
-                        <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
-                          {assignment.maxScore}
+                          {course.students}
                         </td>
                         <td className="p-3 sm:p-4 text-center">
                           <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => openEditModal(assignment)}
+                              onClick={() => openEditModal(course)}
                               className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Edit assignment ${assignment.title}`}
+                              aria-label={`Edit course ${course.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -294,9 +294,9 @@ const Lassignments = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(assignment._id)}
+                              onClick={() => handleDelete(course._id)}
                               className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Delete assignment ${assignment.title}`}
+                              aria-label={`Delete course ${course.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -316,6 +316,18 @@ const Lassignments = () => {
                             </button>
                           </div>
                         </td>
+                        <td className="p-3 sm:p-4 text-center">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={course.state === "enabled"}
+                              onChange={() => toggleCourseState(course._id)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
+                            <div className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-4 sm:peer-checked:translate-x-5 transition-transform duration-200"></div>
+                          </label>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -328,39 +340,44 @@ const Lassignments = () => {
             <div>
               <h3 className="text-base sm:text-lg font-semibold mb-4">Card View</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {assignments.map((assignment) => (
+                {courses.map((course) => (
                   <div
-                    key={`card-${assignment._id}`}
+                    key={`card-${course._id}`}
                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
                   >
                     <div className="p-4 sm:p-6 flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
-                            {assignment.title}
+                            {course.title}
                           </h3>
                           <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                            {assignment.course}
+                            {course.code}
                           </span>
                         </div>
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                          Max Score: {assignment.maxScore}
-                        </span>
+                        <div className="flex space-x-2">
+                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                            {course.students} students
+                          </span>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              course.state === "enabled"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {course.state === "enabled" ? "Enabled" : "Disabled"}
+                          </span>
+                        </div>
                       </div>
                       <div className="mb-4 flex-1">
                         <p className="text-neutral-600 text-sm line-clamp-3">
-                          {assignment.description}
-                        </p>
-                        <p className="text-neutral-600 text-sm mt-2">
-                          <strong>Unit:</strong> {assignment.unit}
-                        </p>
-                        <p className="text-neutral-600 text-sm">
-                          <strong>Due:</strong> {new Date(assignment.dueDate).toLocaleString()}
+                          {course.description}
                         </p>
                       </div>
                       <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
                         <button
-                          onClick={() => handleAccessAssignment(assignment)}
+                          onClick={() => handleAccessCourse(course)}
                           className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                         >
                           Access
@@ -378,12 +395,12 @@ const Lassignments = () => {
               <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
                 <div className="p-4 sm:p-6">
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">
-                    {currentAssignment ? "Edit Assignment" : "Create New Assignment"}
+                    {currentCourse ? "Edit Course" : "Create New Course"}
                   </h3>
                   <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                       <label className="block text-neutral-700 mb-2" htmlFor="title">
-                        Assignment Title
+                        Course Title
                       </label>
                       <input
                         type="text"
@@ -396,28 +413,14 @@ const Lassignments = () => {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-neutral-700 mb-2" htmlFor="unit">
-                        Unit ID
+                      <label className="block text-neutral-700 mb-2" htmlFor="code">
+                        Course Code
                       </label>
                       <input
                         type="text"
-                        id="unit"
-                        name="unit"
-                        value={formData.unit}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-neutral-700 mb-2" htmlFor="course">
-                        Course ID
-                      </label>
-                      <input
-                        type="text"
-                        id="course"
-                        name="course"
-                        value={formData.course}
+                        id="code"
+                        name="code"
+                        value={formData.code}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
@@ -438,32 +441,34 @@ const Lassignments = () => {
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-neutral-700 mb-2" htmlFor="dueDate">
-                        Due Date
+                      <label className="block text-neutral-700 mb-2" htmlFor="students">
+                        Students Enrolled
                       </label>
                       <input
-                        type="datetime-local"
-                        id="dueDate"
-                        name="dueDate"
-                        value={formData.dueDate}
+                        type="number"
+                        id="students"
+                        name="students"
+                        value={formData.students}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-neutral-700 mb-2" htmlFor="maxScore">
-                        Max Score
+                      <label className="block text-neutral-700 mb-2" htmlFor="state">
+                        State Control
                       </label>
-                      <input
-                        type="number"
-                        id="maxScore"
-                        name="maxScore"
-                        value={formData.maxScore}
+                      <select
+                        id="state"
+                        name="state"
+                        value={formData.state}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
-                      />
+                      >
+                        <option value="enabled">Enabled</option>
+                        <option value="disabled">Disabled</option>
+                      </select>
                     </div>
                     <div className="flex justify-end space-x-3">
                       <button
@@ -477,7 +482,7 @@ const Lassignments = () => {
                         type="submit"
                         className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
                       >
-                        {currentAssignment ? "Update" : "Create"}
+                        {currentCourse ? "Update" : "Create"}
                       </button>
                     </div>
                   </form>
@@ -511,10 +516,10 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default function WrappedLassignments() {
+export default function WrappedLeccourses() {
   return (
     <ErrorBoundary>
-      <Lassignments />
+      <Leccourses />
     </ErrorBoundary>
   );
 }
