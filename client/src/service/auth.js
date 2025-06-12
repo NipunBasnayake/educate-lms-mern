@@ -7,7 +7,7 @@ export const registerUser = async (userCredentials) => {
   apiObject.prefix = "auth";
   apiObject.endpoint = "register";
   apiObject.body = userCredentials;
-  apiObject.withCredentials = true;
+  apiObject.withCredentials = false;
   return await ApiService.callApi(apiObject);
 };
 
@@ -18,7 +18,7 @@ export const loginUser = async (userCredentials) => {
   apiObject.prefix = "auth";
   apiObject.endpoint = "login";
   apiObject.body = userCredentials; 
-  apiObject.withCredentials = false; 
+  apiObject.withCredentials = true; 
   return await ApiService.callApi(apiObject);
 };
 

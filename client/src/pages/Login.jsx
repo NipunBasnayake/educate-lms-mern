@@ -6,10 +6,7 @@ import * as Yup from "yup";
 import Footer from "../components/Footer";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
 import {
-  loginUserAPI,
-  refreshTokenAPI,
-  refreshTokenSuccess,
-} from "../redux/features/authSlice";
+  loginUserAPI,} from "../redux/features/authSlice";
 
 const Login = () => {
   const dispatch = useAppDispatch();
@@ -52,24 +49,6 @@ const Login = () => {
       setSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if(isAuthenticated){
-      dispatch(refreshTokenAPI());
-    }
-  }, [isAuthenticated, dispatch]);
-
-/*   const refreshToken = async () => {
-    try {
-      const result = await dispatch(refreshTokenAPI()).unwrap();
-      console.log("Refresh Token Result ", result);
-      if (result.success) {
-        dispatch(refreshTokenSuccess({ user: result.data.user }));
-      }
-    } catch (error) {
-      console.error("refresh Token Error", error);
-    }
-  }; */
 
   return (
     <div className="font-sans">
