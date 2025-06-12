@@ -109,7 +109,7 @@ export const courses = [
     ],
   },
   {
-    id: "HRM210",
+    id: "6848fef5b46d16dccf6732d0",
     name: "Organizational Behavior",
     credits: 3,
     grade: "B",

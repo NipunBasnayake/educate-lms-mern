@@ -45,7 +45,7 @@ const AppRoutes = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/accessibility" element={<Accessibility />} />
-        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/unit/:id" element={<CourseDetails />} />
         <Route path="/exam-application" element={<Exam />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
