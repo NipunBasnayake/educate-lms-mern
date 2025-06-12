@@ -534,7 +534,7 @@ const CourseDetails = () => {
               title: "Accounting Principles",
               duration: "50 min",
               completed: true,
-              lectureVideo:"https://www.youtube.com/watch?v=4_HOnhB64Dg&t=32s&ab_channel=Telusko",
+              lectureVideo:"https://youtu.be/ykOy2xOLAJQ",
               doc:"https://documents.gov.lk/view/gazettes/2025/6/2025-06-06(I-I)E.pdf"
             },
             {
@@ -542,7 +542,7 @@ const CourseDetails = () => {
               title: "Double-Entry Bookkeeping",
               duration: "60 min",
               completed: true,
-              lectureVideo:"https://www.youtube.com/watch?v=4_HOnhB64Dg&t=32s&ab_channel=Telusko",
+              lectureVideo:"https://youtu.be/ykOy2xOLAJQ",
               doc:"https://documents.gov.lk/view/gazettes/2025/6/2025-06-06(I-I)E.pdf"
             }
           ],
