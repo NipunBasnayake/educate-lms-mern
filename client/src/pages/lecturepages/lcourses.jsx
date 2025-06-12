@@ -1,57 +1,76 @@
-import React, { useState } from "react";
-import Lecsidebar from "../lecturepages/Lecsidebar";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import LecSidebar from "../lecturepages/Lecsidebar";
 
-const Leccorces = () => {
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: "Introduction to React",
-      code: "CS101",
-      students: 50,
-      description:
-        "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course.",
-      image:
-        "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      state: "enabled",
-    },
-    {
-      id: 2,
-      title: "Advanced JavaScript",
-      code: "CS202",
-      students: 35,
-      description:
-        "Dive deep into JavaScript concepts like closures, prototypes, async/await. Master the language that powers modern web development.",
-      image:
-        "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-      state: "disabled",
-    },
-    {
-      id: 3,
-      title: "Web Development",
-      code: "CS303",
-      students: 45,
-      description:
-        "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch.",
-      image:
-        "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-      state: "enabled",
-    },
-  ]);
-
+const Lassignments = () => {
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [instructorId, setInstructorId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentCourse, setCurrentCourse] = useState(null);
+  const [currentAssignment, setCurrentAssignment] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    code: "",
-    students: "",
+    unit: "",
+    course: "",
     description: "",
-    image: "",
-    state: "enabled",
+    dueDate: "",
+    maxScore: "",
   });
   const [activeTab, setActiveTab] = useState("both");
+  const navigate = useNavigate();
+
+  // Fetch instructor ID
+  useEffect(() => {
+    const fetchInstructorId = async () => {
+      try {
+        const token = localStorage.getItem("ACCESS_TOKEN");
+        if (!token) {
+          setError("No authentication token found. Redirecting to login...");
+          setTimeout(() => navigate("/login"), 2000);
+          return;
+        }
+        const response = await axios.get("{{baseUrl}}auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setInstructorId(response.data._id);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        setError(err.message || "Failed to fetch instructor profile. Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000);
+      }
+    };
+    fetchInstructorId();
+  }, [navigate]);
+
+  // Fetch assignments
+  useEffect(() => {
+    if (!instructorId) return;
+
+    const fetchAssignments = async () => {
+      try {
+        const token = localStorage.getItem("ACCESS_TOKEN");
+        const response = await axios.get(`{{baseUrl}}instructors/${instructorId}/assignments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const fetchedAssignments = Array.isArray(response.data)
+          ? response.data
+          : response.data.assignments || response.data.data?.assignments || [];
+        setAssignments(fetchedAssignments);
+        setLoading(false);
+      } catch (err) {
+        console.error("Assignments fetch error:", err);
+        setError(err.message || "Failed to fetch assignments");
+        setLoading(false);
+      }
+    };
+    fetchAssignments();
+  }, [instructorId]);
 
   const handleLogout = () => {
-    console.log("Logout triggered");
+    localStorage.removeItem("ACCESS_TOKEN");
+    navigate("/login");
   };
 
   const handleInputChange = (e) => {
@@ -62,115 +81,128 @@ const Leccorces = () => {
     });
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData({
-          ...formData,
-          image: event.target.result,
-        });
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
-
-  const toggleCourseState = (courseId) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
-          ? {
-              ...course,
-              state: course.state === "enabled" ? "disabled" : "enabled",
-            }
-          : course
-      )
-    );
-  };
-
   const openCreateModal = () => {
-    setCurrentCourse(null);
+    setCurrentAssignment(null);
     setFormData({
       title: "",
-      code: "",
-      students: "",
+      unit: "",
+      course: "",
       description: "",
-      image: "",
-      state: "enabled",
+      dueDate: "",
+      maxScore: "",
     });
     setIsModalOpen(true);
   };
 
-  const openEditModal = (course) => {
-    setCurrentCourse(course);
+  const openEditModal = (assignment) => {
+    setCurrentAssignment(assignment);
     setFormData({
-      title: course.title,
-      code: course.code,
-      students: course.students,
-      description: course.description,
-      image: course.image,
-      state: course.state,
+      title: assignment.title,
+      unit: assignment.unit,
+      course: assignment.course,
+      description: assignment.description,
+      dueDate: assignment.dueDate.slice(0, 16), // Format for datetime-local input
+      maxScore: assignment.maxScore,
     });
     setIsModalOpen(true);
   };
 
-  const handleAccessCourse = (course) => {
-    console.log("Accessing course:", course);
-    alert(`Accessing course: ${course.title}`);
+  const handleAccessAssignment = (assignment) => {
+    console.log("Accessing assignment:", assignment);
+    alert(`Accessing assignment: ${assignment.title}`);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (currentCourse) {
-      const updatedCourses = courses.map((course) =>
-        course.id === currentCourse.id ? { ...course, ...formData } : course
-      );
-      setCourses(updatedCourses);
-    } else {
-      const newCourse = {
-        id: Date.now(),
-        title: formData.title,
-        code: formData.code,
-        students: parseInt(formData.students),
-        description: formData.description,
-        image: formData.image,
-        state: formData.state,
+    try {
+      const token = localStorage.getItem("ACCESS_TOKEN");
+      const assignmentData = {
+        ...formData,
+        maxScore: parseInt(formData.maxScore),
       };
-      setCourses([...courses, newCourse]);
-    }
 
-    setIsModalOpen(false);
+      if (currentAssignment) {
+        // Update existing assignment
+        const response = await axios.put(
+          `{{baseUrl}}instructors/${instructorId}/assignments/${currentAssignment._id}`,
+          assignmentData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setAssignments(
+          assignments.map((assignment) =>
+            assignment._id === currentAssignment._id ? response.data : assignment
+          )
+        );
+      } else {
+        // Create new assignment
+        const response = await axios.post(
+          `{{baseUrl}}instructors/${instructorId}/assignments`,
+          assignmentData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setAssignments([...assignments, response.data]);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Assignment save error:", err);
+      setError(err.message || "Failed to save assignment");
+    }
   };
 
-  const handleDelete = (courseId) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter((course) => course.id !== courseId));
+  const handleDelete = async (assignmentId) => {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
+      try {
+        const token = localStorage.getItem("ACCESS_TOKEN");
+        await axios.delete(`{{baseUrl}}instructors/${instructorId}/assignments/${assignmentId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAssignments(assignments.filter((assignment) => assignment._id !== assignmentId));
+      } catch (err) {
+        console.error("Assignment delete error:", err);
+        setError(err.message || "Failed to delete assignment");
+      }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen">
+        <div className="fixed top-0 left-0 h-full w-64 z-50">
+          <LecSidebar onLogout={handleLogout} />
+        </div>
+        <div className="flex-1 ml-64 p-6">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen">
+        <div className="fixed top-0 left-0 h-full w-64 z-50">
+          <LecSidebar onLogout={handleLogout} />
+        </div>
+        <div className="flex-1 ml-64 p-6 text-red-600">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
-      {/* Fixed Sidebar */}
       <div className="fixed top-0 left-0 h-full w-64 z-50">
-        <Lecsidebar onLogout={handleLogout} />
+        <LecSidebar onLogout={handleLogout} />
       </div>
-
-      {/* Main Content with Padding to Avoid Sidebar Overlap */}
       <div className="flex-1 ml-64 bg-neutral-100 overflow-x-auto">
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-800">
-              My Courses
+              My Assignments
             </h2>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
               <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setActiveTab("table")}
                   className={`px-3 py-2 text-sm sm:px-4 sm:text-base ${
-                    activeTab === "table"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white"
+                    activeTab === "table" ? "bg-blue-600 text-white" : "bg-white"
                   }`}
                 >
                   Table
@@ -178,9 +210,7 @@ const Leccorces = () => {
                 <button
                   onClick={() => setActiveTab("cards")}
                   className={`px-3 py-2 text-sm sm:px-4 sm:text-base ${
-                    activeTab === "cards"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white"
+                    activeTab === "cards" ? "bg-blue-600 text-white" : "bg-white"
                   }`}
                 >
                   Cards
@@ -198,72 +228,55 @@ const Leccorces = () => {
                 onClick={openCreateModal}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
               >
-                + Add New Course
+                + Add New Assignment
               </button>
             </div>
           </div>
 
           {(activeTab === "table" || activeTab === "both") && (
             <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-base sm:text-lg font-semibold">
-                  Table View
-                </h3>
-              </div>
+              <h3 className="text-base sm:text-lg font-semibold mb-4">
+                Table View
+              </h3>
               <div className="bg-white rounded-lg shadow-md overflow-x-auto">
                 <table className="w-full text-left table-auto">
                   <thead>
                     <tr className="bg-neutral-200 text-neutral-700">
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Image
-                      </th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Course Title
-                      </th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Course Code
-                      </th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Students
-                      </th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Actions
-                      </th>
-                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        State Control
-                      </th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Title</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Unit</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Course</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Due Date</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Max Score</th>
+                      <th className="p-3 sm:p-4 text-center text-sm sm:text-base">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {courses.map((course) => (
+                    {assignments.map((assignment) => (
                       <tr
-                        key={`table-${course.id}`}
+                        key={`table-${assignment._id}`}
                         className="border-t border-neutral-200 hover:bg-neutral-50 transition-colors"
                       >
-                        <td className="p-3 sm:p-4 text-center">
-                          {course.image && (
-                            <img
-                              src={course.image}
-                              alt={course.title}
-                              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded mx-auto"
-                            />
-                          )}
-                        </td>
                         <td className="p-3 sm:p-4 font-medium text-sm sm:text-base text-center">
-                          {course.title}
+                          {assignment.title}
                         </td>
                         <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
-                          {course.code}
+                          {assignment.unit}
+                        </td>
+                        <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
+                          {assignment.course}
                         </td>
                         <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
-                          {course.students}
+                          {new Date(assignment.dueDate).toLocaleString()}
+                        </td>
+                        <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
+                          {assignment.maxScore}
                         </td>
                         <td className="p-3 sm:p-4 text-center">
                           <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => openEditModal(course)}
+                              onClick={() => openEditModal(assignment)}
                               className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Edit course ${course.title}`}
+                              aria-label={`Edit assignment ${assignment.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -282,9 +295,9 @@ const Leccorces = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(course.id)}
+                              onClick={() => handleDelete(assignment._id)}
                               className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Delete course ${course.title}`}
+                              aria-label={`Delete assignment ${assignment.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -304,20 +317,6 @@ const Leccorces = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="p-3 sm:p-4 text-center">
-                          <div className="flex items-center justify-center space-x-2">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={course.state === "enabled"}
-                                onChange={() => toggleCourseState(course.id)}
-                                className="sr-only peer"
-                              />
-                              <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
-                              <div className="absolute w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-4 sm:peer-checked:translate-x-5 transition-transform duration-200"></div>
-                            </label>
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -332,55 +331,39 @@ const Leccorces = () => {
                 Card View
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {courses.map((course) => (
+                {assignments.map((assignment) => (
                   <div
-                    key={`card-${course.id}`}
+                    key={`card-${assignment._id}`}
                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
                   >
-                    {course.image && (
-                      <div className="h-40 sm:h-48 overflow-hidden">
-                        <img
-                          src={course.image}
-                          alt={course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
                     <div className="p-4 sm:p-6 flex-1 flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
-                            {course.title}
+                          <h3 className the="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
+                            {assignment.title}
                           </h3>
                           <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                            {course.code}
+                            {assignment.course}
                           </span>
                         </div>
-                        <div className="flex space-x-2">
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            {course.students} students
-                          </span>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              course.state === "enabled"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {course.state === "enabled"
-                              ? "Enabled"
-                              : "Disabled"}
-                          </span>
-                        </div>
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                          Max Score: {assignment.maxScore}
+                        </span>
                       </div>
                       <div className="mb-4 flex-1">
                         <p className="text-neutral-600 text-sm line-clamp-3">
-                          {course.description}
+                          {assignment.description}
+                        </p>
+                        <p className="text-neutral-600 text-sm mt-2">
+                          <strong>Unit:</strong> {assignment.unit}
+                        </p>
+                        <p className="text-neutral-600 text-sm">
+                          <strong>Due:</strong> {new Date(assignment.dueDate).toLocaleString()}
                         </p>
                       </div>
                       <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
                         <button
-                          onClick={() => handleAccessCourse(course)}
+                          onClick={() => handleAccessAssignment(assignment)}
                           className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                         >
                           Access
@@ -398,53 +381,12 @@ const Leccorces = () => {
               <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
                 <div className="p-4 sm:p-6">
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">
-                    {currentCourse ? "Edit Course" : "Create New Course"}
+                    {currentAssignment ? "Edit Assignment" : "Create New Assignment"}
                   </h3>
                   <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                      <label className="block text-neutral-700 mb-2">
-                        Course Image
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        {formData.image && (
-                          <img
-                            src={formData.image}
-                            alt="Course preview"
-                            className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="block w-full text-xs sm:text-sm text-neutral-500
-                              file:mr-4 file:py-1 sm:file:py-2 file:px-3 sm:file:px-4
-                              file:rounded file:border-0
-                              file:text-xs sm:file:text-sm file:font-semibold
-                              file:bg-blue-50 file:text-blue-700
-                              hover:file:bg-blue-100"
-                          />
-                          <p className="text-xs text-neutral-500 mt-1">
-                            Or enter image URL:
-                          </p>
-                          <input
-                            type="text"
-                            name="image"
-                            value={formData.image}
-                            onChange={handleInputChange}
-                            placeholder="https://example.com/image.jpg"
-                            className="w-full p-2 border border-neutral-300 rounded mt-1 text-xs sm:text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        className="block text-neutral-700 mb-2"
-                        htmlFor="title"
-                      >
-                        Course Title
+                      <label className="block text-neutral-700 mb-2" htmlFor="title">
+                        Assignment Title
                       </label>
                       <input
                         type="text"
@@ -457,64 +399,36 @@ const Leccorces = () => {
                       />
                     </div>
                     <div className="mb-4">
-                      <label
-                        className="block text-neutral-700 mb-2"
-                        htmlFor="code"
-                      >
-                        Course Code
+                      <label className="block text-neutral-700 mb-2" htmlFor="unit">
+                        Unit ID
                       </label>
                       <input
                         type="text"
-                        id="code"
-                        name="code"
-                        value={formData.code}
+                        id="unit"
+                        name="unit"
+                        value={formData.unit}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="mb-4">
-                      <label
-                        className="block text-neutral-700 mb-2"
-                        htmlFor="students"
-                      >
-                        Students Enrolled
+                      <label className="block text-neutral-700 mb-2" htmlFor="course">
+                        Course ID
                       </label>
                       <input
-                        type="number"
-                        id="students"
-                        name="students"
-                        value={formData.students}
+                        type="text"
+                        id="course"
+                        name="course"
+                        value={formData.course}
                         onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
                     </div>
                     <div className="mb-4">
-                      <label
-                        className="block text-neutral-700 mb-2"
-                        htmlFor="state"
-                      >
-                        State Control
-                      </label>
-                      <select
-                        id="state"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-                      >
-                        <option value="enabled">Enabled</option>
-                        <option value="disabled">Disabled</option>
-                      </select>
-                    </div>
-                    <div className="mb-6">
-                      <label
-                        className="block text-neutral-700 mb-2"
-                        htmlFor="description"
-                      >
-                        Course Description
+                      <label className="block text-neutral-700 mb-2" htmlFor="description">
+                        Description
                       </label>
                       <textarea
                         id="description"
@@ -522,6 +436,34 @@ const Leccorces = () => {
                         value={formData.description}
                         onChange={handleInputChange}
                         rows="3"
+                        className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-neutral-700 mb-2" htmlFor="dueDate">
+                        Due Date
+                      </label>
+                      <input
+                        type="datetime-local"
+                        id="dueDate"
+                        name="dueDate"
+                        value={formData.dueDate}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-neutral-700 mb-2" htmlFor="maxScore">
+                        Max Score
+                      </label>
+                      <input
+                        type="number"
+                        id="maxScore"
+                        name="maxScore"
+                        value={formData.maxScore}
+                        onChange={handleInputChange}
                         className="w-full p-2 border border-neutral-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         required
                       />
@@ -538,7 +480,7 @@ const Leccorces = () => {
                         type="submit"
                         className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
                       >
-                        {currentCourse ? "Update" : "Create"}
+                        {currentAssignment ? "Update" : "Create"}
                       </button>
                     </div>
                   </form>
@@ -552,4 +494,30 @@ const Leccorces = () => {
   );
 };
 
-export default Leccorces;
+// Wrap with ErrorBoundary
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex-1 p-6 text-red-600">
+          Something went wrong: {this.state.error?.message || "Unknown error"}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function WrappedLassignments() {
+  return (
+    <ErrorBoundary>
+      <Lassignments />
+    </ErrorBoundary>
+  );
+}
