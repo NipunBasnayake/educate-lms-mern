@@ -5,7 +5,7 @@ const OverviewTab = ({ course }) => {
     <div>
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-900">
-          Course Description
+          Units Description
         </h2>
         <p className="text-gray-700">{course.description}</p>
       </div>
