@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import Lecsidebar from "../lecturepages/Lecsidebar";
 
 const Leccorces = () => {
-  const [courses, setCourses] = useState([
+  const [units, setUnits] = useState([
     {
       id: 1,
       title: "Introduction to React",
       code: "CS101",
       students: 50,
       description:
-        "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory course.",
+        "Learn the fundamentals of React including components, state, and props. Build your first React application in this comprehensive introductory unit.",
       image:
         "https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
       state: "enabled",
@@ -31,7 +31,7 @@ const Leccorces = () => {
       code: "CS303",
       students: 45,
       description:
-        "Full-stack web development course covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch.",
+        "Full-stack web development unit covering HTML, CSS, JavaScript, and backend technologies. Build complete web applications from scratch.",
       image:
         "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
       state: "enabled",
@@ -39,7 +39,7 @@ const Leccorces = () => {
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentCourse, setCurrentCourse] = useState(null);
+  const [currentUnit, setCurrentUnit] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     code: "",
@@ -75,21 +75,21 @@ const Leccorces = () => {
     }
   };
 
-  const toggleCourseState = (courseId) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
+  const toggleUnitState = (unitId) => {
+    setUnits(
+      units.map((unit) =>
+        unit.id === unitId
           ? {
-              ...course,
-              state: course.state === "enabled" ? "disabled" : "enabled",
+              ...unit,
+              state: unit.state === "enabled" ? "disabled" : "enabled",
             }
-          : course
+          : unit
       )
     );
   };
 
   const openCreateModal = () => {
-    setCurrentCourse(null);
+    setCurrentUnit(null);
     setFormData({
       title: "",
       code: "",
@@ -101,34 +101,34 @@ const Leccorces = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (course) => {
-    setCurrentCourse(course);
+  const openEditModal = (unit) => {
+    setCurrentUnit(unit);
     setFormData({
-      title: course.title,
-      code: course.code,
-      students: course.students,
-      description: course.description,
-      image: course.image,
-      state: course.state,
+      title: unit.title,
+      code: unit.code,
+      students: unit.students,
+      description: unit.description,
+      image: unit.image,
+      state: unit.state,
     });
     setIsModalOpen(true);
   };
 
-  const handleAccessCourse = (course) => {
-    console.log("Accessing course:", course);
-    alert(`Accessing course: ${course.title}`);
+  const handleAccessUnit = (unit) => {
+    console.log("Accessing unit:", unit);
+    alert(`Accessing unit: ${unit.title}`);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (currentCourse) {
-      const updatedCourses = courses.map((course) =>
-        course.id === currentCourse.id ? { ...course, ...formData } : course
+    if (currentUnit) {
+      const updatedUnits = units.map((unit) =>
+        unit.id === currentUnit.id ? { ...unit, ...formData } : unit
       );
-      setCourses(updatedCourses);
+      setUnits(updatedUnits);
     } else {
-      const newCourse = {
+      const newUnit = {
         id: Date.now(),
         title: formData.title,
         code: formData.code,
@@ -137,15 +137,15 @@ const Leccorces = () => {
         image: formData.image,
         state: formData.state,
       };
-      setCourses([...courses, newCourse]);
+      setUnits([...units, newUnit]);
     }
 
     setIsModalOpen(false);
   };
 
-  const handleDelete = (courseId) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      setCourses(courses.filter((course) => course.id !== courseId));
+  const handleDelete = (unitId) => {
+    if (window.confirm("Are you sure you want to delete this unit?")) {
+      setUnits(units.filter((unit) => unit.id !== unitId));
     }
   };
 
@@ -198,7 +198,7 @@ const Leccorces = () => {
                 onClick={openCreateModal}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
               >
-                + Add New Course
+                + Add New Unit
               </button>
             </div>
           </div>
@@ -218,10 +218,10 @@ const Leccorces = () => {
                         Image
                       </th>
                       <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Course Title
+                        Unit Title
                       </th>
                       <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
-                        Course Code
+                        Unit Code
                       </th>
                       <th className="p-3 sm:p-4 text-center text-sm sm:text-base">
                         Students
@@ -235,35 +235,35 @@ const Leccorces = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {courses.map((course) => (
+                    {units.map((unit) => (
                       <tr
-                        key={`table-${course.id}`}
+                        key={`table-${unit.id}`}
                         className="border-t border-neutral-200 hover:bg-neutral-50 transition-colors"
                       >
                         <td className="p-3 sm:p-4 text-center">
-                          {course.image && (
+                          {unit.image && (
                             <img
-                              src={course.image}
-                              alt={course.title}
+                              src={unit.image}
+                              alt={unit.title}
                               className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded mx-auto"
                             />
                           )}
                         </td>
                         <td className="p-3 sm:p-4 font-medium text-sm sm:text-base text-center">
-                          {course.title}
+                          {unit.title}
                         </td>
                         <td className="p-3 sm:p-4 text-neutral-600 text-sm sm:text-base text-center">
-                          {course.code}
+                          {unit.code}
                         </td>
                         <td className="p-3 sm:p-4 text-sm sm:text-base text-center">
-                          {course.students}
+                          {unit.students}
                         </td>
                         <td className="p-3 sm:p-4 text-center">
                           <div className="flex justify-center gap-2">
                             <button
-                              onClick={() => openEditModal(course)}
+                              onClick={() => openEditModal(unit)}
                               className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Edit course ${course.title}`}
+                              aria-label={`Edit unit ${unit.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -282,9 +282,9 @@ const Leccorces = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(course.id)}
+                              onClick={() => handleDelete(unit.id)}
                               className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors duration-200 text-sm font-medium"
-                              aria-label={`Delete course ${course.title}`}
+                              aria-label={`Delete unit ${unit.title}`}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -309,8 +309,8 @@ const Leccorces = () => {
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
                                 type="checkbox"
-                                checked={course.state === "enabled"}
-                                onChange={() => toggleCourseState(course.id)}
+                                checked={unit.state === "enabled"}
+                                onChange={() => toggleUnitState(unit.id)}
                                 className="sr-only peer"
                               />
                               <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
@@ -332,16 +332,16 @@ const Leccorces = () => {
                 Card View
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {courses.map((course) => (
+                {units.map((unit) => (
                   <div
-                    key={`card-${course.id}`}
+                    key={`card-${unit.id}`}
                     className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full"
                   >
-                    {course.image && (
+                    {unit.image && (
                       <div className="h-40 sm:h-48 overflow-hidden">
                         <img
-                          src={course.image}
-                          alt={course.title}
+                          src={unit.image}
+                          alt={unit.title}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -350,24 +350,24 @@ const Leccorces = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h3 className="text-lg sm:text-xl font-bold text-neutral-800 mb-1">
-                            {course.title}
+                            {unit.title}
                           </h3>
                           <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
-                            {course.code}
+                            {unit.code}
                           </span>
                         </div>
                         <div className="flex space-x-2">
                           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            {course.students} students
+                            {unit.students} students
                           </span>
                           <span
                             className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              course.state === "enabled"
+                              unit.state === "enabled"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {course.state === "enabled"
+                            {unit.state === "enabled"
                               ? "Enabled"
                               : "Disabled"}
                           </span>
@@ -375,12 +375,12 @@ const Leccorces = () => {
                       </div>
                       <div className="mb-4 flex-1">
                         <p className="text-neutral-600 text-sm line-clamp-3">
-                          {course.description}
+                          {unit.description}
                         </p>
                       </div>
                       <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
                         <button
-                          onClick={() => handleAccessCourse(course)}
+                          onClick={() => handleAccessUnit(unit)}
                           className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                         >
                           Access
@@ -398,18 +398,18 @@ const Leccorces = () => {
               <div className="bg-white rounded-lg shadow-xl w-full max-w-md my-8">
                 <div className="p-4 sm:p-6">
                   <h3 className="text-lg sm:text-xl font-semibold mb-4">
-                    {currentCourse ? "Edit Course" : "Create New Course"}
+                    {currentUnit ? "Edit Unit" : "Create New Unit"}
                   </h3>
                   <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                       <label className="block text-neutral-700 mb-2">
-                        Course Image
+                        Unit Image
                       </label>
                       <div className="flex items-center space-x-4">
                         {formData.image && (
                           <img
                             src={formData.image}
-                            alt="Course preview"
+                            alt="Unit preview"
                             className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded"
                           />
                         )}
@@ -444,7 +444,7 @@ const Leccorces = () => {
                         className="block text-neutral-700 mb-2"
                         htmlFor="title"
                       >
-                        Course Title
+                        Unit Title
                       </label>
                       <input
                         type="text"
@@ -461,7 +461,7 @@ const Leccorces = () => {
                         className="block text-neutral-700 mb-2"
                         htmlFor="code"
                       >
-                        Course Code
+                        Unit Code
                       </label>
                       <input
                         type="text"
@@ -514,7 +514,7 @@ const Leccorces = () => {
                         className="block text-neutral-700 mb-2"
                         htmlFor="description"
                       >
-                        Course Description
+                        Unit Description
                       </label>
                       <textarea
                         id="description"
@@ -538,7 +538,7 @@ const Leccorces = () => {
                         type="submit"
                         className="px-3 py-1 sm:px-4 sm:py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
                       >
-                        {currentCourse ? "Update" : "Create"}
+                        {currentUnit ? "Update" : "Create"}
                       </button>
                     </div>
                   </form>
