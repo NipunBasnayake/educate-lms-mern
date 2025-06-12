@@ -197,8 +197,8 @@ const Leccorces = () => {
                     <th className="p-4">Course Title</th>
                     <th className="p-4">Course Code</th>
                     <th className="p-4">Students</th>
-                    <th className="p-4">State</th>
                     <th className="p-4">Actions</th>
+                    <th className="p-4">State Control</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,18 +219,6 @@ const Leccorces = () => {
                       <td className="p-4 font-medium">{course.title}</td>
                       <td className="p-4 text-neutral-600">{course.code}</td>
                       <td className="p-4">{course.students}</td>
-                      <td className="p-4">
-                        <button
-                          onClick={() => toggleCourseState(course.id)}
-                          className={`px-3 py-1 rounded text-sm text-white ${
-                            course.state === "enabled"
-                              ? "bg-green-600 hover:bg-green-700"
-                              : "bg-gray-600 hover:bg-gray-700"
-                          }`}
-                        >
-                          {course.state === "enabled" ? "Disable" : "Enable"}
-                        </button>
-                      </td>
                       <td className="p-4 space-x-2">
                         <button
                           onClick={() => openEditModal(course)}
@@ -244,6 +232,29 @@ const Leccorces = () => {
                         >
                           Delete
                         </button>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`text-sm ${
+                              course.state === "enabled"
+                                ? "text-green-600"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {course.state === "enabled" ? "Enabled" : "Disabled"}
+                          </span>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={course.state === "enabled"}
+                              onChange={() => toggleCourseState(course.id)}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
+                            <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-5 transition-transform duration-200"></div>
+                          </label>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -304,16 +315,16 @@ const Leccorces = () => {
                     </div>
                     
                     <div className="flex justify-end mt-auto pt-4 border-t border-neutral-100 space-x-2">
-                      <button
-                        onClick={() => toggleCourseState(course.id)}
-                        className={`px-3 py-1 rounded text-sm text-white ${
-                          course.state === "enabled"
-                            ? "bg-green-600 hover:bg-green-700"
-                            : "bg-gray-600 hover:bg-gray-700"
-                        }`}
-                      >
-                        {course.state === "enabled" ? "Disable" : "Enable"}
-                      </button>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={course.state === "enabled"}
+                          onChange={() => toggleCourseState(course.id)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200"></div>
+                        <div className="absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 peer-checked:translate-x-5 transition-transform duration-200"></div>
+                      </label>
                       <button
                         onClick={() => handleAccessCourse(course)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -414,7 +425,7 @@ const Leccorces = () => {
                   </div>
                   <div className="mb-4">
                     <label className="block text-neutral-700 mb-2" htmlFor="state">
-                      Course State
+                      State Control
                     </label>
                     <select
                       id="state"
