@@ -19,6 +19,7 @@ import Accessibility from "../pages/Accessibility";
 import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
+import Layout from "../components/Layout";
 
 const AppRoutes = () => {
   return (
@@ -26,33 +27,37 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       {/* <Route path="/home" element={<Home />} /> */}
 
-      <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/institution" element={<Institution />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/Activity" element={<Goals />} />
-        <Route path="/units" element={<Units />} />
-        <Route path="/calendar" element={<Calendar />} />
-        <Route path="/messages" element={<Messenger />} />
-        <Route path="/marks" element={<Marks />} />
-        <Route path="/tools" element={<Tool />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/accessibility" element={<Accessibility />} />
-        <Route path="/course/:id" element={<CourseDetails />} />
-        <Route path="/exam-application" element={<Exam />} />
-      </Route>
+      
+        <Route
+          element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/courses" element={<Courses />} />
+          <Route path="/institution" element={<Institution />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/Activity" element={<Goals />} />
+          <Route path="/units" element={<Units />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/messages" element={<Messenger />} />
+          <Route path="/marks" element={<Marks />} />
+          <Route path="/tools" element={<Tool />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/accessibility" element={<Accessibility />} />
+          <Route path="/course/:id" element={<CourseDetails />} />
+          <Route path="/exam-application" element={<Exam />} />
+        </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
-        {/* Add Instructor-specific routes here if needed */}
-      </Route>
+        <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
+          {/* Add Instructor-specific routes here if needed */}
+        </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
-        {/* Add SuperAdmin-specific routes here if needed */}
-      </Route>
+        <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
+          {/* Add SuperAdmin-specific routes here if needed */}
+        </Route>
+      
     </Routes>
   );
 };

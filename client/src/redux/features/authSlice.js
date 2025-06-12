@@ -28,8 +28,8 @@ export const loginUserAPI = createAsyncThunk(
       // set access token
       // result.data.token
 
-      localStorage.setItem("user", response.data.user.id);
-      localStorage.setItem("ACCESS_TOKEN", response.data.token);
+/*       localStorage.setItem("user", response.data.user.id);
+      localStorage.setItem("ACCESS_TOKEN", response.data.token); */
 
       return response;
     } catch (error) {
@@ -110,14 +110,17 @@ const authSlice = createSlice({
       })
       .addCase(refreshTokenAPI.fulfilled, (state,action) => {
         state.loading = false;
-        state.data = action.payload.data?.user || action.payload.data || state.data;
+        // state.data = action.payload.data?.user || action.payload.data || state.data;
         state.isAuthenticated = true;
         state.error = null;
+        if(action.payload.data?.user){
+          state.data = action.payload.data.user;
+        }
       })
       .addCase(refreshTokenAPI.rejected, (state,action) => {
         state.loading = false;
-        state.error = action.payload;
         state.isAuthenticated = false;    // Logout on refresh fail
+        state.error = action.payload;
       })
   },
 });

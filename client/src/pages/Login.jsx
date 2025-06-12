@@ -38,6 +38,13 @@ const Login = () => {
     password: "",
   };
 
+  useEffect(() => {
+    //if alreadyautheitcated..redirect to dashboard
+    if(isAuthenticated){
+      navigate("/dashboard");
+    }
+  },[isAuthenticated, navigate]);
+
   // Handle Form Submission
   const handleLogin = async (values, { setSubmitting, setErrors }) => {
     setSubmitting(true);
@@ -47,7 +54,7 @@ const Login = () => {
       console.log("Login user Result ", result);
 
       if (result.success) {
-        navigate("/dashboard");
+        navigate(location.state?.from || "/dashboard", {replace: true});
       }
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
@@ -55,24 +62,6 @@ const Login = () => {
       setSubmitting(false);
     }
   };
-
-/*   useEffect(() => {
-    if(isAuthenticated){
-      dispatch(refreshTokenAPI());
-    }
-  }, [isAuthenticated, dispatch]); */
-
-/*   const refreshToken = async () => {
-    try {
-      const result = await dispatch(refreshTokenAPI()).unwrap();
-      console.log("Refresh Token Result ", result);
-      if (result.success) {
-        dispatch(refreshTokenSuccess({ user: result.data.user }));
-      }
-    } catch (error) {
-      console.error("refresh Token Error", error);
-    }
-  }; */
 
   return (
     <div className="font-sans">

@@ -15,23 +15,26 @@ const Layout = () => {
   const location = useLocation();
   const lastPath = sessionStorage.getItem("lastPath");
 
-  useEffect(() => {
+ /*  useEffect(() => {
     let isMounted = true;
+    let hasRefreshed = false;
 
-    if (!isAuthenticated && !loading) {
+    if (!hasRefreshed && !isAuthenticated && !loading) {
       dispatch(refreshTokenAPI()).then(() => {
-        if (isAuthenticated && !loading) {
+        if (isMounted && !loading) {
           const redirectPath = lastPath || "/dashboard";
-          navigate(redirectPath, { replace: true });
+          // navigate(redirectPath, { replace: true });
+          window.location.replace(redirectPath);
         }
       });
+      hasRefreshed = true;
     }
 
     return () => {
       isMounted = false;
     }
     
-  }, [dispatch, isAuthenticated, loading, navigate, lastPath]);
+  },); */
 
   useEffect(() => {
     if (isAuthenticated && !loading && location.pathname !== "/login") {

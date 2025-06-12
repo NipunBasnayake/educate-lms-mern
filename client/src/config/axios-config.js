@@ -8,9 +8,9 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   withCredentials: true,
-  headers: {
+ /*  headers: {
     "Content-Type": "application/json",
-  },
+  }, */
 });
 
 // Request Interceptor
@@ -44,55 +44,72 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
 
     // Handle 401 Unauthorized (token expired)
-    if (status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // if (status === 401 && !originalRequest._retry) {
+    //   originalRequest._retry = true;
 
-      try {
-        //const refreshTokenValue = store.getState().auth.refreshToken;
-        const response = await apiClient.post(
-          `${API_BASE_URL}/api/auth/refresh-token`,
-          {},
-          /* {
-            headers: {
-              Authorization: `Bearer ${refreshTokenValue}`,
-            },
-          } */
-          {
-            withCredentials: true,
-          }
-        );
+    //   try {
+    //     //const refreshTokenValue = store.getState().auth.refreshToken;
+    //     const response = await apiClient.post(
+    //       `${API_BASE_URL}/api/auth/refresh-token`,
+    //       {},
+    //       /* {
+    //         headers: {
+    //           Authorization: `Bearer ${refreshTokenValue}`,
+    //         },
+    //       } */
+    //       {
+    //         withCredentials: true,
+    //       }
+    //     );
 
-        /*         const { token: newToken, user } = response.data;
-        store.dispatch(refreshToken({ token: newToken, user }));
+    //     /*         const { token: newToken, user } = response.data;
+    //     store.dispatch(refreshToken({ token: newToken, user }));
 
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return apiClient(originalRequest); */
+    //     // Retry original request with new token
+    //     originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    //     return apiClient(originalRequest); */
 
-        if (response.data.success) {
-          const { acessToken, user } = response.data.data || response.data;
-          store.dispatch(refreshTokenSuccess({ user }));
-          return apiClient(originalRequest);
-        }
+    //     if (response.data.success) {
+    //       // const { acessToken, user } = response.data.data || response.data;
+    //       // store.dispatch(refreshTokenSuccess({ user }));
+    //       // originalRequest.headers["Authorization"] = `Bearer ${acessToken}`;    // If need..throug cookie handle this authoriation
+    //       return apiClient(originalRequest);
+    //     }
 
-      } catch (refreshError) {
-        // Refresh token failed - logout user
-        store.dispatch(logout());
-        window.location.href = "/login"  // Rediret on refresh Failure...
+    //   } catch (refreshError) {
+    //     // Refresh token failed - logout user
+    //     store.dispatch(logout());
+    //     window.location.href = "/login"  // Rediret on refresh Failure...
 
-        /* swal({
-          title: "Session Expired",
-          text: "Your session has expired. Please log in again.",
-          icon: "warning",
-          buttons: true,
-          dangerMode: true,
-        }).then(() => {
-          window.location.href = "/login";
-        }); */
+    //     /* swal({
+    //       title: "Session Expired",
+    //       text: "Your session has expired. Please log in again.",
+    //       icon: "warning",
+    //       buttons: true,
+    //       dangerMode: true,
+    //     }).then(() => {
+    //       window.location.href = "/login";
+    //     }); */
         
+    //     return Promise.reject(refreshError);
+    //   }finally{
+    //     originalRequest._retry = false;
+    //   }
+    // }
+
+    if(status === 401 && originalRequest.url === '/api/auth/refresh-token'){
+      store.dispatch(logout());
+      return Promise.reject(error);
+    }
+
+    if(status === 401 && !originalRequest._retry){
+      originalRequest._retry = true;
+      try{
+        await apiClient.post(`${API_BASE_URL}/api/auth/refresh-token`,{}, {withCredentials: true});
+        return apiClient(originalRequest);
+      }catch(refreshError){
+        store.dispatch(logout());
         return Promise.reject(refreshError);
-      }finally{
-        originalRequest._retry = false;
       }
     }
 
