@@ -1,40 +1,39 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
+import { useEffect } from "react";
+import { refreshTokenAPI } from "../redux/features/authSlice";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const token = localStorage.getItem("ACCESS_TOKEN");
-  let isAuthenticated = false;
-  let userRole = null;
-
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000; 
-
-      // Check if token is expired
-      if (decoded.exp && decoded.exp < currentTime) {
-        localStorage.removeItem("ACCESS_TOKEN"); 
-        return <Navigate to="/login" state={{ message: "Session expired. Please log in again." }} />;
-      }
-
-      userRole = decoded.role;
-      isAuthenticated = allowedRoles ? allowedRoles.includes(userRole) : true;
-      console.log("User role:", userRole);
-    } catch (err) {
-      console.error("Invalid token:", err);
-      localStorage.removeItem("ACCESS_TOKEN"); 
-      return <Navigate to="/login" state={{ message: "Invalid token. Please log in again." }} />;
-    }
-  }
-
-  return isAuthenticated ? (
-    <Outlet />
-  ) : (
-    <Navigate
-      to="/login"
-      state={{ message: userRole ? "You don't have permission to access this page." : "Please log in to access this page." }}
-    />
+  const dispatch = useAppDispatch();
+  const { loading, isAuthenticated, data, error } = useAppSelector(
+    (state) => state.auth
   );
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!isAuthenticated && !loading && !data) {
+      dispatch(refreshTokenAPI()).then(() => {
+        if (isMounted && !loading && !isAuthenticated) {
+          window.location.href = "/login";
+        }
+      });
+    }
+
+    return () => {isMounted = false;};
+  }, [dispatch,isAuthenticated,loading,data]);
+
+  if(loading) return null;
+
+  const hasAccess = isAuthenticated && (!allowedRoles || (data?.role && allowedRoles.includes(data.role)));
+  console.log("has access", hasAccess);
+  
+
+  return hasAccess ? (
+    <Outlet/>
+  ) : (
+    <Navigate to="/login" state={{message: error || "Please log in or check permissions." }} replace />
+  );
+  
 };
 
 export default ProtectedRoute;

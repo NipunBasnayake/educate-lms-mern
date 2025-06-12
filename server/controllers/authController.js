@@ -156,7 +156,12 @@ const login = async (req, res) => {
         const refreshToken = generateToken(payload, "7d");
 
         user.refreshToken = refreshToken
+
+        console.log("Before Save Refresh Token:",refreshToken);
+
         await user.save();
+
+        console.log("Saved Refresh Token:", user.refreshToken);
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
@@ -520,16 +525,37 @@ const refreshToken = async (req,res) => {
 
     try{
         const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-        const user = await Student.findOne({_id: decoded.id}).or([
-            {_id: decoded.id, role: "Instructor"},
-            {_id:decoded.id, role: "SuperAdmin"},
-        ]);
+        console.log("decoded details", decoded)
+        let user;
+
+        if(decoded.role === "Student"){
+            user = await Student.findOne({_id: decoded.id});
+        }else if(decoded.role === "Instructor"){
+            user = await Student.findOne({_id: decoded.id});
+        }else if(decoded.role === "SuperAdmin"){
+            user = await Student.findOne({_id: decoded.id});
+        }
+
+        if(!user){
+            console.log("User not found for ID:", decoded.id);
+            return res.error("User Not Found", HttpsStatus.NOT_FOUND);
+        }
 
         if(!user || user.refreshToken !== refreshToken){
+            console.log("request Refresh token", refreshToken);
+            console.log("user Refresh Token", user.refreshToken);
             return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
         }
 
-        const payload = {id: user._id, role: user.role};
+        console.log("Request Refresh Token:", refreshToken);
+        console.log("User Stored Refresh Token:", user.refreshToken);
+
+        if (user.refreshToken !== refreshToken) {
+            console.log("Token mismatch detected");
+            return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
+        }
+
+        const payload = {id: user._id, role: user.role || decoded.role};
         const newAccessToken = generateToken(payload, "15m");
 
         res.cookie("accessToken", newAccessToken, {
@@ -545,7 +571,8 @@ const refreshToken = async (req,res) => {
             HttpsStatus.OK
         );
     }catch (error) {
-        res.error("Invalid refresh token", HttpsStatus.FORBIDDEN, error);
+        console.error("Refresh Token Error Details:", error);
+        res.error("Invalid refresh token Error", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 }
 

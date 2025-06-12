@@ -28,7 +28,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/courses" element={<Courses />} />
+        
         <Route path="/" element={<Home />} />
         <Route path="/institution" element={<Institution />} />
         <Route path="/profile" element={<Profile />} />
@@ -47,6 +47,7 @@ const AppRoutes = () => {
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
+          <Route path="/courses" element={<Courses />} />    
         {/* Add Instructor-specific routes here if needed */}
       </Route>
 

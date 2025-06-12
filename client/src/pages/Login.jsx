@@ -16,6 +16,9 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  console.log("auth state", isAuthenticated, data);
+  
+
   // Validation Schema using Yup
   const validationSchema = Yup.object({
     email: Yup.string()
@@ -40,8 +43,17 @@ const Login = () => {
       const result = await dispatch(loginUserAPI(values)).unwrap();
       console.log("Login user Result ", result);
 
-      if (result.success) {
-        navigate("/dashboard");
+      console.log("after login authh state", isAuthenticated, data);
+      
+
+        if (result.success) {
+        if(result.data.user.role == "Student"){
+          navigate("/dashboard");
+        }else if(result.data.user.role == "Instructor"){
+          navigate("/courses");
+        }else if(result.data.user.role == "SuperAdmin"){
+          navigate("/courses ");
+        }
       }
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
