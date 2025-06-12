@@ -6,6 +6,7 @@ const Instructor = require("../models/Instructor");
 const SuperAdmin = require("../models/SuperAdmin");
 const HttpsStatus = require("../config/statusCode");
 const generateToken = require("../utils/generateToken");
+const moment = require("moment-timezone");
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -157,6 +158,11 @@ const login = async (req, res) => {
 
         user.refreshToken = refreshToken
         await user.save();
+
+        // Time Zone Adjust
+/*        const now = moment().tz('Asia/Kolkata');
+        const accessExpiry = now.clone().add(15, 'minutes').toDate();
+        const refreshExpiry = now.clone().add(7, 'days').toDate();*/
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
@@ -527,6 +533,8 @@ const refreshToken = async (req,res) => {
         ]);
 
         if(!user || user.refreshToken !== refreshToken){
+            console.log("database refresh Token", user.refreshToken);
+            console.log("Cookie req Refresh Token", refreshToken);
             return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
         }
 
@@ -546,7 +554,7 @@ const refreshToken = async (req,res) => {
             HttpsStatus.OK
         );
     }catch (error) {
-        res.error("Invalid refresh token", HttpsStatus.FORBIDDEN, error);
+        res.error("Invalid refresh token Error", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 }
 

@@ -27,7 +27,9 @@ const Layout = () => {
       });
     }
 
-    return () => isMounted = false;
+    return () => {
+      isMounted = false;
+    }
     
   }, [dispatch, isAuthenticated, loading, navigate, lastPath]);
 
