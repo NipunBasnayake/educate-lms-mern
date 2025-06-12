@@ -25,12 +25,27 @@ export async function getCourseId() {
 
 export async function getAllunits() {
     try {
-        const student = await getCourseId(); // Add await here
+        const student = await getCourseId(); 
         const apiObject = {
             method: "GET",
             authentication: true,
             prefix: "",
-            endpoint: "units?course="+student.data.enrolledCourse._id, // Use _id based on response
+            endpoint: "units?course="+student.data.enrolledCourse._id, 
+        };
+        return await ApiService.callApi(apiObject);
+    } catch (error) {
+        console.error("getAllunits error:", error.message);
+        throw error;
+    }
+}
+
+export async function getUnitById(id) {
+    try {
+        const apiObject = {
+            method: "GET",
+            authentication: true,
+            prefix: "",
+            endpoint: "units?course="+student.data.enrolledCourse._id, 
         };
         return await ApiService.callApi(apiObject);
     } catch (error) {

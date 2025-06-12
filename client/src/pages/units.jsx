@@ -44,51 +44,53 @@ const Institution = () => {
 
   // Fetch units and initialize progress data
   useEffect(() => {
-      const fetchUnits = async () => {
-          try {
-              setLoading(true);
-              const response = await getAllunits();
-              console.log("Response from getAllunits:", response);
+    const fetchUnits = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllunits();
+        console.log("Response from getAllunits:", response);
 
-              let fetchedUnits = [];
-              if (Array.isArray(response)) {
-                  fetchedUnits = response.map((unit, index) => ({
-                      title: unit.title || "Untitled",
-                      unitId: unit.unitId || `unit-${index}`,
-                      credits: unit.credits || 0,
-                      image: unit.image || "default-image.jpg",
-                  }));
-              } else if (response && response.data && Array.isArray(response.data)) {
-                  fetchedUnits = response.data.map((unit, index) => ({
-                      title: unit.title || "Untitled",
-                      unitId: unit.unitId || `unit-${index}`,
-                      credits: unit.credits || 0,
-                      image: unit.image || "default-image.jpg",
-                  }));
-              } else {
-                  throw new Error("Unexpected response format");
-              }
+        let fetchedUnits = [];
+        if (Array.isArray(response)) {
+          console.log(response.data._id)
+          fetchedUnits = response.map((unit, index) => ({
+            
+            title: unit.title || "Untitled",
+            unitId: unit._id || `unit-${index}`,
+            credits: unit.credits || 0,
+            image: unit.image || "default-image.jpg",
+          }));
+        } else if (response && response.data && Array.isArray(response.data)) {
+          fetchedUnits = response.data.map((unit, index) => ({
+            title: unit.title || "Untitled",
+            unitId: unit._id || `unit-${index}`,
+            credits: unit.credits || 0,
+            image: unit.image || "default-image.jpg",
+          }));
+        } else {
+          throw new Error("Unexpected response format");
+        }
 
-              setUnits(fetchedUnits);
+        setUnits(fetchedUnits);
 
-              const initialProgress = {};
-              const initialEnrolled = {};
-              fetchedUnits.forEach((unit) => {
-                  initialProgress[unit.unitId] = Math.floor(Math.random() * 100);
-                  initialEnrolled[unit.unitId] = Math.random() > 0.3;
-              });
-              setProgressData(initialProgress);
-              setEnrolledUnits(initialEnrolled);
-              calculateProgress(initialEnrolled, initialProgress);
-          } catch (err) {
-              setError("Failed to fetch units. Please try again later.");
-              console.error("fetchUnits error:", err.message);
-          } finally {
-              setLoading(false);
-          }
-      };
+        const initialProgress = {};
+        const initialEnrolled = {};
+        fetchedUnits.forEach((unit) => {
+          initialProgress[unit.unitId] = Math.floor(Math.random() * 100);
+          initialEnrolled[unit.unitId] = Math.random() > 0.3;
+        });
+        setProgressData(initialProgress);
+        setEnrolledUnits(initialEnrolled);
+        calculateProgress(initialEnrolled, initialProgress);
+      } catch (err) {
+        setError("Failed to fetch units. Please try again later.");
+        console.error("fetchUnits error:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchUnits();
+    fetchUnits();
   }, []);
 
   const ProgressBar = ({ progress }) => {
@@ -169,12 +171,16 @@ const Institution = () => {
                     className="rounded-2xl shadow-sm border border-gray-200 bg-white p-6 hover:shadow-md transition flex flex-col justify-between"
                   >
                     <div>
-                      {<img
-                        src={unit.image}
-                        alt={unit.title}
-                        className="w-full h-32 object-cover rounded-lg mb-4"
-                      /> }
-                      <h2 className="text-lg font-semibold mb-1">{unit.title}</h2>
+                      {
+                        <img
+                          src={unit.image}
+                          alt={unit.title}
+                          className="w-full h-32 object-cover rounded-lg mb-4"
+                        />
+                      }
+                      <h2 className="text-lg font-semibold mb-1">
+                        {unit.title}
+                      </h2>
 
                       <p className="text-sm text-gray-700 mb-2">
                         <span className="font-medium">Credits:</span>{" "}

@@ -17,7 +17,7 @@ const CourseDetails = () => {
   const { id } = useParams();
   const course = courses.find((c) => c.id === id);
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   // Common format function
   const formatDateTime = (dateString) => {
     if (!dateString) return "Not submitted";
@@ -86,7 +86,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Week 1 Quiz", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Week 1 Quiz",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Case Study: Tesla's Strategy",
@@ -95,8 +100,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Oct 15, 2025", weight: "30%" },
-            { id: 2, title: "Final Strategy Plan", date: "Dec 10, 2025", weight: "40%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Oct 15, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Strategy Plan",
+              date: "Dec 10, 2025",
+              weight: "40%",
+            },
           ],
           studyMaterials: [
             {
@@ -105,7 +120,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "4.2 MB",
             },
-            { id: 2, title: "Harvard Business Review Cases", type: "ZIP", size: "12.1 MB" },
+            {
+              id: 2,
+              title: "Harvard Business Review Cases",
+              type: "ZIP",
+              size: "12.1 MB",
+            },
           ],
           discussions: [
             {
@@ -165,7 +185,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Ethics Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Ethics Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Case Study: Pharma Pricing",
@@ -174,8 +199,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Oct 20, 2025", weight: "30%" },
-            { id: 2, title: "Final Ethics Paper", date: "Dec 15, 2025", weight: "40%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Oct 20, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Ethics Paper",
+              date: "Dec 15, 2025",
+              weight: "40%",
+            },
           ],
           studyMaterials: [
             {
@@ -184,7 +219,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "3.8 MB",
             },
-            { id: 2, title: "Ethical Dilemma Scenarios", type: "DOC", size: "2.1 MB" },
+            {
+              id: 2,
+              title: "Ethical Dilemma Scenarios",
+              type: "DOC",
+              size: "2.1 MB",
+            },
           ],
           discussions: [
             {
@@ -238,7 +278,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Analytics Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Analytics Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Google Analytics Report",
@@ -247,8 +292,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Oct 25, 2025", weight: "30%" },
-            { id: 2, title: "Final Analytics Project", date: "Dec 12, 2025", weight: "50%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Oct 25, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Analytics Project",
+              date: "Dec 12, 2025",
+              weight: "50%",
+            },
           ],
           studyMaterials: [
             {
@@ -312,7 +367,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "OR Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "OR Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Simplex Method Problem Set",
@@ -321,8 +381,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Oct 30, 2025", weight: "35%" },
-            { id: 2, title: "Final OR Project", date: "Dec 14, 2025", weight: "45%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Oct 30, 2025",
+              weight: "35%",
+            },
+            {
+              id: 2,
+              title: "Final OR Project",
+              date: "Dec 14, 2025",
+              weight: "45%",
+            },
           ],
           studyMaterials: [
             {
@@ -386,7 +456,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "OB Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "OB Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Leadership Style Analysis",
@@ -395,8 +470,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Nov 5, 2025", weight: "30%" },
-            { id: 2, title: "Final OB Paper", date: "Dec 20, 2025", weight: "40%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Nov 5, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final OB Paper",
+              date: "Dec 20, 2025",
+              weight: "40%",
+            },
           ],
           studyMaterials: [
             {
@@ -405,7 +490,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "3.5 MB",
             },
-            { id: 2, title: "Personality Assessment Tools", type: "DOC", size: "1.8 MB" },
+            {
+              id: 2,
+              title: "Personality Assessment Tools",
+              type: "DOC",
+              size: "1.8 MB",
+            },
           ],
           discussions: [
             {
@@ -426,7 +516,7 @@ const CourseDetails = () => {
           ],
         };
 
-      case "ACC101": // Financial Accounting
+      case "684a59a641510d80c8f8bcb6": // Financial Accounting
         return {
           assignments: [
             ...commonAssignments,
@@ -459,7 +549,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Accounting Basics Quiz", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Accounting Basics Quiz",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Journal Entries Exercise",
@@ -468,8 +563,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Nov 10, 2025", weight: "35%" },
-            { id: 2, title: "Final Accounting Project", date: "Dec 22, 2025", weight: "45%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Nov 10, 2025",
+              weight: "35%",
+            },
+            {
+              id: 2,
+              title: "Final Accounting Project",
+              date: "Dec 22, 2025",
+              weight: "45%",
+            },
           ],
           studyMaterials: [
             {
@@ -478,7 +583,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "4.8 MB",
             },
-            { id: 2, title: "Practice Problems Set", type: "DOC", size: "2.5 MB" },
+            {
+              id: 2,
+              title: "Practice Problems Set",
+              type: "DOC",
+              size: "2.5 MB",
+            },
           ],
           discussions: [
             {
@@ -533,7 +643,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Leadership Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Leadership Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Influence Case Study",
@@ -542,8 +657,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Nov 15, 2025", weight: "30%" },
-            { id: 2, title: "Final Leadership Project", date: "Jan 5, 2026", weight: "40%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Nov 15, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Leadership Project",
+              date: "Jan 5, 2026",
+              weight: "40%",
+            },
           ],
           studyMaterials: [
             {
@@ -552,7 +677,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "3.9 MB",
             },
-            { id: 2, title: "360° Feedback Tools", type: "DOC", size: "2.2 MB" },
+            {
+              id: 2,
+              title: "360° Feedback Tools",
+              type: "DOC",
+              size: "2.2 MB",
+            },
           ],
           discussions: [
             {
@@ -606,7 +736,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "Innovation Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "Innovation Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Ideation Workshop Report",
@@ -615,8 +750,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Nov 20, 2025", weight: "30%" },
-            { id: 2, title: "Final Innovation Pitch", date: "Jan 12, 2026", weight: "50%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Nov 20, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Innovation Pitch",
+              date: "Jan 12, 2026",
+              weight: "50%",
+            },
           ],
           studyMaterials: [
             {
@@ -625,7 +770,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "3.7 MB",
             },
-            { id: 2, title: "Case Studies in Disruption", type: "DOC", size: "2.4 MB" },
+            {
+              id: 2,
+              title: "Case Studies in Disruption",
+              type: "DOC",
+              size: "2.4 MB",
+            },
           ],
           discussions: [
             {
@@ -679,7 +829,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "SCM Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "SCM Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Logistics Network Design",
@@ -688,8 +843,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Nov 25, 2025", weight: "35%" },
-            { id: 2, title: "Final SCM Simulation", date: "Jan 19, 2026", weight: "45%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Nov 25, 2025",
+              weight: "35%",
+            },
+            {
+              id: 2,
+              title: "Final SCM Simulation",
+              date: "Jan 19, 2026",
+              weight: "45%",
+            },
           ],
           studyMaterials: [
             {
@@ -698,7 +863,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "4.5 MB",
             },
-            { id: 2, title: "ERP System Overview", type: "DOC", size: "2.7 MB" },
+            {
+              id: 2,
+              title: "ERP System Overview",
+              type: "DOC",
+              size: "2.7 MB",
+            },
           ],
           discussions: [
             {
@@ -752,7 +922,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "DDDM Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "DDDM Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "KPIs Dashboard Creation",
@@ -761,8 +936,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Dec 1, 2025", weight: "30%" },
-            { id: 2, title: "Final Data Analysis Project", date: "Jan 26, 2026", weight: "50%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Dec 1, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final Data Analysis Project",
+              date: "Jan 26, 2026",
+              weight: "50%",
+            },
           ],
           studyMaterials: [
             {
@@ -771,7 +956,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "4.1 MB",
             },
-            { id: 2, title: "Sample Business Datasets", type: "CSV", size: "3.5 MB" },
+            {
+              id: 2,
+              title: "Sample Business Datasets",
+              type: "CSV",
+              size: "3.5 MB",
+            },
           ],
           discussions: [
             {
@@ -825,7 +1015,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "IB Quiz 1", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "IB Quiz 1",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Country Risk Analysis",
@@ -834,8 +1029,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Dec 5, 2025", weight: "30%" },
-            { id: 2, title: "Final IB Plan", date: "Feb 2, 2026", weight: "40%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Dec 5, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final IB Plan",
+              date: "Feb 2, 2026",
+              weight: "40%",
+            },
           ],
           studyMaterials: [
             {
@@ -844,7 +1049,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "4.9 MB",
             },
-            { id: 2, title: "WTO Regulations Summary", type: "DOC", size: "2.3 MB" },
+            {
+              id: 2,
+              title: "WTO Regulations Summary",
+              type: "DOC",
+              size: "2.3 MB",
+            },
           ],
           discussions: [
             {
@@ -898,7 +1108,12 @@ const CourseDetails = () => {
             },
           ],
           assessments: [
-            { id: 1, title: "HR Strategy Quiz", due: "Due tomorrow", status: "Pending" },
+            {
+              id: 1,
+              title: "HR Strategy Quiz",
+              due: "Due tomorrow",
+              status: "Pending",
+            },
             {
               id: 2,
               title: "Workforce Planning Exercise",
@@ -907,8 +1122,18 @@ const CourseDetails = () => {
             },
           ],
           exams: [
-            { id: 1, title: "Midterm Exam", date: "Dec 10, 2025", weight: "30%" },
-            { id: 2, title: "Final HR Strategy Plan", date: "Feb 9, 2026", weight: "50%" },
+            {
+              id: 1,
+              title: "Midterm Exam",
+              date: "Dec 10, 2025",
+              weight: "30%",
+            },
+            {
+              id: 2,
+              title: "Final HR Strategy Plan",
+              date: "Feb 9, 2026",
+              weight: "50%",
+            },
           ],
           studyMaterials: [
             {
@@ -917,7 +1142,12 @@ const CourseDetails = () => {
               type: "PDF",
               size: "3.8 MB",
             },
-            { id: 2, title: "Employee Engagement Tools", type: "DOC", size: "2.0 MB" },
+            {
+              id: 2,
+              title: "Employee Engagement Tools",
+              type: "DOC",
+              size: "2.0 MB",
+            },
           ],
           discussions: [
             {
@@ -969,7 +1199,9 @@ const CourseDetails = () => {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {activeTab === "overview" && <OverviewTab course={course} />}
-          {activeTab === "lessons" && <LessonsTab lessons={courseData.lessons} />}
+          {activeTab === "lessons" && (
+            <LessonsTab lessons={courseData.lessons} />
+          )}
           {activeTab === "Quizes" && (
             <AssessmentsTab assessments={courseData.assessments} />
           )}
