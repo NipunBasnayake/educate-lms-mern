@@ -20,6 +20,10 @@ const UnitSchema = new Schema({
     }],
     userType: { type: String, enum: ['Student', 'Instructor'] }
   }],
+  description: { type: String, required: true },
+  instructor: { type: Schema.Types.ObjectId, ref: "Instructor" },
+  quizzes: [{ type: Schema.Types.ObjectId, ref: 'Quiz' }],
+  timePeriod: { type: Number, required: true },
   order: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
