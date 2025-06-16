@@ -45,7 +45,7 @@ export async function getUnitById(id) {
             method: 'GET',
             authentication: true,
             prefix: '',
-            endpoint: `units/${id}`, // Fixed to fetch unit by ID
+            endpoint: `units/${id}`, 
         };
         return await ApiService.callApi(apiObject);
     } catch (error) {

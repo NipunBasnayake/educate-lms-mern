@@ -47,7 +47,7 @@ const populateOptions = [
   { path: 'lessons', select: 'title content doc lectureLink duration completed' },
   { path: 'assessments', select: 'title type' },
   { path: 'exams', select: 'title date' },
-  { path: 'instructor', select: 'name email' } // Added instructor population
+  { path: 'instructor', select: 'name email' } 
 ];
 
 exports.createUnit = async (req, res) => {

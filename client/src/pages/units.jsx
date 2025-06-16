@@ -126,7 +126,7 @@ const Institution = () => {
         <Sidebar />
       </aside>
       <main className="flex-1 h-full overflow-y-auto p-6 pt-10 ml-0 md:ml-64">
-        {/* Progress Summary Card */}
+        {/* Progress Summary Card
         <Card className="mb-6">
           <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -151,7 +151,7 @@ const Institution = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card> */}
 
         {/* Units Card */}
         <Card>
@@ -190,13 +190,13 @@ const Institution = () => {
                       </p>
                     </div>
 
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>Progress</span>
                         <span>{progressData[unit.unitId] || 0}%</span>
                       </div>
                       <ProgressBar progress={progressData[unit.unitId] || 0} />
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-between items-center mt-auto">
                       <Link
