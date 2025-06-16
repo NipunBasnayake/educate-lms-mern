@@ -5,9 +5,9 @@ const CourseHeader = ({ course }) => {
     <div className="mb-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{course.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{course.title}</h1>
           <p className="text-lg text-gray-600">
-            {course.id} • {course.department}
+            {course.id} • {course.course.title}
           </p>
         </div>
         <button
@@ -35,10 +35,7 @@ const CourseHeader = ({ course }) => {
           {course.credits} Credits
         </span>
         <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-          {course.duration}
-        </span>
-        <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-          {course.schedule}
+          {course.timePeriod} Weeks
         </span>
       </div>
     </div>

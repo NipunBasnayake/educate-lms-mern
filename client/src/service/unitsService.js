@@ -25,12 +25,12 @@ export async function getCourseId() {
 
 export async function getAllunits() {
     try {
-        const student = await getCourseId(); 
+        const student = await getCourseId();
         const apiObject = {
             method: "GET",
             authentication: true,
             prefix: "",
-            endpoint: "units?course="+student.data.enrolledCourse._id, 
+            endpoint: "units?course=" + student.data.enrolledCourse._id,
         };
         return await ApiService.callApi(apiObject);
     } catch (error) {
@@ -42,14 +42,14 @@ export async function getAllunits() {
 export async function getUnitById(id) {
     try {
         const apiObject = {
-            method: "GET",
+            method: 'GET',
             authentication: true,
-            prefix: "",
-            endpoint: "units?course="+student.data.enrolledCourse._id, 
+            prefix: '',
+            endpoint: `units/${id}`, // Fixed to fetch unit by ID
         };
         return await ApiService.callApi(apiObject);
     } catch (error) {
-        console.error("getAllunits error:", error.message);
+        console.error('getUnitById error:', error.message);
         throw error;
     }
 }

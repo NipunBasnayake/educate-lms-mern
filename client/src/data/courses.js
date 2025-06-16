@@ -172,7 +172,7 @@ export const courses = [
     imageUrl: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1511&q=80"
   },
   {
-    id: "HRM315",
+    id: "684fae7639d36d10c5619d83",
     name: "Leadership & Influence",
     credits: 2,
     grade: "A",
