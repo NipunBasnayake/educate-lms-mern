@@ -1,17 +1,22 @@
-const Assessment = require('./Assessment');
-const AuditLog = require('./AuditLog');
-const Calendar = require('./Calendar');
-const Certificate = require('./Certificate');
-const Course = require('./Course');
-const Exam = require('./Exam');
-const Instructor = require('./Instructor');
-const Lesson = require('./Lesson');
-const Notification = require('./Notification');
-const Report = require('./Report');
-const Student = require('./Student');
-const Submission = require('./Submission');
-const SuperAdmin = require('./SuperAdmin');
-const Unit = require('./Unit');
+// index.js
+module.exports = {
+  Assessment: require('./Assessment'),
+  AuditLog: require('./AuditLog'),
+  Calendar: require('./Calendar'),
+  Certificate: require('./Certificate'),
+  Course: require('./Course'),
+  Exam: require('./Exam'),
+  Instructor: require('./Instructor'),
+  Lesson: require('./Lesson'),
+  Notification: require('./Notification'),
+  Report: require('./Report'),
+  Student: require('./Student'),
+  Submission: require('./Submission'),
+  SuperAdmin: require('./SuperAdmin'),
+  Unit: require('./Unit'),
+  Quiz: require('./Quiz'),
+  Marks: require('./Marks')
+};
 
 module.exports = {
   Assessment,
@@ -28,4 +33,6 @@ module.exports = {
   Submission,
   SuperAdmin,
   Unit,
+  Quiz,
+  Marks
 };

@@ -21,7 +21,8 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
-const responseFormatter = require("./middleware/responseFormatter")
+const responseFormatter = require("./middleware/responseFormatter");
+const { default: mongoose } = require("mongoose");
 
 console.log("Environment Variables:");
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
@@ -32,7 +33,7 @@ console.log("PORT:", process.env.PORT);
 
 const app = express();
 connectDB();
-
+mongoose.set('debug', true);
 app.use(express.json());
 /*app.use(cookieParser());
 app.use(cors({
