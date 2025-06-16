@@ -7,7 +7,7 @@ export async function getCourseId() {
     }
     const apiObject = {
         method: "GET",
-        authentication: true,
+        withCredentials: true,
         prefix: "students",
         endpoint: studentId,
     };
@@ -28,7 +28,7 @@ export async function getAllunits() {
         const student = await getCourseId();
         const apiObject = {
             method: "GET",
-            authentication: true,
+            withCredentials: true,
             prefix: "",
             endpoint: "units?course=" + student.data.enrolledCourse._id,
         };
@@ -43,7 +43,7 @@ export async function getUnitById(id) {
     try {
         const apiObject = {
             method: 'GET',
-            authentication: true,
+            withCredentials: true,
             prefix: '',
             endpoint: `units/${id}`, // Fixed to fetch unit by ID
         };

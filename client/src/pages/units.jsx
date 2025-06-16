@@ -3,8 +3,13 @@ import Sidebar from "../components/Sidebar";
 import Card from "../components/card";
 import { Link } from "react-router-dom";
 import { getAllunits } from "../service/unitsService";
+import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
+import { getAllUnitsAPI } from "../redux/features/unitsSlice";
 
 const Institution = () => {
+  const dispatch = useAppDispatch();
+  const {data, loadingState, errorState} = useAppSelector((state) => state.units);
+
   const [enrolledUnits, setEnrolledUnits] = useState({});
   const [progressData, setProgressData] = useState({});
   const [totalCredits, setTotalCredits] = useState(0);
@@ -47,6 +52,7 @@ const Institution = () => {
     const fetchUnits = async () => {
       try {
         setLoading(true);
+        dispatch(getAllUnitsAPI());
         const response = await getAllunits();
         console.log("Response from getAllunits:", response);
 
