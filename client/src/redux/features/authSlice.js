@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loginUser, refreshToken, registerUser } from "../../service/auth";
+import { loginUser, refreshToken, registerUser } from "../../service/authService";
 
 // Async thunk to handle APIs
 
