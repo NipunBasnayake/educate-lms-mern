@@ -22,6 +22,7 @@ const UnitSchema = new Schema({
   }],
   description: { type: String, required: true },
   instructor: { type: Schema.Types.ObjectId, ref: "Instructor" },
+  quizzes: [{ type: Schema.Types.ObjectId, ref: 'Quiz' }],
   timePeriod: { type: Number, required: true },
   order: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },

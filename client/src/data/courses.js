@@ -163,7 +163,7 @@ export const courses = [
     ],
   },
   {
-    id: "HRM315",
+    id: "684fae7639d36d10c5619d83",
     name: "Leadership & Influence",
     credits: 2,
     grade: "A",

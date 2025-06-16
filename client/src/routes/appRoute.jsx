@@ -16,7 +16,7 @@ import Logout from "../pages/logout";
 import Privacy from "../pages/privacy";
 import Terms from "../pages/Terms";
 import Accessibility from "../pages/Accessibility";
-import CourseDetails from "../pages/CourseDetails";
+import CourseDetails from "../pages/unitDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
 import Leccorces from "../pages/lecturepages/lcourses";

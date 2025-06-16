@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Unit = require('../models/Unit');
+const Instructor = require('../models/Instructor'); // Import Instructor model for validation
 
 class ApiError extends Error {
   constructor(statusCode, message) {
@@ -16,7 +17,7 @@ const validateObjectId = (id, name = 'ID') => {
 
 const validateRequiredFields = (fields, data) => {
   for (const field of fields) {
-    if (!data[field]) {
+    if (data[field] === undefined || data[field] === null) {
       throw new ApiError(400, `${field} is required`);
     }
   }
@@ -39,24 +40,62 @@ const findUnitById = async (id, populateOptions = []) => {
   return unit;
 };
 
+// Updated populate options to include instructor
 const populateOptions = [
   { path: 'course', select: 'title description' },
   { path: 'subUnits', select: 'title order' },
   { path: 'lessons', select: 'title content' },
   { path: 'assessments', select: 'title type' },
-  { path: 'exams', select: 'title date' }
+  { path: 'exams', select: 'title date' },
+  { path: 'instructor', select: 'name email' } // Added instructor population
 ];
 
 exports.createUnit = async (req, res) => {
   try {
-    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials, image, credits } = req.body;
+    const {
+      title,
+      course,
+      order,
+      subUnits,
+      lessons,
+      assessments,
+      exams,
+      studyMaterials,
+      image,
+      credits,
+      description,
+      instructor,
+      timePeriod
+    } = req.body;
 
-    validateRequiredFields(['title', 'order'], { title, order }); // Removed 'course' from required fields
+    // Validate required fields
+    validateRequiredFields(['title', 'order', 'description', 'timePeriod'], {
+      title,
+      order,
+      description,
+      timePeriod
+    });
+
+    // Validate ObjectIds
     if (course) validateObjectId(course, 'course ID');
+    if (instructor) validateObjectId(instructor, 'instructor ID');
     validateObjectIdArray(subUnits, 'subUnit');
     validateObjectIdArray(lessons, 'lesson');
     validateObjectIdArray(assessments, 'assessment');
     validateObjectIdArray(exams, 'exam');
+
+    // Validate instructor exists if provided
+    if (instructor) {
+      const instructorExists = await Instructor.findById(instructor).lean();
+      if (!instructorExists) {
+        throw new ApiError(404, 'Instructor not found');
+      }
+    }
+
+    // Validate timePeriod is a positive number
+    if (typeof timePeriod !== 'number' || timePeriod <= 0) {
+      throw new ApiError(400, 'timePeriod must be a positive number');
+    }
 
     const unit = new Unit({
       title,
@@ -69,10 +108,16 @@ exports.createUnit = async (req, res) => {
       studyMaterials: studyMaterials || [],
       image: image || '',
       credits: credits || '',
-      discussions: []
+      discussions: [],
+      description,
+      instructor: instructor || null,
+      timePeriod,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     });
 
     await unit.save();
+
     return res.status(201).json({
       success: true,
       message: 'Unit created successfully',
@@ -88,7 +133,12 @@ exports.createUnit = async (req, res) => {
         studyMaterials: unit.studyMaterials,
         image: unit.image,
         credits: unit.credits,
-        discussions: unit.discussions
+        discussions: unit.discussions,
+        description: unit.description,
+        instructor: unit.instructor,
+        timePeriod: unit.timePeriod,
+        createdAt: unit.createdAt,
+        updatedAt: unit.updatedAt
       }
     });
   } catch (error) {
@@ -119,6 +169,7 @@ exports.getAllUnits = async (req, res) => {
 
     const total = await Unit.countDocuments(query);
 
+
     return res.status(200).json({
       success: true,
       data: units.map(unit => ({
@@ -132,7 +183,6 @@ exports.getAllUnits = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error in getAllUnits:', error);
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
@@ -144,6 +194,8 @@ exports.getAllUnits = async (req, res) => {
 exports.getUnitById = async (req, res) => {
   try {
     const unit = await findUnitById(req.params.id, populateOptions);
+
+
     return res.status(200).json({
       success: true,
       data: {
@@ -152,6 +204,7 @@ exports.getUnitById = async (req, res) => {
       }
     });
   } catch (error) {
+
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
@@ -162,17 +215,46 @@ exports.getUnitById = async (req, res) => {
 
 exports.updateUnit = async (req, res) => {
   try {
-    const { title, course, order, subUnits, lessons, assessments, exams, studyMaterials, image, credits } = req.body;
+    const {
+      title,
+      course,
+      order,
+      subUnits,
+      lessons,
+      assessments,
+      exams,
+      studyMaterials,
+      image,
+      credits,
+      description,
+      instructor,
+      timePeriod
+    } = req.body;
 
+    // Validate ObjectIds
     if (course) validateObjectId(course, 'course ID');
+    if (instructor) validateObjectId(instructor, 'instructor ID');
     validateObjectIdArray(subUnits, 'subUnit');
     validateObjectIdArray(lessons, 'lesson');
     validateObjectIdArray(assessments, 'assessment');
     validateObjectIdArray(exams, 'exam');
 
+    // Validate instructor exists if provided
+    if (instructor) {
+      const instructorExists = await Instructor.findById(instructor).lean();
+      if (!instructorExists) {
+        throw new ApiError(404, 'Instructor not found');
+      }
+    }
+
+    // Validate timePeriod if provided
+    if (timePeriod !== undefined && (typeof timePeriod !== 'number' || timePeriod <= 0)) {
+      throw new ApiError(400, 'timePeriod must be a positive number');
+    }
+
     const updateData = {
       ...(title && { title }),
-      ...(typeof course !== 'undefined' && { course: course || null }), // Allow null for course
+      ...(typeof course !== 'undefined' && { course: course || null }),
       ...(order !== undefined && { order }),
       ...(subUnits && { subUnits }),
       ...(lessons && { lessons }),
@@ -181,6 +263,9 @@ exports.updateUnit = async (req, res) => {
       ...(studyMaterials && { studyMaterials }),
       ...(image !== undefined && { image }),
       ...(credits !== undefined && { credits }),
+      ...(description && { description }),
+      ...(typeof instructor !== 'undefined' && { instructor: instructor || null }),
+      ...(timePeriod !== undefined && { timePeriod }),
       updatedAt: Date.now()
     };
 
@@ -193,6 +278,8 @@ exports.updateUnit = async (req, res) => {
     if (!unit) {
       throw new ApiError(404, 'Unit not found');
     }
+
+
 
     return res.status(200).json({
       success: true,
@@ -209,10 +296,16 @@ exports.updateUnit = async (req, res) => {
         studyMaterials: unit.studyMaterials,
         image: unit.image,
         credits: unit.credits,
-        discussions: unit.discussions
+        discussions: unit.discussions,
+        description: unit.description,
+        instructor: unit.instructor,
+        timePeriod: unit.timePeriod,
+        createdAt: unit.createdAt,
+        updatedAt: unit.updatedAt
       }
     });
   } catch (error) {
+
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
@@ -227,11 +320,14 @@ exports.deleteUnit = async (req, res) => {
     if (!unit) {
       throw new ApiError(404, 'Unit not found');
     }
+
+
     return res.status(200).json({
       success: true,
       message: 'Unit deleted successfully'
     });
   } catch (error) {
+
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message,
@@ -342,6 +438,7 @@ exports.addExam = async (req, res) => {
       throw new ApiError(404, 'Unit not found');
     }
 
+
     return res.status(200).json({
       success: true,
       message: 'Exam added to unit',
@@ -370,6 +467,7 @@ exports.addStudyMaterial = async (req, res) => {
     if (!unit) {
       throw new ApiError(404, 'Unit not found');
     }
+
 
     return res.status(200).json({
       success: true,
