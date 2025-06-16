@@ -16,13 +16,18 @@ import Logout from "../pages/logout";
 import Privacy from "../pages/privacy";
 import Terms from "../pages/Terms";
 import Accessibility from "../pages/Accessibility";
-import CourseDetails from "../pages/CourseDetails";
+import CourseDetails from "../pages/unitDetails";
 import Exam from "../pages/Exam";
 import ProtectedRoute from "./protectedRoute";
+import Leccorces from "../pages/lecturepages/lcourses";
+import Lecdashboard from "../pages/lecturepages/lecturedashboard" 
+import Lstudents from "../pages/lecturepages/lstudents" 
+import Lassignments from "../pages/lecturepages/lassignments" 
 
 const AppRoutes = () => {
   return (
     <Routes>
+
       <Route path="/login" element={<Login />} />
 
       <Route element={<ProtectedRoute allowedRoles={["Student", "SuperAdmin"]} />}>
@@ -42,13 +47,17 @@ const AppRoutes = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/accessibility" element={<Accessibility />} />
-        <Route path="/course/:id" element={<CourseDetails />} />
+        <Route path="/unit/:id" element={<CourseDetails />} />
         <Route path="/exam-application" element={<Exam />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["Instructor"]} />}>
           <Route path="/courses" element={<Courses />} />    
         {/* Add Instructor-specific routes here if needed */}
+        <Route path="dashboard/lecture" element={<Lecdashboard />} />
+        <Route path="courses/lecture" element={<Leccorces />} />
+        <Route path="assignments/lecture" element={<Lassignments />} />
+        <Route path="students/lecture" element={<Lstudents />} />`
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>

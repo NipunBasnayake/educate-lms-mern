@@ -4,8 +4,8 @@ const unitController = require('../controllers/unitController');
 const authMiddleware = require('../middleware/auth');
 
 router.post('/', authMiddleware(['SuperAdmin', 'Instructor']), unitController.createUnit);
-router.get('/', authMiddleware(['SuperAdmin', 'Instructor']), unitController.getAllUnits);
-router.get('/:id', authMiddleware(['SuperAdmin', 'Instructor']), unitController.getUnitById);
+router.get('/', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), unitController.getAllUnits);
+router.get('/:id', authMiddleware(['SuperAdmin', 'Instructor','Student']), unitController.getUnitById);
 router.put('/:id', authMiddleware(['SuperAdmin', 'Instructor']), unitController.updateUnit);
 router.delete('/:id', authMiddleware(['SuperAdmin', 'Instructor']), unitController.deleteUnit);
 router.post('/:id/subUnit', authMiddleware(['SuperAdmin', 'Instructor']), unitController.addSubUnit);
