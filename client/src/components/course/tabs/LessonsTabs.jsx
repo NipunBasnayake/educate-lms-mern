@@ -6,16 +6,20 @@ const LessonsTab = ({ lessons }) => {
   const [videoError, setVideoError] = useState("");
   const [selectedLessonTitle, setSelectedLessonTitle] = useState("");
   const [lessonCompletion, setLessonCompletion] = useState(
-    lessons.reduce((acc, lesson) => ({
-      ...acc,
-      [lesson.id]: lesson.completed,
-    }), {})
+    lessons.reduce(
+      (acc, lesson) => ({
+        ...acc,
+        [lesson.id]: lesson.completed,
+      }),
+      {}
+    )
   );
 
   // Function to convert YouTube URL to embed format
   const getYouTubeEmbedUrl = (url) => {
     try {
-      const youtubeRegex = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:.*)?$/;
+      const youtubeRegex =
+        /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:.*)?$/;
       const match = url.match(youtubeRegex);
       if (!match || !match[1]) {
         throw new Error("Invalid YouTube URL");
@@ -64,7 +68,9 @@ const LessonsTab = ({ lessons }) => {
 
   return (
     <div className="relative">
-      <h2 className="text-xl font-semibold mb-6 text-gray-900">Course Lessons</h2>
+      <h2 className="text-xl font-semibold mb-6 text-gray-900">
+        Course Lessons
+      </h2>
       <div className="space-y-4">
         {lessons.map((lesson) => (
           <div
@@ -94,22 +100,46 @@ const LessonsTab = ({ lessons }) => {
                     />
                   </svg>
                 ) : (
-                  <span className="text-gray-500 font-medium">{lesson.id}</span>
+                  <span className="text-gray-500 font-medium">
+                    <svg
+                      className="h-6 w-6 text-yellow-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </span>
                 )}
               </div>
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900">{lesson.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{lesson.duration}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {lesson.duration} hours
+                </p>
               </div>
               <div className="flex space-x-2 items-center">
                 <button
                   onClick={() => toggleLessonCompletion(lesson.id)}
                   className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
-                  title={lessonCompletion[lesson.id] ? "Mark as Incomplete" : "Mark as Complete"}
+                  title={
+                    lessonCompletion[lesson.id]
+                      ? "Mark as Incomplete"
+                      : "Mark as Complete"
+                  }
                   aria-checked={lessonCompletion[lesson.id]}
                 >
                   <svg
-                    className={`h-5 w-5 ${lessonCompletion[lesson.id] ? "text-green-600" : "text-gray-500"}`}
+                    className={`h-5 w-5 ${
+                      lessonCompletion[lesson.id]
+                        ? "text-green-600"
+                        : "text-gray-500"
+                    }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -118,7 +148,11 @@ const LessonsTab = ({ lessons }) => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d={lessonCompletion[lesson.id] ? "M6 18L18 6M6 6l12 12" : "M5 13l4 4L19 7"}
+                      d={
+                        lessonCompletion[lesson.id]
+                          ? "M6 18L18 6M6 6l12 12"
+                          : "M5 13l4 4L19 7"
+                      }
                     />
                   </svg>
                 </button>
@@ -143,9 +177,11 @@ const LessonsTab = ({ lessons }) => {
                     </svg>
                   </button>
                 )}
-                {lesson.lectureVideo && (
+                {lesson.lectureLink && (
                   <button
-                    onClick={() => handleViewLectureVideo(lesson.lectureVideo, lesson.title)}
+                    onClick={() =>
+                      handleViewLectureVideo(lesson.lectureLink, lesson.title)
+                    }
                     className="px-3 py-1 rounded-md text-sm bg-indigo-600 text-white hover:bg-indigo-700"
                   >
                     View Lecture Video
@@ -162,7 +198,9 @@ const LessonsTab = ({ lessons }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">{selectedLessonTitle || "Lecture Video"}</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {selectedLessonTitle || "Lecture Video"}
+              </h3>
               <button
                 onClick={closeModal}
                 className="text-gray-500 hover:text-gray-700"
@@ -196,7 +234,11 @@ const LessonsTab = ({ lessons }) => {
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  onError={() => setVideoError("Failed to load video. Please check the URL or try again later.")}
+                  onError={() =>
+                    setVideoError(
+                      "Failed to load video. Please check the URL or try again later."
+                    )
+                  }
                 ></iframe>
               </div>
             )}
