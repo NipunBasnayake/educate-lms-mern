@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+
+//students
 import Home from "../pages/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
@@ -18,11 +20,21 @@ import Terms from "../pages/Terms";
 import Accessibility from "../pages/Accessibility";
 import CourseDetails from "../pages/CourseDetails";
 import Exam from "../pages/Exam";
+
+// routes 
 import ProtectedRoute from "./protectedRoute";
+
+
+// lecture
 import Leccorces from "../pages/lecturepages/lcourses";
 import Lecdashboard from "../pages/lecturepages/lecturedashboard" 
 import Lstudents from "../pages/lecturepages/lstudents" 
-import Lassignments from "../pages/lecturepages/lassignments" 
+import Lassignments from "../pages/lecturepages/lassignments"
+import Leccalander  from "../pages/lecturepages/leccalnder"
+import Lecsettings from "../pages/lecturepages/lecsettings"
+
+
+// Admin
 import SuperAdmin from "../pages/Adminpages/admindashboard"
 import SuperAdminstudentcontrol from "../pages/Adminpages/adminstudents"
 import SuperAdminlecturercontrol from "../pages/Adminpages/adminlecturer"
@@ -59,12 +71,16 @@ const AppRoutes = () => {
         <Route path="courses/lecture" element={<Leccorces />} />
         <Route path="assignments/lecture" element={<Lassignments />} />
         <Route path="students/lecture" element={<Lstudents />} />`
+        <Route path="/calendar/lecture" element={<Leccalander />} />
+        <Route path="/settings/lecture" element={<Lecsettings />} />`
+
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
          <Route path="/dashboard/admin" element={<SuperAdmin/>} />
          <Route path="/students/admin" element={<SuperAdminstudentcontrol/>} />
          <Route path="/lectures/admin" element={<SuperAdminlecturercontrol/>} />
          <Route path="/notifications/admin"  element={<SuperAdminnotifications/>} />
+
         
 
 
