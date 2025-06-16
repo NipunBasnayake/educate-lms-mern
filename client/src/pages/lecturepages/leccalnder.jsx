@@ -148,7 +148,7 @@ const Lcalendar = () => {
         <LecSidebar onLogout={handleLogout} />
       </div>
       <div className="flex-1 ml-64 p-4 sm:p-6 lg:p-8 overflow-auto">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6">Calendar</h1>
+        <h1 className="text-2xl font-bold text-neutral-800 mb-6">Calendar</h1>
         <div className="max-w-8xl mx-auto mt-6">
           <Card className="p-4 sm:p-6 lg:p-10 space-y-8 sm:space-y-12">
             <Section>
@@ -201,7 +201,7 @@ const Lcalendar = () => {
                     whileHover={{ scale: 1.05 }}
                     onClick={() => setSelected(d)}
                     className={`cursor-pointer w-12 h-12 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center border text-xs sm:text-sm shadow
-                      ${d === selected ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"} transition duration-300`}
+                      ${d === selected ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-800 border-gray-300 hover:bg-gray-100"} transition duration-300`}
                   >
                     <div className="text-xs font-medium">
                       {new Date(year, month, d).toLocaleDateString("default", { weekday: "short" })}
@@ -315,7 +315,7 @@ const Lcalendar = () => {
                   </div>
                   <button
                     onClick={handleAddSession}
-                    className="mt-4 bg-blue-400 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors w-full sm:w-auto"
+                    className="mt-4 bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors w-full sm:w-auto"
                   >
                     Schedule Session
                   </button>
