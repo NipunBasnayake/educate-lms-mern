@@ -2,6 +2,7 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
 import { useEffect } from "react";
 import { refreshTokenAPI } from "../redux/features/authSlice";
+import Cookies from "js-cookie";
 
 const ProtectedRoute = ({ allowedRoles }) => {
   const dispatch = useAppDispatch();
@@ -9,11 +10,14 @@ const ProtectedRoute = ({ allowedRoles }) => {
     (state) => state.auth
   );
 
-  console.log("Protected Route auth", isAuthenticated, data);
+  console.log("Protected Route auth", isAuthenticated, data, loading, error);
 
   useEffect(() => {
     let isMounted = true;
-    if (!isAuthenticated && !loading && !data) {
+    const accessToken = Cookies.get("accessToken");
+    if (!isAuthenticated && !loading && !data && !accessToken) {
+      console.log("refresh api calling");
+      
       dispatch(refreshTokenAPI())
         .then(() => {
           console.log("Refresh Token Attempt Completed");
