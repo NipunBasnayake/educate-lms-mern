@@ -294,3 +294,53 @@ exports.deleteLesson = async (req, res) => {
     });
   }
 };
+
+exports.updateLessonCompleted = async (req, res) => {
+  try {
+    const { completed } = req.body;
+
+    validateObjectId(req.params.id, 'lesson ID');
+
+    validateRequiredFields(['completed'], { completed });
+    if (typeof completed !== 'boolean') {
+      throw new ApiError(400, 'Completed must be a boolean');
+    }
+
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) {
+      throw new ApiError(404, 'Lesson not found');
+    }
+
+    const updatedLesson = await Lesson.findByIdAndUpdate(
+      req.params.id,
+      { $set: { completed, updatedAt: Date.now() } },
+      { new: true, runValidators: true }
+    )
+      .populate('unit', 'title')
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Lesson completed status updated successfully',
+      data: {
+        id: updatedLesson._id,
+        title: updatedLesson.title,
+        unit: updatedLesson.unit,
+        content: updatedLesson.content,
+        order: updatedLesson.order,
+        doc: updatedLesson.doc,
+        lectureLink: updatedLesson.lectureLink,
+        duration: updatedLesson.duration,
+        completed: updatedLesson.completed,
+        createdAt: updatedLesson.createdAt,
+        updatedAt: updatedLesson.updatedAt,
+      },
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
+  }
+};

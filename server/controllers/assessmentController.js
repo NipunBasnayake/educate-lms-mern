@@ -1,14 +1,13 @@
 const Assessment = require('../models/Assessment');
 const Unit = require('../models/Unit');
-const Course = require('../models/Course');
 const mongoose = require('mongoose');
 
 exports.createAssessment = async (req, res) => {
   try {
-    const { title, unit, course, description, dueDate, maxScore } = req.body;
+    const { title, unit, description, dueDate, maxScore, quizlist } = req.body;
 
-    if (!title || !unit || !course || !maxScore) {
-      return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
+    if (!title || !unit || !maxScore) {
+      return res.status(400).json({ success: false, message: 'Title, unit, and maxScore are required' });
     }
 
     const unitExists = await Unit.findById(unit);
@@ -16,26 +15,16 @@ exports.createAssessment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
-    const courseExists = await Course.findById(course);
-    if (!courseExists) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
-    }
-
-    if (unitExists.course.toString() !== course) {
-      return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
-    }
-
-    const assessment = new Assessment({
+    const assessmentData = {
       title,
       unit,
-      course,
       description,
       dueDate,
       maxScore,
-      createdBy: req.user.id,
-      updatedBy: req.user.id
-    });
+      ...(quizlist && { quizlist: Array.isArray(quizlist) ? quizlist : [quizlist] }),
+    };
 
+    const assessment = new Assessment(assessmentData);
     await assessment.save();
 
     await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
@@ -48,7 +37,7 @@ exports.createAssessment = async (req, res) => {
 
 exports.getAssessments = async (req, res) => {
   try {
-    const { unitId, courseId } = req.query;
+    const { unitId } = req.query;
     let query = {};
 
     if (unitId) {
@@ -58,16 +47,9 @@ exports.getAssessments = async (req, res) => {
       query.unit = unitId;
     }
 
-    if (courseId) {
-      if (!mongoose.Types.ObjectId.isValid(courseId)) {
-        return res.status(400).json({ success: false, message: 'Invalid course ID' });
-      }
-      query.course = courseId;
-    }
-
     const assessments = await Assessment.find(query)
       .populate('unit', 'title')
-      .populate('course', 'title')
+      .populate('quizlist', 'title')
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: assessments });
@@ -80,7 +62,7 @@ exports.getAssessmentById = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id)
       .populate('unit', 'title')
-      .populate('course', 'title');
+      .populate('quizlist', 'title');
 
     if (!assessment) {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
@@ -94,7 +76,7 @@ exports.getAssessmentById = async (req, res) => {
 
 exports.updateAssessment = async (req, res) => {
   try {
-    const { title, unit, course, description, dueDate, maxScore } = req.body;
+    const { title, unit, description, dueDate, maxScore, quizlist } = req.body;
 
     if (unit) {
       const unitExists = await Unit.findById(unit);
@@ -103,29 +85,13 @@ exports.updateAssessment = async (req, res) => {
       }
     }
 
-    if (course) {
-      const courseExists = await Course.findById(course);
-      if (!courseExists) {
-        return res.status(404).json({ success: false, message: 'Course not found' });
-      }
-    }
-
-    if (unit && course) {
-      const unitDoc = await Unit.findById(unit);
-      if (unitDoc.course.toString() !== course) {
-        return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
-      }
-    }
-
     const updateData = {
       ...(title && { title }),
       ...(unit && { unit }),
-      ...(course && { course }),
       ...(description && { description }),
       ...(dueDate && { dueDate }),
       ...(maxScore && { maxScore }),
-      updatedBy: req.user.id,
-      updatedAt: Date.now()
+      ...(quizlist && { quizlist: Array.isArray(quizlist) ? quizlist : [quizlist] }),
     };
 
     const assessment = await Assessment.findByIdAndUpdate(

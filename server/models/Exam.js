@@ -7,6 +7,8 @@ const ExamSchema = new Schema({
   course: { type: Schema.Types.ObjectId, ref: 'Course', required: true },
   description: { type: String },
   date: { type: Date },
+  location: { type: String },
+  duration: { type: Number, required: true },
   maxScore: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
