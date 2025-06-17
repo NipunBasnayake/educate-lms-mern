@@ -1,3 +1,6 @@
+
+import { BookOpen } from 'lucide-react';
+
 const OverviewTab = ({ course }) => {
   return (
     <div>
@@ -13,7 +16,7 @@ const OverviewTab = ({ course }) => {
         <div className="flex items-center">
           <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
             <span className="text-indigo-800 font-medium text-lg">
-              {course.instructor}
+              <BookOpen className="h-6 w-6 text-gray-600" />
             </span>
           </div>
           <div>

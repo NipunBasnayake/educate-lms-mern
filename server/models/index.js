@@ -15,7 +15,11 @@ module.exports = {
   SuperAdmin: require('./SuperAdmin'),
   Unit: require('./Unit'),
   Quiz: require('./Quiz'),
-  Marks: require('./Marks')
+  Marks: require('./Marks'),
+  Assignment: require('./Assignment'),
+  SubmissionAssignment: require('./SubmissionAssignment'),
+  Discussion: require('./Discussion'),
+  OnlineSession: require('./onlineSession'),
 };
 
 module.exports = {
@@ -34,5 +38,9 @@ module.exports = {
   SuperAdmin,
   Unit,
   Quiz,
-  Marks
+  Marks,
+  Assignment,
+  SubmissionAssignment,
+  Discussion,
+  OnlineSession
 };
