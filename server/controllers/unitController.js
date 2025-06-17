@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Unit = require('../models/Unit');
 const Instructor = require('../models/Instructor'); // Import Instructor model for validation
-const HttpsStatus = require("../config/statusCode")
 
 class ApiError extends Error {
     constructor(statusCode, message) {
@@ -43,12 +42,12 @@ const findUnitById = async (id, populateOptions = []) => {
 
 // Updated populate options to include instructor
 const populateOptions = [
-    {path: 'course', select: 'title description'},
-    {path: 'subUnits', select: 'title order'},
-    {path: 'lessons', select: 'title content doc lectureLink duration completed'},
-    {path: 'assessments', select: 'title type'},
-    {path: 'exams', select: 'title date'},
-    {path: 'instructor', select: 'name email'} // Added instructor population
+    { path: 'course', select: 'title description' },
+    { path: 'subUnits', select: 'title order' },
+    { path: 'lessons', select: 'title content doc lectureLink duration completed' },
+    { path: 'assessments', select: 'title type' },
+    { path: 'exams', select: 'title date' },
+    { path: 'instructor', select: 'name email' }
 ];
 
 exports.createUnit = async (req, res) => {
@@ -153,7 +152,7 @@ exports.createUnit = async (req, res) => {
 
 exports.getAllUnits = async (req, res) => {
     try {
-        const {page = 1, limit = 10, course} = req.query;
+        const { page = 1, limit = 10, course } = req.query;
         const query = {};
 
         if (course) {
@@ -165,29 +164,30 @@ exports.getAllUnits = async (req, res) => {
             .populate(populateOptions)
             .limit(Number(limit))
             .skip((page - 1) * Number(limit))
-            .sort({order: 1})
+            .sort({ order: 1 })
             .lean();
 
         const total = await Unit.countDocuments(query);
 
 
-        return res.success(
-            {
-                allUnits: units.map(unit => ({
-                    ...unit,
-                    id: unit._id
-                })),
-                pagination: {
-                    total,
-                    page: Number(page),
-                    pages: Math.ceil(total / limit)
-                }
-            },
-            "All Units Fetch Successfully",
-            HttpsStatus.OK,
-        );
+        return res.status(200).json({
+            success: true,
+            data: units.map(unit => ({
+                ...unit,
+                id: unit._id
+            })),
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
+        });
     } catch (error) {
-        return res.error("All Units Fetch Failed...", HttpsStatus.INTERNAL_SERVER_ERROR, error);
+        return res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message,
+            error: error.message
+        });
     }
 };
 
@@ -253,31 +253,32 @@ exports.updateUnit = async (req, res) => {
         }
 
         const updateData = {
-            ...(title && {title}),
-            ...(typeof course !== 'undefined' && {course: course || null}),
-            ...(order !== undefined && {order}),
-            ...(subUnits && {subUnits}),
-            ...(lessons && {lessons}),
-            ...(assessments && {assessments}),
-            ...(exams && {exams}),
-            ...(studyMaterials && {studyMaterials}),
-            ...(image !== undefined && {image}),
-            ...(credits !== undefined && {credits}),
-            ...(description && {description}),
-            ...(typeof instructor !== 'undefined' && {instructor: instructor || null}),
-            ...(timePeriod !== undefined && {timePeriod}),
+            ...(title && { title }),
+            ...(typeof course !== 'undefined' && { course: course || null }),
+            ...(order !== undefined && { order }),
+            ...(subUnits && { subUnits }),
+            ...(lessons && { lessons }),
+            ...(assessments && { assessments }),
+            ...(exams && { exams }),
+            ...(studyMaterials && { studyMaterials }),
+            ...(image !== undefined && { image }),
+            ...(credits !== undefined && { credits }),
+            ...(description && { description }),
+            ...(typeof instructor !== 'undefined' && { instructor: instructor || null }),
+            ...(timePeriod !== undefined && { timePeriod }),
             updatedAt: Date.now()
         };
 
         const unit = await Unit.findOneAndUpdate(
-            {_id: req.params.id},
-            {$set: updateData},
-            {new: true, runValidators: true}
+            { _id: req.params.id },
+            { $set: updateData },
+            { new: true, runValidators: true }
         ).lean();
 
         if (!unit) {
             throw new ApiError(404, 'Unit not found');
         }
+
 
 
         return res.status(200).json({
@@ -337,13 +338,13 @@ exports.deleteUnit = async (req, res) => {
 
 exports.addSubUnit = async (req, res) => {
     try {
-        const {subUnitId} = req.body;
+        const { subUnitId } = req.body;
         validateObjectId(subUnitId, 'subUnit ID');
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            {$addToSet: {subUnits: subUnitId}},
-            {new: true}
+            { $addToSet: { subUnits: subUnitId } },
+            { new: true }
         ).lean();
 
         if (!unit) {
@@ -366,13 +367,13 @@ exports.addSubUnit = async (req, res) => {
 
 exports.addLesson = async (req, res) => {
     try {
-        const {lessonId} = req.body;
+        const { lessonId } = req.body;
         validateObjectId(lessonId, 'lesson ID');
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            {$addToSet: {lessons: lessonId}},
-            {new: true}
+            { $addToSet: { lessons: lessonId } },
+            { new: true }
         ).lean();
 
         if (!unit) {
@@ -395,13 +396,13 @@ exports.addLesson = async (req, res) => {
 
 exports.addAssessment = async (req, res) => {
     try {
-        const {assessmentId} = req.body;
+        const { assessmentId } = req.body;
         validateObjectId(assessmentId, 'assessment ID');
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            {$addToSet: {assessments: assessmentId}},
-            {new: true}
+            { $addToSet: { assessments: assessmentId } },
+            { new: true }
         ).lean();
 
         if (!unit) {
@@ -424,13 +425,13 @@ exports.addAssessment = async (req, res) => {
 
 exports.addExam = async (req, res) => {
     try {
-        const {examId} = req.body;
+        const { examId } = req.body;
         validateObjectId(examId, 'exam ID');
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            {$addToSet: {exams: examId}},
-            {new: true}
+            { $addToSet: { exams: examId } },
+            { new: true }
         ).lean();
 
         if (!unit) {
@@ -454,13 +455,13 @@ exports.addExam = async (req, res) => {
 
 exports.addStudyMaterial = async (req, res) => {
     try {
-        const {url, title, type} = req.body;
-        validateRequiredFields(['url', 'title', 'type'], {url, title, type});
+        const { url, title, type } = req.body;
+        validateRequiredFields(['url', 'title', 'type'], { url, title, type });
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
-            {$push: {studyMaterials: {url, title, type}}},
-            {new: true}
+            { $push: { studyMaterials: { url, title, type } } },
+            { new: true }
         ).lean();
 
         if (!unit) {
@@ -484,8 +485,8 @@ exports.addStudyMaterial = async (req, res) => {
 
 exports.addDiscussion = async (req, res) => {
     try {
-        const {question} = req.body;
-        validateRequiredFields(['question'], {question});
+        const { question } = req.body;
+        validateRequiredFields(['question'], { question });
 
         const unit = await Unit.findByIdAndUpdate(
             req.params.id,
@@ -499,7 +500,7 @@ exports.addDiscussion = async (req, res) => {
                     }
                 }
             },
-            {new: true}
+            { new: true }
         ).lean();
 
         if (!unit) {

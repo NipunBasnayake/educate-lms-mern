@@ -49,7 +49,7 @@ export const getUnitBytIdAPI = createAsyncThunk(
 
 const initialState = {
   loading: false,
-  units: [],
+  units: {allUnits: []},
   error: null,
 };
 
@@ -65,6 +65,8 @@ const unitsSlice = createSlice({
       })
       .addCase(getAllUnitsAPI.fulfilled, (state, action) => {
         state.loading = false;      
+        console.log(action.payload);
+        
         state.units = action.payload;
       })
       .addCase(getAllUnitsAPI.rejected, (state, action) => {

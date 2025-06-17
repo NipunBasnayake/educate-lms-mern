@@ -52,7 +52,7 @@ const Login = () => {
     try {
       // Login API
       const result = await dispatch(loginUserAPI(values)).unwrap();
-      localStorage.setItem("user", data.id)
+      localStorage.setItem("user", result.data.user.id)
       console.log("Login user Result ", result);
 
       console.log("after login authh state", isAuthenticated, data);
@@ -68,6 +68,8 @@ const Login = () => {
         }
       }
     } catch (error) {
+      console.log(error);
+      
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {
       setSubmitting(false);
