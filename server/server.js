@@ -36,12 +36,11 @@ const app = express();
 connectDB();
 mongoose.set('debug', true);
 app.use(express.json());
-/*app.use(cookieParser());
+app.use(cookieParser());
 app.use(cors({
-    origin: process.env.FRONTEND_ORIGIN,
-    credentials: true,
-}));*/
-app.use(cors())
+  origin: process.env.FRONTEND_ORIGIN,
+  credentials: true,
+}));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(responseFormatter())

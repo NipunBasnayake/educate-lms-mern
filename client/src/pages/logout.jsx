@@ -10,6 +10,9 @@ const Logout = () => {
   const [countdown, setCountdown] = React.useState(10);
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
+
+  
+
   // Handle the logout process
   const handleLogout = () => {
     setIsLoggingOut(true);

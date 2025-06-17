@@ -1,55 +1,54 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
+import { useEffect } from "react";
+import { refreshTokenAPI } from "../redux/features/authSlice";
+import Cookies from "js-cookie";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const token = localStorage.getItem("ACCESS_TOKEN");
-  let isAuthenticated = false;
-  let userRole = null;
+  const dispatch = useAppDispatch();
+  const { loading, isAuthenticated, data, error } = useAppSelector(
+    (state) => state.auth
+  );
 
-  console.log("awa");
+  console.log("Protected Route auth", isAuthenticated, data, loading, error);
 
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      console.log("Decoded token:", decoded);
-      const currentTime = Date.now() / 1000;
-
-      if (decoded.exp && decoded.exp < currentTime) {
-        console.log("Token expired");
-        localStorage.removeItem("ACCESS_TOKEN");
-        return (
-          <Navigate
-            to="/login"
-            state={{ message: "Session expired. Please log in again." }}
-          />
-        );
-      }
-
-      userRole = decoded.role;
-      console.log("User role:", userRole, "Allowed roles:", allowedRoles);
-      isAuthenticated = allowedRoles ? allowedRoles.includes(userRole) : true;
-    } catch (err) {
-      console.error("Invalid token:", err);
-      localStorage.removeItem("ACCESS_TOKEN");
-      return (
-        <Navigate
-          to="/login"
-          state={{ message: "Invalid token. Please log in again." }}
-        />
-      );
+  useEffect(() => {
+    let isMounted = true;
+    const accessToken = Cookies.get("accessToken");
+    if (!isAuthenticated && !loading && !data && !accessToken) {
+      console.log("refresh api calling");
+      
+      dispatch(refreshTokenAPI())
+        .then(() => {
+          console.log("Refresh Token Attempt Completed");
+        })
+        .catch((err) => {
+          console.error("Refresh Token Failed", err);
+        })
+        .finally(() => {
+          if (isMounted && !loading && !isAuthenticated) {
+            window.location.href = "/login";
+          }
+        });
     }
-  }
 
-  return isAuthenticated ? (
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, isAuthenticated, loading, data]);
+
+  if (loading) return null;
+
+  const hasAccess = isAuthenticated && (!allowedRoles || (data?.role && allowedRoles.includes(data.role)));
+  console.log("has access", hasAccess);
+
+  return hasAccess ? (
     <Outlet />
   ) : (
     <Navigate
       to="/login"
-      state={{
-        message: userRole
-          ? "You don't have permission to access this page."
-          : "Please log in to access this page.",
-      }}
+      state={{ message: error || "Please log in or check permissions." }}
+      replace
     />
   );
 };
