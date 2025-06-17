@@ -49,7 +49,7 @@ export const getUnitBytIdAPI = createAsyncThunk(
 
 const initialState = {
   loading: false,
-  units: [],
+  units: {allUnits: []},
   error: null,
 };
 

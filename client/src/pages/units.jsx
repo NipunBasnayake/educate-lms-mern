@@ -3,27 +3,25 @@ import Sidebar from "../components/Sidebar";
 import Card from "../components/card";
 import { Link } from "react-router-dom";
 import { useUnits } from "../hooks/useUnits";
+import { useAppDispatch } from "../redux/store-config/store";
+import { getAllUnitsAPI } from "../redux/features/unitsSlice";
+// import { getAllunits } from "../service/unitsService";
 
 const Institution = () => {
+  const dispatch = useAppDispatch();
   const [enrolledUnits, setEnrolledUnits] = useState({});
   const [progressData, setProgressData] = useState({});
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
-  const [UnitsMap, setUnitsMap] = useState([]);
-  const [loadingDisplay, setLoadingDisplay] = useState(true);
-  const [errorDisplay, setErrorDisplay] = useState(null);
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Use Units is used for all API calls
-  const { units, loading, error, getAllUnits, getCourseId, getUnitById } =  useUnits();
-
-
-  /*   const dispatch = useDispatch();
-  const {units,error,loading} = useAppSelector((state) => state.units); */
-
+  const {allunits,getAllUnits, getCourseId, getUnitById } = useUnits();
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
-    const enrolledUnits = UnitsMap.filter((unit) => enrolled[unit.unitId]);
+    const enrolledUnits = units.filter((unit) => enrolled[unit.unitId]);
 
     const total = enrolledUnits.reduce((sum, unit) => sum + unit.credits, 0);
     const completed = enrolledUnits.reduce(
@@ -53,36 +51,32 @@ const Institution = () => {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        setLoadingDisplay(true);
-
-        /*         const response = await getAllunits();
-        console.log("Response from getAllunits:", response); */
-
-        getAllUnits();
+        setLoading(true);
+         const response = await dispatch(getAllUnitsAPI()).unwrap();
+         console.log(response);
+         
 
         let fetchedUnits = [];
-        if (Array.isArray(units.allUnits)) {
-          //console.log(units.data.allUnits.data._id)
-          fetchedUnits = units.allUnits.map((unit, index) => ({
+        if (Array.isArray(response)) {
+          //console.log(response.data._id);
+          fetchedUnits = response.map((unit, index) => ({
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
             image: unit.image || "default-image.jpg",
           }));
-        } /* else if (units.data.allUnits && units.data.allUnits.data && Array.isArray(units.allUnits.data)) {
-          fetchedUnits = units.allUnits.data.map((unit, index) => ({
+        } else if (response && response.data && Array.isArray(response.data)) {
+          fetchedUnits = response.data.map((unit, index) => ({
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
             image: unit.image || "default-image.jpg",
           }));
-        } else {
+        }else {
           throw new Error("Unexpected response format");
-        } */
+        }
 
-        console.log("fetch units", fetchedUnits);
-
-        setUnitsMap(fetchedUnits);
+        setUnits(fetchedUnits);
 
         const initialProgress = {};
         const initialEnrolled = {};
@@ -94,12 +88,10 @@ const Institution = () => {
         setEnrolledUnits(initialEnrolled);
         calculateProgress(initialEnrolled, initialProgress);
       } catch (err) {
-        console.log("fetch error", err);
-
-        //setError("Failed to fetch units. Please try again later.");
+        setError("Failed to fetch units. Please try again later.");
         console.error("fetchUnits error:", err.message);
       } finally {
-        setLoadingDisplay(false);
+        setLoading(false);
       }
     };
 
@@ -117,7 +109,7 @@ const Institution = () => {
     );
   };
 
-  if (loadingDisplay) {
+  if (loading) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold">Loading...</div>
@@ -125,7 +117,7 @@ const Institution = () => {
     );
   }
 
-  if (errorDisplay) {
+  if (error) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold text-red-600">{error}</div>
@@ -178,7 +170,7 @@ const Institution = () => {
 
             <div className="mb-2 mx-auto pt-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {UnitsMap.map((unit, index) => (
+                {units.map((unit, index) => (
                   <div
                     key={index}
                     className="rounded-2xl shadow-sm border border-gray-200 bg-white p-6 hover:shadow-md transition flex flex-col justify-between"
