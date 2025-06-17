@@ -65,6 +65,8 @@ const unitsSlice = createSlice({
       })
       .addCase(getAllUnitsAPI.fulfilled, (state, action) => {
         state.loading = false;      
+        console.log(action.payload);
+        
         state.units = action.payload;
       })
       .addCase(getAllUnitsAPI.rejected, (state, action) => {
