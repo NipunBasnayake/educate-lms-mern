@@ -112,12 +112,14 @@ apiClient.interceptors.response.use(
         //   }
         // );
 
-        /* const response = await store.dispatch(refreshTokenAPI()).unwrap();
+        const response = await store.dispatch(refreshTokenAPI()).unwrap();
+        console.log("axios config response",response);
+        
         if(response.success){
           console.log("refresh token response success axios config");
           
           return apiClient(originalRequest);
-        } */
+        }
 
         /*         const { token: newToken, user } = response.data;
         store.dispatch(refreshToken({ token: newToken, user }));
