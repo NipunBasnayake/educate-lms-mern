@@ -58,6 +58,8 @@ const Login = () => {
         }
       }
     } catch (error) {
+      console.log(error);
+      
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {
       setSubmitting(false);

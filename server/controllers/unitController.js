@@ -171,21 +171,34 @@ exports.getAllUnits = async (req, res) => {
         const total = await Unit.countDocuments(query);
 
 
-        return res.success(
-            {
-                allUnits: units.map(unit => ({
-                    ...unit,
-                    id: unit._id
-                })),
-                pagination: {
-                    total,
-                    page: Number(page),
-                    pages: Math.ceil(total / limit)
-                }
-            },
-            "All Units Fetch Successfully",
-            HttpsStatus.OK,
-        );
+        return res.status(200).json({
+            success: true,
+            message: "All Units Fetch Successfully",
+            allUnits: units.map(unit => ({
+                ...unit,
+                id: unit._id
+            })),
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
+        })
+        /* return res.success(
+             {
+                 allUnits: units.map(unit => ({
+                     ...unit,
+                     id: unit._id
+                 })),
+                 pagination: {
+                     total,
+                     page: Number(page),
+                     pages: Math.ceil(total / limit)
+                 }
+             },
+             "All Units Fetch Successfully",
+             HttpsStatus.OK,
+         );*/
     } catch (error) {
         return res.error("All Units Fetch Failed...", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }

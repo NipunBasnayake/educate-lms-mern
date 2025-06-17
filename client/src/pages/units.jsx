@@ -14,17 +14,12 @@ const Institution = () => {
   const [loadingDisplay, setLoadingDisplay] = useState(true);
   const [errorDisplay, setErrorDisplay] = useState(null);
 
-  const {
-     units,
-        loading,
-        error,
-        getAllUnits,
-        getCourseId,
-        getUnitById,
-  } = useUnits();
-/*   const dispatch = useDispatch();
+  // Use Units is used for all API calls
+  const { units, loading, error, getAllUnits, getCourseId, getUnitById } =  useUnits();
+
+
+  /*   const dispatch = useDispatch();
   const {units,error,loading} = useAppSelector((state) => state.units); */
-  
 
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
@@ -59,13 +54,12 @@ const Institution = () => {
     const fetchUnits = async () => {
       try {
         setLoadingDisplay(true);
-        
+
         /*         const response = await getAllunits();
         console.log("Response from getAllunits:", response); */
 
         getAllUnits();
 
-        
         let fetchedUnits = [];
         if (Array.isArray(units.data.allUnits)) {
           //console.log(units.data.allUnits.data._id)
