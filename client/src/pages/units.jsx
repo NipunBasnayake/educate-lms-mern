@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
-import Card from "../components/Card";
+import Card from "../components/card";
 import { Link } from "react-router-dom";
-import { getAllunits } from "../service/unitsService";
+import { useUnits } from "../hooks/useUnits";
 
 const Institution = () => {
   const [enrolledUnits, setEnrolledUnits] = useState({});
@@ -10,13 +10,25 @@ const Institution = () => {
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
-  const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [UnitsMap, setUnitsMap] = useState([]);
+  const [loadingDisplay, setLoadingDisplay] = useState(true);
+  const [errorDisplay, setErrorDisplay] = useState(null);
+
+  const {
+     units,
+        loading,
+        error,
+        getAllUnits,
+        getCourseId,
+        getUnitById,
+  } = useUnits();
+/*   const dispatch = useDispatch();
+  const {units,error,loading} = useAppSelector((state) => state.units); */
+  
 
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
-    const enrolledUnits = units.filter((unit) => enrolled[unit.unitId]);
+    const enrolledUnits = UnitsMap.filter((unit) => enrolled[unit.unitId]);
 
     const total = enrolledUnits.reduce((sum, unit) => sum + unit.credits, 0);
     const completed = enrolledUnits.reduce(
@@ -44,56 +56,61 @@ const Institution = () => {
 
   // Fetch units and initialize progress data
   useEffect(() => {
-  const fetchUnits = async () => {
-    try {
-      setLoading(true);
-      const response = await getAllunits();
-      console.log("Response from getAllunits:", response); // Debug the response
+    const fetchUnits = async () => {
+      try {
+        setLoadingDisplay(true);
+        
+        /*         const response = await getAllunits();
+        console.log("Response from getAllunits:", response); */
 
-      // Ensure response is an array
-      let fetchedUnits = [];
-      console.log(response)
-      if (Array.isArray(response)) {
-        fetchedUnits = response.map((unit) => ({
-          title: unit.title,
-          unitId: unit.unitId,
-          credits: unit.credits,
-          image: unit.image,
-        }));
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Handle case where array is nested in response.data
-        fetchedUnits = response.data.map((unit) => ({
-          title: unit.title,
-          unitId: unit.unitId,
-          credits: unit.credits,
-          image: unit.image,
-        }));
-      } else {
-        throw new Error("Response is not an array or does not contain an array in 'data'");
+        getAllUnits();
+
+        
+        let fetchedUnits = [];
+        if (Array.isArray(units.data.allUnits)) {
+          //console.log(units.data.allUnits.data._id)
+          fetchedUnits = units.data.allUnits.map((unit, index) => ({
+            title: unit.title || "Untitled",
+            unitId: unit._id || `unit-${index}`,
+            credits: unit.credits || 0,
+            image: unit.image || "default-image.jpg",
+          }));
+        } /* else if (units.data.allUnits && units.data.allUnits.data && Array.isArray(units.allUnits.data)) {
+          fetchedUnits = units.allUnits.data.map((unit, index) => ({
+            title: unit.title || "Untitled",
+            unitId: unit._id || `unit-${index}`,
+            credits: unit.credits || 0,
+            image: unit.image || "default-image.jpg",
+          }));
+        } else {
+          throw new Error("Unexpected response format");
+        } */
+
+        console.log("fetch units", fetchedUnits);
+
+        setUnitsMap(fetchedUnits);
+
+        const initialProgress = {};
+        const initialEnrolled = {};
+        fetchedUnits.forEach((unit) => {
+          initialProgress[unit.unitId] = Math.floor(Math.random() * 100);
+          initialEnrolled[unit.unitId] = Math.random() > 0.3;
+        });
+        setProgressData(initialProgress);
+        setEnrolledUnits(initialEnrolled);
+        calculateProgress(initialEnrolled, initialProgress);
+      } catch (err) {
+        console.log("fetch error", err);
+
+        //setError("Failed to fetch units. Please try again later.");
+        console.error("fetchUnits error:", err.message);
+      } finally {
+        setLoadingDisplay(false);
       }
+    };
 
-      setUnits(fetchedUnits);
-
-      // Initialize progress and enrollment
-      const initialProgress = {};
-      const initialEnrolled = {};
-      fetchedUnits.forEach((unit) => {
-        initialProgress[unit.unitId] = Math.floor(Math.random() * 100);
-        initialEnrolled[unit.unitId] = Math.random() > 0.3;
-      });
-      setProgressData(initialProgress);
-      setEnrolledUnits(initialEnrolled);
-      calculateProgress(initialEnrolled, initialProgress);
-    } catch (err) {
-      setError("Failed to fetch units. Please try again later.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchUnits();
-}, []);
+    fetchUnits();
+  }, []);
 
   const ProgressBar = ({ progress }) => {
     return (
@@ -106,7 +123,7 @@ const Institution = () => {
     );
   };
 
-  if (loading) {
+  if (loadingDisplay) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold">Loading...</div>
@@ -114,7 +131,7 @@ const Institution = () => {
     );
   }
 
-  if (error) {
+  if (errorDisplay) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold text-red-600">{error}</div>
@@ -167,18 +184,22 @@ const Institution = () => {
 
             <div className="mb-2 mx-auto pt-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {units.map((unit, index) => (
+                {UnitsMap.map((unit, index) => (
                   <div
                     key={index}
                     className="rounded-2xl shadow-sm border border-gray-200 bg-white p-6 hover:shadow-md transition flex flex-col justify-between"
                   >
                     <div>
-                      {<img
-                        src={unit.image}
-                        alt={unit.title}
-                        className="w-full h-32 object-cover rounded-lg mb-4"
-                      /> }
-                      <h2 className="text-lg font-semibold mb-1">{unit.title}</h2>
+                      {
+                        <img
+                          src={unit.image}
+                          alt={unit.title}
+                          className="w-full h-32 object-cover rounded-lg mb-4"
+                        />
+                      }
+                      <h2 className="text-lg font-semibold mb-1">
+                        {unit.title}
+                      </h2>
 
                       <p className="text-sm text-gray-700 mb-2">
                         <span className="font-medium">Credits:</span>{" "}

@@ -1,48 +1,55 @@
 import ApiService from "./api-service-config/api-service";
 
-
-export async function getAllunits() {
-    const student = getCourseId();
-    if (student.enrolledCourses 
-        != null) {
-        const apiObject = {};
-        apiObject.method = "GET";
-        apiObject.authentication = true;
-        apiObject.prefix = "units";
-        apiObject.endpoint = student.enrolledCourses[0];
-        return await ApiService.callApi(apiObject);
+export async function getCourseId() {
+  const studentId = localStorage.getItem("user");
+  if (!studentId) {
+    throw new Error("No student ID found in localStorage");
+  }
+  const apiObject = {
+    method: "GET",
+    withCredentials: true,
+    prefix: "students",
+    endpoint: studentId,
+  };
+  try {
+    const response = await ApiService.callApi(apiObject);
+    if (!response?.data?.enrolledCourse?._id) {
+      throw new Error("Invalid student data or no enrolled course found");
     }
-    return [{
-            "unitId": "6848fef5b46d16dccf6732d0",
-            "title": "Unit 3: JavaSceerweweweript Basics",
-            "course": null,
-            "subUnits": [],
-            "lessons": [],
-            "image":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTc9APxkj0xClmrU3PpMZglHQkx446nQPG6lA&s",
-            "assessments": [],
-            "credits": "4.0",
-            "exams": [
-                {
-                    "_id": "684907ceb46d16dccf6732fe",
-                    "title": "Midterm Exam",
-                    "date": "2025-06-15T10:00:00.000Z"
-                }
-            ],
-            "studyMaterials": [],
-            "discussions": [],
-            "order": 1,
-            "createdAt": "2025-06-11T03:58:45.660Z",
-            "updatedAt": "2025-06-11T03:58:45.660Z",
-            "__v": 0
-        }]
+    return response;
+  } catch (error) {
+    console.error("getCourseId error:", error.message);
+    throw error;
+  }
 }
 
-export async function getCourseId() {
-    const studentId = localStorage.getItem("user")
-    const apiObject = {};
-    apiObject.method = "GET";
-    apiObject.authentication = true;
-    apiObject.prefix = "students";
-    apiObject.endpoint = studentId;
+export async function getAllunits() {
+  try {
+    const student = await getCourseId();
+    const apiObject = {
+      method: "GET",
+      withCredentials: true,
+      prefix: "",
+      endpoint: "units?course=" + student.data.enrolledCourse._id,
+    };
     return await ApiService.callApi(apiObject);
+  } catch (error) {
+    console.error("getAllunits error:", error.message);
+    throw error;
+  }
+}
+
+export async function getUnitById(id) {
+  try {
+    const apiObject = {
+      method: "GET",
+      withCredentials: true,
+      prefix: "",
+      endpoint: `units/${id}`, // Fixed to fetch unit by ID
+    };
+    return await ApiService.callApi(apiObject);
+  } catch (error) {
+    console.error("getUnitById error:", error.message);
+    throw error;
+  }
 }

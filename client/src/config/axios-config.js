@@ -1,6 +1,6 @@
 import axios from "axios";
 import store from "../redux/store-config/store";
-import { logout, refreshTokenSuccess } from "../redux/features/authSlice";
+import { logout, refreshTokenAPI } from "../redux/features/authSlice";
 
 const API_BASE_URL = "http://localhost:5000";
 
@@ -14,34 +14,26 @@ const apiClient = axios.create({
 });
 
 // Request Interceptor
-apiClient.interceptors.request.use(
-  (config) => {
-    /*         const token = store.getState().auth.token;
-        if(token){
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+// apiClient.interceptors.request.use(
+//   (config) => {
 
-        // add Role based headers if needed
-        const role = store.getState().auth.user?.role;
-        if(role){
-            config.headers['X-User-Role'] = role;
-        } */
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+//     return config;
+//   },
+//   (error) => {
+//     return Promise.reject(error);
+//   }
+// );
 
 // Response Interceptor
 apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) =>  response,
+  
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
+
+    console.log("error status",status);
+    
 
     // Handle 401 Unauthorized (token expired)
     // if (status === 401 && !originalRequest._retry) {
@@ -104,10 +96,44 @@ apiClient.interceptors.response.use(
 
     if(status === 401 && !originalRequest._retry){
       originalRequest._retry = true;
-      try{
-        await apiClient.post(`${API_BASE_URL}/api/auth/refresh-token`,{}, {withCredentials: true});
-        return apiClient(originalRequest);
-      }catch(refreshError){
+
+      try {
+        //const refreshTokenValue = store.getState().auth.refreshToken;
+        // const response = await apiClient.post(
+        //   `${API_BASE_URL}/api/auth/refresh-token`,
+        //   {},
+        //   /* {
+        //     headers: {
+        //       Authorization: `Bearer ${refreshTokenValue}`,
+        //     },
+        //   } */
+        //   {
+        //     withCredentials: true,
+        //   }
+        // );
+
+        const response = await store.dispatch(refreshTokenAPI()).unwrap();
+        if(response.success){
+          console.log("refresh token response success axios config");
+          
+          return apiClient(originalRequest);
+        }
+
+        /*         const { token: newToken, user } = response.data;
+        store.dispatch(refreshToken({ token: newToken, user }));
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return apiClient(originalRequest); */
+
+        // if (response.data.success) {
+        //   const { acessToken, user } = response.data.data || response.data;
+        //   store.dispatch(refreshTokenSuccess({ user }));
+        //   return apiClient(originalRequest);
+        // }
+
+      } catch (refreshError) {
+        // Refresh token failed - logout user
         store.dispatch(logout());
         return Promise.reject(refreshError);
       }

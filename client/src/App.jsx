@@ -26,6 +26,7 @@ const AuthInitializer = ({ children }) => {
   return children;
 };
 
+
 function App() {
   return (
     <AuthInitializer>

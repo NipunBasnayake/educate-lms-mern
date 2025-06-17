@@ -6,10 +6,8 @@ import * as Yup from "yup";
 import Footer from "../components/Footer";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
 import {
-  loginUserAPI,
-  refreshTokenAPI,
-  refreshTokenSuccess,
-} from "../redux/features/authSlice";
+  loginUserAPI,} from "../redux/features/authSlice";
+
 
 const Login = () => {
   const dispatch = useAppDispatch();
@@ -21,6 +19,9 @@ const Login = () => {
   
 
   const navigate = useNavigate();
+
+  console.log("auth state", isAuthenticated, data);
+  
 
   // Validation Schema using Yup
   const validationSchema = Yup.object({
@@ -51,16 +52,34 @@ const Login = () => {
     try {
       // Login API
       const result = await dispatch(loginUserAPI(values)).unwrap();
+      localStorage.setItem("user", data.id)
       console.log("Login user Result ", result);
 
-      if (result.success) {
-        navigate(location.state?.from || "/dashboard", {replace: true});
+      console.log("after login authh state", isAuthenticated, data);
+      
+
+        if (result.success) {
+        if(result.data.user.role == "Student"){
+          navigate("/dashboard");
+        }else if(result.data.user.role == "Instructor"){
+          navigate("/courses");
+        }else if(result.data.user.role == "SuperAdmin"){
+          navigate("/courses ");
+        }
       }
     } catch (error) {
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleLectureNavigation = () => {
+    navigate("/lecturepages/lecturedashboard");
+  };
+
+  const handleAdminNavigation = () => {
+    navigate("/Admindashboard");
   };
 
   return (
@@ -174,11 +193,19 @@ const Login = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don’t have an account?{" "}
-                <Link to="/register" className="text-blue-600 hover:underline">
+                <a
+                  href="/register"
+                  className="text-blue-600 hover:underline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/register");
+                  }}
+                >
                   Create one
-                </Link>
+                </a>
               </p>
             </div>
+
           </div>
         </div>
       </main>

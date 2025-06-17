@@ -88,7 +88,7 @@ class ApiService {
   static async callApi(apiObject) {
     const method = apiObject.method ? apiObject.method.toLowerCase() : "get";
     const body =
-      method === "post" || method === "put" || method === "patch"
+      (method === "post" || method === "put" || method === "patch")
         ? apiObject.body || {}
         : undefined;
     const headers = ApiService.getHeaders(apiObject);
@@ -100,7 +100,7 @@ class ApiService {
         url,
         data: method !== "get" && method !== "delete" ? body : undefined,
         headers,
-        withCredentials: true,
+        withCredentials: apiObject.withCredentials || true,
       });
 
       return {

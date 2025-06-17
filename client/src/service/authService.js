@@ -7,7 +7,7 @@ export const registerUser = async (userCredentials) => {
   apiObject.prefix = "auth";
   apiObject.endpoint = "register";
   apiObject.body = userCredentials;
-  apiObject.withCredentials = true;
+  apiObject.withCredentials = false;
   return await ApiService.callApi(apiObject);
 };
 

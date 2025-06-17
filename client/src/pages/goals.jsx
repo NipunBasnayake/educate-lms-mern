@@ -3,7 +3,6 @@ import Sidebar from "../components/Sidebar";
 import Card, { CardContent } from "../components/Card";
 import {
   Download,
-  Trash2,
   UploadCloud,
   CalendarCheck,
   Clock,
@@ -11,7 +10,7 @@ import {
 } from "lucide-react";
 import { assignment } from "../data/updateAssignmentn";
 
-const Institution = () => {
+const Activity = () => {
   const now = new Date();
 
   const getStatus = (assignment) => {
@@ -28,10 +27,10 @@ const Institution = () => {
   };
 
   const dotColors = {
-    Completed: "bg-green-500",
-    Upcoming: "bg-blue-500",
-    Overdue: "bg-red-500",
-    Provisional: "bg-gray-400",
+    Completed: "bg-green-600",
+    Upcoming: "bg-blue-600",
+    Overdue: "bg-red-600",
+    Provisional: "bg-gray-500",
   };
 
   const statusIcon = {
@@ -69,9 +68,9 @@ const Institution = () => {
                     key={assignment.id}
                     className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition p-5 ml-4"
                   >
-                    <div className="absolute -left-5 top-6 w-4 h-4 rounded-full ring-2 ring-white flex items-center justify-center">
+                    <div className="absolute -left-6 top-4 w-6 h-6 rounded-full ring-4 ring-white flex items-center justify-center">
                       <div
-                        className={`w-2.5 h-2.5 rounded-full ${dotColors[status]}`}
+                        className={`w-4 h-4 rounded-full ${dotColors[status]}`}
                       />
                     </div>
 
@@ -112,10 +111,6 @@ const Institution = () => {
                         <Download className="w-4 h-4" />
                         Download
                       </button>
-                      <button className="flex items-center gap-1 hover:text-red-600">
-                        <Trash2 className="w-4 h-4" />
-                        Delete
-                      </button>
                     </div>
                   </div>
                 );
@@ -128,4 +123,4 @@ const Institution = () => {
   );
 };
 
-export default Institution;
+export default Activity;
