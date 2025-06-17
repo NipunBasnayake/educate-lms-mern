@@ -1,5 +1,9 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { getAllunits } from "../../service/unitsService";
+import {
+  getAllunits,
+  getCourseId,
+  getUnitById,
+} from "../../service/unitsService";
 
 // Get All Units
 export const getAllUnitsAPI = createAsyncThunk(
@@ -15,9 +19,37 @@ export const getAllUnitsAPI = createAsyncThunk(
   }
 );
 
+// Get coruse ID
+export const getCourseIdAPI = createAsyncThunk(
+  "getCourseIdAPI",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getCourseId();
+      console.log("Get Course ID Respone ->>", response);
+      return response;
+    } catch (error) {
+      return rejectWithValue("Course ID Fetch Failed...", error);
+    }
+  }
+);
+
+// Get Unit By ID
+export const getUnitBytIdAPI = createAsyncThunk(
+  "getUnitByIdAPI",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await getUnitById(id);
+      console.log("Get Unit By ID response", response);
+      return response;
+    } catch (error) {
+      return rejectWithValue("Unit Fetch By ID Failed...", error);
+    }
+  }
+);
+
 const initialState = {
   loading: false,
-  data: null,
+  units: [],
   error: null,
 };
 
@@ -32,8 +64,8 @@ const unitsSlice = createSlice({
         state.loading = true;
       })
       .addCase(getAllUnitsAPI.fulfilled, (state, action) => {
-        state.loading = false;
-        state.data = action.payload;
+        state.loading = false;      
+        state.units = action.payload;
       })
       .addCase(getAllUnitsAPI.rejected, (state, action) => {
         state.loading = true;

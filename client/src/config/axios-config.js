@@ -32,6 +32,9 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const status = error.response?.status;
 
+    console.log("error status",status);
+    
+
     // Handle 401 Unauthorized (token expired)
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -51,12 +54,12 @@ apiClient.interceptors.response.use(
         //   }
         // );
 
-/*         const response = await store.dispatch(refreshTokenAPI()).unwrap();
+        const response = await store.dispatch(refreshTokenAPI()).unwrap();
         if(response.success){
           console.log("refresh token response success axios config");
           
           return apiClient(originalRequest);
-        } */
+        }
 
         /*         const { token: newToken, user } = response.data;
         store.dispatch(refreshToken({ token: newToken, user }));
