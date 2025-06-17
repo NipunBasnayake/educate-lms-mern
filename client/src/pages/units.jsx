@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Card from "../components/card";
 import { Link } from "react-router-dom";
-import { getAllunits } from "../service/unitsService";
+import { useUnits } from "../hooks/useUnits";
 
 const Institution = () => {
   const [enrolledUnits, setEnrolledUnits] = useState({});
@@ -10,13 +10,20 @@ const Institution = () => {
   const [totalCredits, setTotalCredits] = useState(0);
   const [completedCredits, setCompletedCredits] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
-  const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [UnitsMap, setUnitsMap] = useState([]);
+  const [loadingDisplay, setLoadingDisplay] = useState(true);
+  const [errorDisplay, setErrorDisplay] = useState(null);
+
+  // Use Units is used for all API calls
+  const { units, loading, error, getAllUnits, getCourseId, getUnitById } =  useUnits();
+
+
+  /*   const dispatch = useDispatch();
+  const {units,error,loading} = useAppSelector((state) => state.units); */
 
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
-    const enrolledUnits = units.filter((unit) => enrolled[unit.unitId]);
+    const enrolledUnits = UnitsMap.filter((unit) => enrolled[unit.unitId]);
 
     const total = enrolledUnits.reduce((sum, unit) => sum + unit.credits, 0);
     const completed = enrolledUnits.reduce(
@@ -46,22 +53,24 @@ const Institution = () => {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        setLoading(true);
-        const response = await getAllunits();
-        console.log("Response from getAllunits:", response);
+        setLoadingDisplay(true);
+
+        /*         const response = await getAllunits();
+        console.log("Response from getAllunits:", response); */
+
+        getAllUnits();
 
         let fetchedUnits = [];
-        if (Array.isArray(response)) {
-          console.log(response.data._id)
-          fetchedUnits = response.map((unit, index) => ({
-            
+        if (Array.isArray(units.data.allUnits)) {
+          //console.log(units.data.allUnits.data._id)
+          fetchedUnits = units.data.allUnits.map((unit, index) => ({
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
             image: unit.image || "default-image.jpg",
           }));
-        } else if (response && response.data && Array.isArray(response.data)) {
-          fetchedUnits = response.data.map((unit, index) => ({
+        } /* else if (units.data.allUnits && units.data.allUnits.data && Array.isArray(units.allUnits.data)) {
+          fetchedUnits = units.allUnits.data.map((unit, index) => ({
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
@@ -69,9 +78,11 @@ const Institution = () => {
           }));
         } else {
           throw new Error("Unexpected response format");
-        }
+        } */
 
-        setUnits(fetchedUnits);
+        console.log("fetch units", fetchedUnits);
+
+        setUnitsMap(fetchedUnits);
 
         const initialProgress = {};
         const initialEnrolled = {};
@@ -83,10 +94,12 @@ const Institution = () => {
         setEnrolledUnits(initialEnrolled);
         calculateProgress(initialEnrolled, initialProgress);
       } catch (err) {
-        setError("Failed to fetch units. Please try again later.");
+        console.log("fetch error", err);
+
+        //setError("Failed to fetch units. Please try again later.");
         console.error("fetchUnits error:", err.message);
       } finally {
-        setLoading(false);
+        setLoadingDisplay(false);
       }
     };
 
@@ -104,7 +117,7 @@ const Institution = () => {
     );
   };
 
-  if (loading) {
+  if (loadingDisplay) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold">Loading...</div>
@@ -112,7 +125,7 @@ const Institution = () => {
     );
   }
 
-  if (error) {
+  if (errorDisplay) {
     return (
       <div className="flex h-screen bg-neutral-50 text-neutral-800 justify-center items-center">
         <div className="text-lg font-semibold text-red-600">{error}</div>
@@ -165,7 +178,7 @@ const Institution = () => {
 
             <div className="mb-2 mx-auto pt-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {units.map((unit, index) => (
+                {UnitsMap.map((unit, index) => (
                   <div
                     key={index}
                     className="rounded-2xl shadow-sm border border-gray-200 bg-white p-6 hover:shadow-md transition flex flex-col justify-between"

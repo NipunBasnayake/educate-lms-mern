@@ -5,6 +5,7 @@ const Student = require("../models/Student");
 const Instructor = require("../models/Instructor");
 const SuperAdmin = require("../models/SuperAdmin");
 const HttpsStatus = require("../config/statusCode");
+const generateToken = require("../utils/generateToken");
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -80,15 +81,28 @@ const register = async (req, res) => {
         await user.save();
 
         const payload = {id: user._id, role};
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
+        });*/
+        const accessToken = generateToken(payload, "15m");
+        const refreshToken = generateToken(payload, "7d");
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
         });
 
-
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
 
         res.success(
             {
-                token,
                 user: {id: user._id, name, email, role},
             },
             "User Registered Successfully",
@@ -134,13 +148,38 @@ const login = async (req, res) => {
         }
 
         const payload = {id: user._id, role};
-        const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
+        });*/
+
+        const accessToken = generateToken(payload, "15m");
+        const refreshToken = generateToken(payload, "7d");
+
+        user.refreshToken = refreshToken
+
+        console.log("Before Save Refresh Token:",refreshToken);
+
+        await user.save();
+
+        console.log("Saved Refresh Token:", user.refreshToken);
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         res.success(
             {
-                token,
+
                 user: {id: user._id, name: user.name, email: user.email, role},
             },
             "User Login Successfully",
@@ -381,17 +420,17 @@ const verifyOTP = async (req, res) => {
 
         if (!user.resetPasswordOTP || !user.resetPasswordExpires) {
             console.log("No OTP found for user");
-            return res.error("No OTP found. Please request a new one.",HttpsStatus.NOT_FOUND);
+            return res.error("No OTP found. Please request a new one.", HttpsStatus.NOT_FOUND);
         }
 
         if (String(user.resetPasswordOTP).trim() !== String(otp).trim()) {
             console.log("OTP mismatch");
-            return res.error("Invalid OTP",HttpsStatus.BAD_REQUEST);
+            return res.error("Invalid OTP", HttpsStatus.BAD_REQUEST);
         }
 
         if (Date.now() > user.resetPasswordExpires) {
             console.log("OTP expired");
-            return res.error("Expired OTP",HttpsStatus.BAD_REQUEST);
+            return res.error("Expired OTP", HttpsStatus.BAD_REQUEST);
         }
 
         const payload = {
@@ -410,7 +449,7 @@ const verifyOTP = async (req, res) => {
             console.log(`OTP cleared for user ${email}`);
         } catch (saveError) {
             console.error(`Error clearing OTP for ${email}:`, saveError);
-            return res.error("Error clearing OTP",HttpsStatus.INTERNAL_SERVER_ERROR,saveError);
+            return res.error("Error clearing OTP", HttpsStatus.INTERNAL_SERVER_ERROR, saveError);
         }
 
         res.success(
@@ -420,7 +459,7 @@ const verifyOTP = async (req, res) => {
         )
     } catch (error) {
         console.error("Error in verifyOTP:", error);
-        res.error("Error verifying OTP",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error verifying OTP", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -438,7 +477,7 @@ const resetPassword = async (req, res) => {
         }
 
         if (!user) {
-            return res.error("user Not Found",HttpsStatus.NOT_FOUND);
+            return res.error("user Not Found", HttpsStatus.NOT_FOUND);
         }
 
         user.password = await bcrypt.hash(password, 10);
@@ -446,9 +485,9 @@ const resetPassword = async (req, res) => {
         user.resetPasswordExpires = undefined;
         await user.save();
 
-        res.success(null,"Password reset successfully",HttpsStatus.OK);
+        res.success(null, "Password reset successfully", HttpsStatus.OK);
     } catch (error) {
-        res.error("Error resetting password",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error resetting password", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
 
@@ -459,7 +498,7 @@ const testEmail = async (req, res) => {
                 EMAIL_USER: process.env.EMAIL_USER,
                 EMAIL_PASS: process.env.EMAIL_PASS ? "[REDACTED]" : undefined,
             });
-            return res.error("Email configuration missing",HttpsStatus.INTERNAL_SERVER_ERROR);
+            return res.error("Email configuration missing", HttpsStatus.INTERNAL_SERVER_ERROR);
         }
 
         const mailOptions = {
@@ -470,12 +509,72 @@ const testEmail = async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-        res.success(null,"Test email sent",HttpsStatus.OK);
+        res.success(null, "Test email sent", HttpsStatus.OK);
     } catch (error) {
         console.error("Error in testEmail:", error);
-        res.error("Error sending test email",HttpsStatus.INTERNAL_SERVER_ERROR,error);
+        res.error("Error sending test email", HttpsStatus.INTERNAL_SERVER_ERROR, error);
     }
 };
+
+// Refresh Token
+const refreshToken = async (req,res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken){
+        return res.error("No refresh Token Provided", HttpsStatus.UNAUTHORIZED);
+    }
+
+    try{
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+        console.log("decoded details", decoded)
+        let user;
+
+        if(decoded.role === "Student"){
+            user = await Student.findOne({_id: decoded.id});
+        }else if(decoded.role === "Instructor"){
+            user = await Student.findOne({_id: decoded.id});
+        }else if(decoded.role === "SuperAdmin"){
+            user = await Student.findOne({_id: decoded.id});
+        }
+
+        if(!user){
+            console.log("User not found for ID:", decoded.id);
+            return res.error("User Not Found", HttpsStatus.NOT_FOUND);
+        }
+
+        if(!user || user.refreshToken !== refreshToken){
+            console.log("request Refresh token", refreshToken);
+            console.log("user Refresh Token", user.refreshToken);
+            return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
+        }
+
+        console.log("Request Refresh Token:", refreshToken);
+        console.log("User Stored Refresh Token:", user.refreshToken);
+
+        if (user.refreshToken !== refreshToken) {
+            console.log("Token mismatch detected");
+            return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
+        }
+
+        const payload = {id: user._id, role: user.role || decoded.role};
+        const newAccessToken = generateToken(payload, "15m");
+
+        res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        res.success(
+            {accessToken: newAccessToken},
+            "Token Refresh",
+            HttpsStatus.OK
+        );
+    }catch (error) {
+        console.error("Refresh Token Error Details:", error);
+        res.error("Invalid refresh token Error", HttpsStatus.INTERNAL_SERVER_ERROR, error);
+    }
+}
 
 module.exports = {
     register,
@@ -489,4 +588,5 @@ module.exports = {
     verifyOTP,
     resetPassword,
     testEmail,
+    refreshToken
 };

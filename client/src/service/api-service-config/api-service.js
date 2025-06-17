@@ -11,12 +11,12 @@ class ApiService {
         ? "multipart/form-data"
         : "application/json",
     };
-    if (apiObject.authentication) {      
-      const token = localStorage.getItem("ACCESS_TOKEN");
+    /* if (apiObject.authentication) {      
+      const token = localStorage.getItem(constant.ACCESS_TOKEN);
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
-    }
+    } */
     return headers;
   }
 
@@ -42,10 +42,10 @@ class ApiService {
       };
     }
     const status = error.response.status;
-    if (status === 401) {
-      if (apiObject.type !== "AUTH") {
+    if (status === 401) {      
+      /* if (apiObject.type !== "AUTH") {
         localStorage.removeItem(constant.ACCESS_TOKEN);
-      }
+      } */
       return {
         success: false,
         status: 2,
@@ -88,7 +88,7 @@ class ApiService {
   static async callApi(apiObject) {
     const method = apiObject.method ? apiObject.method.toLowerCase() : "get";
     const body =
-      method === "post" || method === "put" || method === "patch"
+      (method === "post" || method === "put" || method === "patch")
         ? apiObject.body || {}
         : undefined;
     const headers = ApiService.getHeaders(apiObject);
@@ -100,6 +100,7 @@ class ApiService {
         url,
         data: method !== "get" && method !== "delete" ? body : undefined,
         headers,
+        withCredentials: apiObject.withCredentials || true,
       });
 
       return {
