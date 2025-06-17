@@ -61,9 +61,9 @@ const Institution = () => {
         getAllUnits();
 
         let fetchedUnits = [];
-        if (Array.isArray(units.data.allUnits)) {
+        if (Array.isArray(units.allUnits)) {
           //console.log(units.data.allUnits.data._id)
-          fetchedUnits = units.data.allUnits.map((unit, index) => ({
+          fetchedUnits = units.allUnits.map((unit, index) => ({
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
