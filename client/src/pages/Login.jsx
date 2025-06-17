@@ -39,12 +39,12 @@ const Login = () => {
     password: "",
   };
 
-  useEffect(() => {
+/*   useEffect(() => {
     //if alreadyautheitcated..redirect to dashboard
     if(isAuthenticated){
       navigate("/dashboard");
     }
-  },[isAuthenticated, navigate]);
+  },[]); */
 
   // Handle Form Submission
   const handleLogin = async (values, { setSubmitting, setErrors }) => {
