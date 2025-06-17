@@ -7,6 +7,8 @@ import { getAllUnitsAPI, getCourseIdAPI, getUnitBytIdAPI } from "../redux/featur
 export const useUnits = () => {
     const dispatch = useDispatch();
     const {loading, units, error} = useAppSelector((state) => state.units);
+    console.log("use unit jsx file units", units.data);
+    
 
     const getAllUnits = () => dispatch(getAllUnitsAPI());
     // const addNewUnit = (unit) => dispatch()
@@ -15,7 +17,7 @@ export const useUnits = () => {
 
 
     return {
-        units,
+        allunits:units,
         loading,
         error,
         getAllUnits,
