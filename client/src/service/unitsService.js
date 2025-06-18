@@ -32,7 +32,10 @@ export async function getAllunits() {
       prefix: "",
       endpoint: "units?course=" + student.data.enrolledCourse._id,
     };
-    return await ApiService.callApi(apiObject);
+    const reposnse =  await ApiService.callApi(apiObject);
+    console.log("getAllunits response:", reposnse);
+    return reposnse;
+    
   } catch (error) {
     console.error("getAllunits error:", error.message);
     throw error;

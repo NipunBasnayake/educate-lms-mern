@@ -5,6 +5,7 @@ const quizController = require('../controllers/quizController');
 
 router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), quizController.createQuiz);
 router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), quizController.getQuizzes);
+router.get('/unit/:id', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), quizController.getQuizzes);
 router.get('/:id', authMiddleware(['Instructor', 'SuperAdmin']), quizController.getQuizById);
 router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), quizController.updateQuiz);
 router.delete('/:id', authMiddleware(['Instructor', 'SuperAdmin']), quizController.deleteQuiz);
