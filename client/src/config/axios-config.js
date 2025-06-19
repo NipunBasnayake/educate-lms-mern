@@ -88,11 +88,11 @@ apiClient.interceptors.response.use(
     //     originalRequest._retry = false;
     //   }
     // }
-
+/* 
     if(status === 401 && originalRequest.url === '/api/auth/refresh-token'){
       store.dispatch(logout());
       return Promise.reject(error);
-    }
+    } */
 
     if(status === 401 && !originalRequest._retry){
       originalRequest._retry = true;
@@ -112,7 +112,7 @@ apiClient.interceptors.response.use(
         //   }
         // );
 
-        const response = await store.dispatch(refreshTokenAPI()).unwrap();
+        const response = store.dispatch(refreshTokenAPI()).unwrap();
         console.log("axios config response",response);
         
         if(response.success){
@@ -136,7 +136,7 @@ apiClient.interceptors.response.use(
 
       } catch (refreshError) {
         // Refresh token failed - logout user
-        store.dispatch(logout());
+        //store.dispatch(logout());
         return Promise.reject(refreshError);
       }
     }

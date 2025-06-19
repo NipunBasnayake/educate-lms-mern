@@ -168,7 +168,7 @@ const login = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 15 * 60 * 1000
+            maxAge: 5 * 60 * 1000
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -543,11 +543,11 @@ const refreshToken = async (req,res) => {
             return res.error("User Not Found", HttpsStatus.NOT_FOUND);
         }
 
-        if(!user || user.refreshToken !== refreshToken){
+/*         if(!user || user.refreshToken !== refreshToken){
             console.log("request Refresh token", refreshToken);
             console.log("user Refresh Token", user.refreshToken);
             return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
-        }
+        } */
 
         console.log("Request Refresh Token:", refreshToken);
         console.log("User Stored Refresh Token:", user.refreshToken);
@@ -564,7 +564,7 @@ const refreshToken = async (req,res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 15 * 60 * 1000 , // 15 minutes
+            maxAge: 5 * 60 * 1000 , // 15 minutes
         });
 
         res.success(

@@ -5,7 +5,7 @@ import { loginUser, refreshToken, registerUser } from "../../service/authService
 
 // Register User
 export const registerUserAPI = createAsyncThunk(
-  "auth/registerUserAPI",
+  "registerUserAPI",
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await registerUser(credentials);
@@ -19,7 +19,7 @@ export const registerUserAPI = createAsyncThunk(
 
 // Login User
 export const loginUserAPI = createAsyncThunk(
-  "auth/loginUserAPI",
+  "loginUserAPI",
   async (credentils, { rejectWithValue }) => {
     try {
       const response = await loginUser(credentils);
@@ -40,7 +40,7 @@ export const loginUserAPI = createAsyncThunk(
 
 // Refersh Token 
 export const refreshTokenAPI = createAsyncThunk(
-  "auth/refreshTokenAPI",
+  "refreshTokenAPI",
   async(_, {rejectWithValue}) => {
     try{
       const response = await refreshToken();
@@ -113,14 +113,14 @@ const authSlice = createSlice({
         state.data =action.payload.data?.user || state.data;
         state.isAuthenticated = true;
         state.error = null;
-        if(action.payload.data?.user){
-          state.data = action.payload.data.user;
-        }
+        // if(action.payload.data?.user){
+        //   state.data = action.payload.data.user;
+        // }
       })
       .addCase(refreshTokenAPI.rejected, (state,action) => {
         state.loading = false;
         state.error = action.payload;
-        state.isAuthenticated = false;    // Logout on refresh fail
+        //state.isAuthenticated = false;    // Logout on refresh fail
         state.error = action.payload;
       })
   },

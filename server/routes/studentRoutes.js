@@ -4,7 +4,7 @@ const studentController = require('../controllers/studentController');
 const authMiddleware = require('../middleware/auth');
 
 router.post('/register', authMiddleware(['SuperAdmin']), studentController.registerStudent);
-router.post('/login', studentController.loginStudent);
+// router.post('/login', studentController.loginStudent);
 router.get('/', authMiddleware(['SuperAdmin', 'Instructor']), studentController.getAllStudents);
 router.get('/:id', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.getStudentById);
 router.put('/:id', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), studentController.updateStudent);
