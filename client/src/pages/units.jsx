@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Card from "../components/card";
 import { Link } from "react-router-dom";
-import { useUnits } from "../hooks/useUnits";
 import { useAppDispatch } from "../redux/store-config/store";
 import { getAllUnitsAPI } from "../redux/features/unitsSlice";
-// import { getAllunits } from "../service/unitsService";
 
 const Institution = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +16,7 @@ const Institution = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const {allunits,getAllUnits, getCourseId, getUnitById } = useUnits();
+  //const {allunits,getAllUnits, getCourseId, getUnitById } = useUnits();
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
     const enrolledUnits = units.filter((unit) => enrolled[unit.unitId]);
@@ -53,7 +51,7 @@ const Institution = () => {
       try {
         setLoading(true);
          const response = await dispatch(getAllUnitsAPI()).unwrap();
-         console.log(response);
+         console.log("Unit Response ",response);
          
 
         let fetchedUnits = [];
@@ -88,7 +86,7 @@ const Institution = () => {
         setEnrolledUnits(initialEnrolled);
         calculateProgress(initialEnrolled, initialProgress);
       } catch (err) {
-        setError("Failed to fetch units. Please try again later.");
+        setError(err.message || "Failed to fetch units. Please try again later.");
         console.error("fetchUnits error:", err.message);
       } finally {
         setLoading(false);
@@ -96,7 +94,7 @@ const Institution = () => {
     };
 
     fetchUnits();
-  }, []);
+  }, [dispatch]);
 
   const ProgressBar = ({ progress }) => {
     return (

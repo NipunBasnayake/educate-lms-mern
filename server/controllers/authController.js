@@ -564,7 +564,7 @@ const refreshToken = async (req,res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 5 * 60 * 1000 , // 15 minutes
+            maxAge: 5 * 60 * 1000 , // 5 minutes
         });
 
         res.success(
