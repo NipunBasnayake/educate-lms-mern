@@ -23,6 +23,7 @@ const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
 const marksRoutes = require("./routes/markRoutes");
+const assessmentMarkRoutes = require("./routes/assessmentMarksRoutes");
 const responseFormatter = require("./middleware/responseFormatter");
 const { default: mongoose } = require("mongoose");
 
@@ -62,6 +63,7 @@ app.use("/api/submissions", submissionRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/quiz", quizRoutes);
 app.use("/api/marks", marksRoutes);
+app.use("/api/assessmentMarks", assessmentMarkRoutes);
 
 app.use(require("./middleware/errorHandler"));
 
