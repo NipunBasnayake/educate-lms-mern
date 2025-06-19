@@ -6,7 +6,7 @@ export async function getQuizByUnitId(id) {
       method: "GET",
       withCredentials: true,
       prefix: "",
-      endpoint: `quiz/unit/${id}`,
+      endpoint: `quiz/assessment/${id}`,
     };
     return await ApiService.callApi(apiObject);
   } catch (error) {

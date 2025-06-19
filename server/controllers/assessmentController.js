@@ -1,15 +1,14 @@
 const Assessment = require('../models/Assessment');
 const Unit = require('../models/Unit');
-const Quiz = require('../models/Quiz');
 const mongoose = require('mongoose');
 
 exports.createAssessment = async (req, res) => {
   try {
-    const { title, unit, description, dueDate, totalMarks, quizList, questionsCount, duration, passPercentage, status } = req.body;
+    const { title, unit, description, dueDate, totalMarks, questionsCount, duration, passPercentage, caMarksPercetage, status } = req.body;
 
     // Validate required fields
-    if (!title || !unit || totalMarks === undefined || questionsCount === undefined || duration === undefined || passPercentage === undefined) {
-      return res.status(400).json({ success: false, message: 'Title, unit, totalMarks, questionsCount, duration, and passPercentage are required' });
+    if (!title || !unit || totalMarks === undefined || questionsCount === undefined || duration === undefined || passPercentage === undefined || caMarksPercetage === undefined) {
+      return res.status(400).json({ success: false, message: 'Title, unit, totalMarks, questionsCount, duration, passPercentage, and caMarksPercetage are required' });
     }
 
     // Validate unit exists
@@ -19,17 +18,6 @@ exports.createAssessment = async (req, res) => {
     const unitExists = await Unit.findById(unit);
     if (!unitExists) {
       return res.status(404).json({ success: false, message: 'Unit not found' });
-    }
-
-    // Validate quizList if provided
-    if (quizList) {
-      if (!Array.isArray(quizList)) {
-        return res.status(400).json({ success: false, message: 'quizList must be an array of Quiz IDs' });
-      }
-      const validQuizzes = await Quiz.find({ _id: { $in: quizList } });
-      if (validQuizzes.length !== quizList.length) {
-        return res.status(404).json({ success: false, message: 'One or more quizzes not found' });
-      }
     }
 
     // Validate status if provided
@@ -43,10 +31,10 @@ exports.createAssessment = async (req, res) => {
       ...(description && { description }),
       ...(dueDate && { dueDate }),
       totalMarks,
-      ...(quizList && { quizList }),
       questionsCount,
       duration,
       passPercentage,
+      caMarksPercetage,
       ...(status && { status }),
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -77,7 +65,6 @@ exports.getAssessments = async (req, res) => {
 
     const assessments = await Assessment.find(query)
         .populate('unit', 'title')
-        .populate('quizList', 'question') // Changed to 'question' for Quiz population
         .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: assessments });
@@ -89,8 +76,7 @@ exports.getAssessments = async (req, res) => {
 exports.getAssessmentById = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id)
-        .populate('unit', 'title')
-        .populate('quizList', 'question');
+        .populate('unit', 'title');
 
     if (!assessment) {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
@@ -104,7 +90,7 @@ exports.getAssessmentById = async (req, res) => {
 
 exports.updateAssessment = async (req, res) => {
   try {
-    const { title, unit, description, dueDate, totalMarks, quizList, questionsCount, duration, passPercentage, status } = req.body;
+    const { title, unit, description, dueDate, totalMarks, questionsCount, duration, passPercentage, caMarksPercetage, status } = req.body;
 
     // Validate unit if provided
     if (unit) {
@@ -114,17 +100,6 @@ exports.updateAssessment = async (req, res) => {
       const unitExists = await Unit.findById(unit);
       if (!unitExists) {
         return res.status(404).json({ success: false, message: 'Unit not found' });
-      }
-    }
-
-    // Validate quizList if provided
-    if (quizList) {
-      if (!Array.isArray(quizList)) {
-        return res.status(400).json({ success: false, message: 'quizList must be an array of Quiz IDs' });
-      }
-      const validQuizzes = await Quiz.find({ _id: { $in: quizList } });
-      if (validQuizzes.length !== quizList.length) {
-        return res.status(404).json({ success: false, message: 'One or more quizzes not found' });
       }
     }
 
@@ -144,10 +119,10 @@ exports.updateAssessment = async (req, res) => {
       ...(description && { description }),
       ...(dueDate && { dueDate }),
       ...(totalMarks !== undefined && { totalMarks }),
-      ...(quizList && { quizList }),
       ...(questionsCount !== undefined && { questionsCount }),
       ...(duration !== undefined && { duration }),
       ...(passPercentage !== undefined && { passPercentage }),
+      ...(caMarksPercetage !== undefined && { caMarksPercetage }),
       ...(status && { status }),
       updatedAt: Date.now(),
     };
