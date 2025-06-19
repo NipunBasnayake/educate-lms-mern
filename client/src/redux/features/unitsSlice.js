@@ -3,7 +3,6 @@ import {
   getAllunits,
   getCourseId,
   getUnitById,
-  sendNewMessage,
 } from "../../service/unitsService";
 
 // Get All Units

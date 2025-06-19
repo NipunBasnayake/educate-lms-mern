@@ -54,6 +54,7 @@ const Login = () => {
       const result = await dispatch(loginUserAPI(values)).unwrap();
       localStorage.setItem("user", result.data.user.id)
       localStorage.setItem("userRole", result.data.user.role)
+      localStorage.setItem("userName", result.data.user.name)
       console.log("Login user Result ", result);
 
       console.log("after login authh state", isAuthenticated, data);

@@ -28,11 +28,11 @@ const validateRequiredFields = (fields, data) => {
 
 exports.addChat = async (req, res) => {
     try {
-        const {unitId, message} = req.body;
+        const {unitId, newSendMessage} = req.body;
         const senderId = req.user.id;
         const role = req.user.role;
 
-        validateRequiredFields(['unitId', 'message'], {unitId, message});
+        validateRequiredFields(['unitId', 'newSendMessage'], {unitId, newSendMessage});
         validateObjectId(unitId, 'unit ID');
 
         if (role !== "Student") {
@@ -53,13 +53,13 @@ exports.addChat = async (req, res) => {
             });
         }
 
-        discussion.content.push({user: role, msg: message});
+        discussion.content.push({user: role, msg: newSendMessage});
         discussion.updatedAt = Date.now();
         await discussion.save();
 
         return res.status(HttpsStatus.CREATED).json({
             success: true,
-            message: "Message Send Successfully",
+            newSendMessage: "Message Send Successfully",
             data: {discussionId: discussion._id}
         });
     } catch (error) {
