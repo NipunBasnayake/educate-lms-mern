@@ -155,6 +155,7 @@ exports.getAllUnits = async (req, res) => {
         const { page = 1, limit = 10, course } = req.query;
         const query = {};
 
+
         if (course) {
             validateObjectId(course, 'course ID');
             query.course = course;
@@ -483,6 +484,7 @@ exports.addStudyMaterial = async (req, res) => {
     }
 };
 
+/*
 exports.addDiscussion = async (req, res) => {
     try {
         const { question } = req.body;
@@ -519,4 +521,6 @@ exports.addDiscussion = async (req, res) => {
             error: error.message
         });
     }
-};
+};*/
+
+
