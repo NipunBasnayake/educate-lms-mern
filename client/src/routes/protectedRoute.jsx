@@ -12,7 +12,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
   console.log("Protected Route auth", isAuthenticated, data, loading, error);
 
-  useEffect(() => {
+  /* useEffect(() => {
     let isMounted = true;
     const accessToken = Cookies.get("accessToken");
     if (!isAuthenticated && !loading && !data && !accessToken) {
@@ -35,7 +35,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return () => {
       isMounted = false;
     };
-  }, [dispatch, isAuthenticated, loading, data]);
+  }, [dispatch, isAuthenticated, loading, data]); */
 
   if (loading) return null;
 

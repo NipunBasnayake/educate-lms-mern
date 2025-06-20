@@ -11,35 +11,20 @@ export async function getCourseId() {
     prefix: "students",
     endpoint: studentId,
   };
-  try {
-    const response = await ApiService.callApi(apiObject);
-    if (!response?.data?.enrolledCourse?._id) {
-      throw new Error("Invalid student data or no enrolled course found");
-    }
-    return response;
-  } catch (error) {
-    console.error("getCourseId error:", error.message);
-    throw error;
-  }
+    return await ApiService.callApi(apiObject);
 }
 
 export async function getAllunits() {
-  try {
     const student = await getCourseId();
-    const apiObject = {
-      method: "GET",
-      withCredentials: true,
-      prefix: "",
-      endpoint: "units?course=" + student.data.enrolledCourse._id,
-    };
-    const reposnse =  await ApiService.callApi(apiObject);
-    console.log("getAllunits response:", reposnse);
-    return reposnse;
-    
-  } catch (error) {
-    console.error("getAllunits error:", error.message);
-    throw error;
-  }
+    if (student !== null) {
+      const apiObject = {
+        method: "GET",
+        withCredentials: true,
+        prefix: "",
+        endpoint: "units?course=" + student.data.enrolledCourse._id,
+      };
+      return await ApiService.callApi(apiObject);
+    }
 }
 
 export async function getUnitById(id) {
@@ -56,3 +41,5 @@ export async function getUnitById(id) {
     throw error;
   }
 }
+
+

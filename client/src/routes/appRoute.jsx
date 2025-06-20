@@ -60,9 +60,10 @@ const AppRoutes = () => {
         <Route path="students/lecture" element={<Lstudents />} />`
       </Route>
 
-      <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
-        {/* Add SuperAdmin-specific routes here if needed */}
-      </Route>
+        <Route element={<ProtectedRoute allowedRoles={["SuperAdmin"]} />}>
+          {/* Add SuperAdmin-specific routes here if needed */}
+        </Route>
+      
     </Routes>
   );
 };

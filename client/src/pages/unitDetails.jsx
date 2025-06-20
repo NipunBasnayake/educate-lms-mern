@@ -13,6 +13,7 @@ import DiscussionsTab from '../components/course/tabs/DiscussionsTab';
 import AssignmentsTab from '../components/course/tabs/AssignmentsTab';
 import OnlineSessionTab from '../components/course/tabs/OnlineSessionTabs';
 import { getUnitById } from '../service/unitsService';
+import StudentDiscussionsTab from '../components/course/tabs/StudentDiscussionTab';
 
 const UnitDetails = () => {
   const { id } = useParams();
@@ -94,7 +95,7 @@ const UnitDetails = () => {
     };
 
     fetchUnitData();
-  }, [id]);
+  }, [id]);  
 
   if (loading) {
     return (
@@ -130,7 +131,8 @@ const UnitDetails = () => {
           {activeTab === 'Quizes' && <AssessmentsTab assessments={unitData.assessments} unitId={unitData.id} />}
           {activeTab === 'exams' && <ExamsTab exams={unitData.exams} />}
           {activeTab === 'materials' && <MaterialsTab studyMaterials={unitData.studyMaterials} />}
-          {activeTab === 'discussions' && <DiscussionsTab discussions={unitData.discussions} />}
+          {/* {activeTab === 'discussions' && <DiscussionsTab discussions={unitData.discussions} />} */}
+          {activeTab === 'discussions' && <StudentDiscussionsTab unitId={unitData.id} />}
           {activeTab === 'assignments' && (
             <AssignmentsTab
               assignments={assignments}

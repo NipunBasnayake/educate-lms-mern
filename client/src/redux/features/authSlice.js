@@ -1,11 +1,16 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { loginUser, refreshToken, registerUser } from "../../service/authService";
+import {
+  loginUser,
+  refreshToken,
+  registerUser,
+} from "../../service/authService";
+import apiClient from "../../config/axios-config";
 
 // Async thunk to handle APIs
 
 // Register User
 export const registerUserAPI = createAsyncThunk(
-  "auth/registerUserAPI",
+  "registerUserAPI",
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await registerUser(credentials);
@@ -19,7 +24,7 @@ export const registerUserAPI = createAsyncThunk(
 
 // Login User
 export const loginUserAPI = createAsyncThunk(
-  "auth/loginUserAPI",
+  "loginUserAPI",
   async (credentils, { rejectWithValue }) => {
     try {
       const response = await loginUser(credentils);
@@ -38,20 +43,32 @@ export const loginUserAPI = createAsyncThunk(
   }
 );
 
-// Refersh Token 
+// Refersh Token
 export const refreshTokenAPI = createAsyncThunk(
-  "auth/refreshTokenAPI",
-  async(_, {rejectWithValue}) => {
-    try{
+  "refreshTokenAPI",
+  async (_, { rejectWithValue }) => {
+    /* try{
       const response = await refreshToken();
       console.log("Refresh Token Response ->> ", response);
       return response;
       
     }catch(error){
       return rejectWithValue(error.result || "refresh Token Failed..",error);
+    } */
+    try {
+      const response = await apiClient.post(
+        "/api/auth/refresh-token",
+        {},
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.result || "Refresh token failed..."
+      );
     }
   }
-)
+);
 
 const initialState = {
   loading: false,
@@ -96,7 +113,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUserAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload.data?.user || action.payload.data  || null;
+        state.data = action.payload.data?.user || action.payload.data || null;
         state.isAuthenticated = true;
         state.error = null;
       })
@@ -108,17 +125,21 @@ const authSlice = createSlice({
       .addCase(refreshTokenAPI.pending, (state) => {
         state.loading = true;
       })
-      .addCase(refreshTokenAPI.fulfilled, (state,action) => {
+      .addCase(refreshTokenAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.data =action.payload.data?.user || state.data;
+        state.data = action.payload.data?.user || state.data;
         state.isAuthenticated = true;
         state.error = null;
+        // if(action.payload.data?.user){
+        //   state.data = action.payload.data.user;
+        // }
       })
-      .addCase(refreshTokenAPI.rejected, (state,action) => {
+      .addCase(refreshTokenAPI.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.isAuthenticated = false;    // Logout on refresh fail
-      })
+        //state.isAuthenticated = false;    // Logout on refresh fail
+        state.error = action.payload;
+      });
   },
 });
 

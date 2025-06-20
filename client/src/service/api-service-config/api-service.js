@@ -42,25 +42,25 @@ class ApiService {
       };
     }
     const status = error.response.status;
-    if (status === 401) {      
-      /* if (apiObject.type !== "AUTH") {
-        localStorage.removeItem(constant.ACCESS_TOKEN);
-      } */
-      return {
-        success: false,
-        status: 2,
-        result: "Your session expired! Please login again..",
-        data: null,
-      };
-    }
-    if (status === 403) {
-      return {
-        success: false,
-        status: 2,
-        result: "Access is denied.",
-        data: null,
-      };
-    }
+    // if (status === 401) {      
+    //   /* if (apiObject.type !== "AUTH") {
+    //     localStorage.removeItem(constant.ACCESS_TOKEN);
+    //   } */
+    //   return {
+    //     success: false,
+    //     status: 2,
+    //     result: "Your session expired! Please login again..",
+    //     data: null,
+    //   };
+    // }
+    // if (status === 403) {
+    //   return {
+    //     success: false,
+    //     status: 2,
+    //     result: "Access is denied.",
+    //     data: null,
+    //   };
+    // }
     if (status === 417) {
       return {
         success: false,

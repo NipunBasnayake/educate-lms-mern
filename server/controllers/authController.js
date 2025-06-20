@@ -6,6 +6,7 @@ const Instructor = require("../models/Instructor");
 const SuperAdmin = require("../models/SuperAdmin");
 const HttpsStatus = require("../config/statusCode");
 const generateToken = require("../utils/generateToken");
+const moment = require("moment-timezone");
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -84,14 +85,14 @@ const register = async (req, res) => {
         /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });*/
-        const accessToken = generateToken(payload, "15m");
+        /*const accessToken = generateToken(payload, "15m");
         const refreshToken = generateToken(payload, "7d");
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge:  15 * 60 * 1000         //15min                                   //24 * 60 * 60 * 1000
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -99,7 +100,7 @@ const register = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        });*/
 
         res.success(
             {
@@ -167,7 +168,7 @@ const login = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000
+            maxAge: 15 * 60 * 1000
         });
 
         res.cookie("refreshToken", refreshToken, {
@@ -194,11 +195,11 @@ const getProfile = async (req, res) => {
     try {
         let user;
         if (req.user.role === "Student") {
-            user = await Student.findById(req.user.id).select("-password");
+            user = await Student.findById(req.user.id).select("-password -refreshToken");
         } else if (req.user.role === "Instructor") {
-            user = await Instructor.findById(req.user.id).select("-password");
+            user = await Instructor.findById(req.user.id).select("-password -refreshToken");
         } else if (req.user.role === "SuperAdmin") {
-            user = await SuperAdmin.findById(req.user.id).select("-password");
+            user = await SuperAdmin.findById(req.user.id).select("-password -refreshToken");
         }
 
         if (!user) {
@@ -519,6 +520,7 @@ const testEmail = async (req, res) => {
 // Refresh Token
 const refreshToken = async (req,res) => {
     const refreshToken = req.cookies.refreshToken;
+    console.log("refresh Token", refreshToken);
     if(!refreshToken){
         return res.error("No refresh Token Provided", HttpsStatus.UNAUTHORIZED);
     }
@@ -541,11 +543,11 @@ const refreshToken = async (req,res) => {
             return res.error("User Not Found", HttpsStatus.NOT_FOUND);
         }
 
-        if(!user || user.refreshToken !== refreshToken){
+/*         if(!user || user.refreshToken !== refreshToken){
             console.log("request Refresh token", refreshToken);
             console.log("user Refresh Token", user.refreshToken);
             return res.error("Invalid refresh Token", HttpsStatus.FORBIDDEN);
-        }
+        } */
 
         console.log("Request Refresh Token:", refreshToken);
         console.log("User Stored Refresh Token:", user.refreshToken);
@@ -562,7 +564,7 @@ const refreshToken = async (req,res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
-            maxAge: 24 * 60 * 60 * 1000, // 15 minutes
+            maxAge: 15 * 60 * 1000 , // 5 minutes
         });
 
         res.success(

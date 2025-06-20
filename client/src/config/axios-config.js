@@ -8,10 +8,13 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   withCredentials: true,
-  headers: {
+  /*  headers: {
     "Content-Type": "application/json",
-  },
+  }, */
 });
+
+let isRefreshing = false;
+let refreshPromise = null;
 
 // Request Interceptor
 // apiClient.interceptors.request.use(
@@ -26,72 +29,43 @@ const apiClient = axios.create({
 
 // Response Interceptor
 apiClient.interceptors.response.use(
-  (response) =>  response,
-  
+  (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
     const status = error.response?.status;
 
-    console.log("error status",status);
-    
+    console.log("error status", status);
 
     // Handle 401 Unauthorized (token expired)
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        //const refreshTokenValue = store.getState().auth.refreshToken;
-        // const response = await apiClient.post(
-        //   `${API_BASE_URL}/api/auth/refresh-token`,
-        //   {},
-        //   /* {
-        //     headers: {
-        //       Authorization: `Bearer ${refreshTokenValue}`,
-        //     },
-        //   } */
-        //   {
-        //     withCredentials: true,
-        //   }
-        // );
+      if (!isRefreshing) {
+        isRefreshing = true;
+        refreshPromise = store.dispatch(refreshTokenAPI()).unwrap();
 
-        /* const response = await store.dispatch(refreshTokenAPI()).unwrap();
-        if(response.success){
-          console.log("refresh token response success axios config");
-          
+        try {
+          const response = await store.dispatch(refreshTokenAPI()).unwrap();
+          console.log("axios config response", response);
+
+          isRefreshing = false;
+          refreshPromise = null;
+
           return apiClient(originalRequest);
-        } */
 
-        /*         const { token: newToken, user } = response.data;
-        store.dispatch(refreshToken({ token: newToken, user }));
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return apiClient(originalRequest); */
-
-        // if (response.data.success) {
-        //   const { acessToken, user } = response.data.data || response.data;
-        //   store.dispatch(refreshTokenSuccess({ user }));
-        //   return apiClient(originalRequest);
-        // }
-
-      } catch (refreshError) {
-        // Refresh token failed - logout user
-        store.dispatch(logout());
-        window.location.href = "/login"  // Rediret on refresh Failure...
-
-        /* swal({
-          title: "Session Expired",
-          text: "Your session has expired. Please log in again.",
-          icon: "warning",
-          buttons: true,
-          dangerMode: true,
-        }).then(() => {
+        } catch (refreshError) {
+          // Refresh token failed - logout user
+          //store.dispatch(logout());
+          isRefreshing = false;
+          refreshPromise = null;
+          store.dispatch(logout());
           window.location.href = "/login";
-        }); */
-        
-        return Promise.reject(refreshError);
-      }finally{
-        originalRequest._retry = false;
+          return Promise.reject(refreshError);
+        }
+      }else{
+        await refreshPromise;
+        return apiClient(originalRequest);
       }
     }
 

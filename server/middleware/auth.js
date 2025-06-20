@@ -5,6 +5,7 @@ const authMiddleware = (roles = []) => {
     return (req, res, next) => {
         // const token = req.header('Authorization')?.replace('Bearer ', '');
         const token = req.cookies.accessToken
+        console.log(token)
         if (!token) {
             return res.error('No token, authorization denied', UNAUTHORIZED);
         }

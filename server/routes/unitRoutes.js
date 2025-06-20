@@ -13,6 +13,6 @@ router.post('/:id/lesson', authMiddleware(['SuperAdmin', 'Instructor']), unitCon
 router.post('/:id/assessment', authMiddleware(['SuperAdmin', 'Instructor']), unitController.addAssessment);
 router.post('/:id/exam', authMiddleware(['SuperAdmin', 'Instructor']), unitController.addExam);
 router.post('/:id/studyMaterial', authMiddleware(['SuperAdmin', 'Instructor']), unitController.addStudyMaterial);
-router.post('/:id/discussion', authMiddleware(['SuperAdmin', 'Instructor']), unitController.addDiscussion);
+// router.post('/:id/discussion', authMiddleware(['SuperAdmin', 'Instructor', 'Student']), unitController.addDiscussion);
 
 module.exports = router;
