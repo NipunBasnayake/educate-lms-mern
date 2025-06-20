@@ -75,14 +75,6 @@ exports.createMark = async (req, res) => {
             marksDoc.totalMarks = (marksDoc.totalMarks || 0) + weightedMarks;
             marksDoc.maxMarks = (marksDoc.maxMarks || 0) + weight;
             marksDoc.updatedAt = Date.now();
-            // Validate totalMarks
-            if (marksDoc.totalMarks > marksDoc.maxMarks) {
-                await assessmentMark.deleteOne(); // Rollback
-                return res.status(400).json({
-                    success: false,
-                    message: 'Total marks in Marks collection cannot exceed maxMarks',
-                });
-            }
             await marksDoc.save();
         } else {
             // Create new Marks document
