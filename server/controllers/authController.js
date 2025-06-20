@@ -85,7 +85,7 @@ const register = async (req, res) => {
         /*const token = jwt.sign(payload, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });*/
-        const accessToken = generateToken(payload, "15m");
+        /*const accessToken = generateToken(payload, "15m");
         const refreshToken = generateToken(payload, "7d");
 
         res.cookie("accessToken", accessToken, {
@@ -100,7 +100,7 @@ const register = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        });*/
 
         res.success(
             {

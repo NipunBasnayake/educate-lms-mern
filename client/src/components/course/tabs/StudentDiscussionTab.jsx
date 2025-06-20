@@ -13,6 +13,7 @@ const StudentDiscussionsTab = ({ unitId }) => {
 
   const dispatch = useAppDispatch();
   const { chat, loading } = useAppSelector((state) => state.discussions);
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [error, setError] = useState(null);
@@ -79,7 +80,9 @@ const StudentDiscussionsTab = ({ unitId }) => {
     setNewMessage("");
 
     try {
-      const newSendMessage = { unitId, newMessage };
+
+      // Send new Message API
+      const newSendMessage = { unitId, newMessage };      
       const result = await dispatch(sendNewMessageAPI(newSendMessage)).unwrap();
       console.log("new message send result", result);
 
@@ -127,14 +130,14 @@ const StudentDiscussionsTab = ({ unitId }) => {
               <div
                 key={message.id}
                 className={`flex ${
-                  message.userId === currentUser.id
+                  message.userId === currentUserId
                     ? "justify-end"
                     : "justify-start"
                 } mt-4`}
               >
                 <div
                   className={`flex max-w-xs lg:max-w-md ${
-                    message.userId === currentUser.id
+                    message.userId === currentUserId
                       ? "flex-row-reverse"
                       : "flex-row"
                   }`}
@@ -146,12 +149,12 @@ const StudentDiscussionsTab = ({ unitId }) => {
                   />
                   <div
                     className={`flex flex-col ${
-                      message.userId === currentUser.id
+                      message.userId === currentUserId
                         ? "items-end"
                         : "items-start"
                     }`}
                   >
-                    {!message.userId === currentUser.id && (
+                    {!message.userId === currentUserId && (
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xs font-medium text-gray-900">
                           {message.sender}
@@ -169,7 +172,7 @@ const StudentDiscussionsTab = ({ unitId }) => {
                     )}
                     <div
                       className={`px-4 py-2 rounded-2xl ${
-                        message.userId === currentUser.id
+                        message.userId === currentUserId
                           ? "bg-blue-500 text-white"
                           : "bg-gray-100 text-gray-900"
                       }`}
@@ -180,7 +183,7 @@ const StudentDiscussionsTab = ({ unitId }) => {
                     </div>
                     <div
                       className={`flex items-center mt-1 ${
-                        message.userId === currentUser.id
+                        message.userId === currentUserId
                           ? "flex-row-reverse space-x-reverse"
                           : "flex-row"
                       }`}
@@ -188,7 +191,7 @@ const StudentDiscussionsTab = ({ unitId }) => {
                       <span className="text-xs text-gray-500">
                         {formatTime(message.timestamp)}
                       </span>
-                      {message.userId === currentUser.id &&
+                      {message.userId === currentUserId &&
                         message.status === "sent" && (
                           <Check className="w-3 h-3 text-blue-500 ml-1" />
                         )}
