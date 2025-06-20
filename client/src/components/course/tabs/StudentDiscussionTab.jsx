@@ -6,7 +6,10 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../redux/store-config/store";
-import { sendNewMessageAPI } from "../../../redux/features/discussionSlice";
+import {
+  getMessageAPI,
+  sendNewMessageAPI,
+} from "../../../redux/features/discussionSlice";
 
 const StudentDiscussionsTab = ({ unitId }) => {
   console.log("unit ID", unitId);
@@ -23,26 +26,30 @@ const StudentDiscussionsTab = ({ unitId }) => {
   const currentUserRole = localStorage.getItem("userRole");
   const currentUserName = localStorage.getItem("userName");
 
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await axios.get(`/api/discussion/unit/${unitId}/messages`, { withCredentials: true });
-        setMessages(response.data.data.map(m => ({
-          id: Date.now() + Math.random(),
-          userId: m.senderId,
-          sender: m.senderName,
-          role: m.user,
-          content: m.msg,
-          timestamp: m.timestamp,
-          avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face`,
-          status: currentUser.id === m.senderId ? 'sent' : 'read'
-        })));
+        const response = await dispatch(getMessageAPI(unitId)).unwrap();
+        console.log("get Message Result", response);
+
+        setMessages(
+          response.data.map((m) => ({
+            id: Date.now() + Math.random(),
+            userId: m.senderId,
+            sender: m.senderName,
+            role: m.user,
+            content: m.msg,
+            timestamp: m.timestamp,
+            avatar: `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face`,
+            status: currentUserId === m.senderId ? "sent" : "read",
+          }))
+        );
       } catch (err) {
         setError("Failed to load messages");
       }
     };
     fetchMessages();
-  }, [unitId]); */
+  }, [unitId]);
 
   const scrollToBottom = () =>
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,9 +87,8 @@ const StudentDiscussionsTab = ({ unitId }) => {
     setNewMessage("");
 
     try {
-
       // Send new Message API
-      const newSendMessage = { unitId, newMessage };      
+      const newSendMessage = { unitId, newMessage };
       const result = await dispatch(sendNewMessageAPI(newSendMessage)).unwrap();
       console.log("new message send result", result);
 
@@ -126,11 +132,11 @@ const StudentDiscussionsTab = ({ unitId }) => {
                 </span>
               </div>
             </div>
-            {dateMessages.map((message, index) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
                 className={`flex ${
-                  message.userId === currentUserId
+                  message.role === 'Student'
                     ? "justify-end"
                     : "justify-start"
                 } mt-4`}
@@ -154,22 +160,20 @@ const StudentDiscussionsTab = ({ unitId }) => {
                         : "items-start"
                     }`}
                   >
-                    {!message.userId === currentUserId && (
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-xs font-medium text-gray-900">
-                          {message.sender}
-                        </span>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            message.role === "instructor"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {message.role}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-xs font-medium text-gray-900">
+                        {message.sender}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          message.role === "Instructor"
+                            ? "bg-purple-100 text-purple-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {message.role}
+                      </span>
+                    </div>
                     <div
                       className={`px-4 py-2 rounded-2xl ${
                         message.userId === currentUserId

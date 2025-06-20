@@ -10,3 +10,14 @@ export const sendNewMessage = async (newMessage) => {
   };
   return await ApiService.callApi(apiObject);
 };
+
+export const getMessage = async (unitId) => {
+  const apiObject = {
+    method: "GET",
+    withCredentials: true,
+    prefix: "discussion",
+    endpoint: `unit/${unitId}/messages`,    
+  };
+  return await ApiService.callApi(apiObject);
+};
+

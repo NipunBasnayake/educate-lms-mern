@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { sendNewMessage } from "../../service/discussionService";
+import { getMessage, sendNewMessage } from "../../service/discussionService";
 
 // Send New Message
 export const sendNewMessageAPI = createAsyncThunk(
@@ -11,6 +11,20 @@ export const sendNewMessageAPI = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue("Send new Message Failed...", error);
+    }
+  }
+);
+
+// Get Messages
+export const getMessageAPI = createAsyncThunk(
+  "getMessageAPI",
+  async (unitId, { rejectWithValue }) => {
+    try {
+      const response = await getMessage(unitId);
+      console.log("Get Message Response", response);
+      return response;
+    } catch (error) {
+      return rejectWithValue("Get Message Error", error);
     }
   }
 );
@@ -38,9 +52,20 @@ const discussionSlice = createSlice({
       .addCase(sendNewMessageAPI.rejected, (state, action) => {
         state.loading = true;
         state.error = action.payload;
+      })
+
+      .addCase(getMessageAPI.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getMessageAPI.fulfilled, (state, action) => {
+        state.loading = false;
+        state.chat = action.payload;
+      })
+      .addCase(getMessageAPI.rejected, (state, action) => {
+        state.loading = true;
+        state.error = action.payload;
       });
   },
 });
-
 
 export default discussionSlice.reducer;
