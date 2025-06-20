@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/auth');
 router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), examController.createExam);
 router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), examController.getExams);
 router.get('/:id', authMiddleware(['Instructor', 'SuperAdmin']), examController.getExamById);
-router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), examController.updateExam);
+router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), examController.updateExamById);
 router.delete('/:id', authMiddleware(['Instructor', 'SuperAdmin']), examController.deleteExam);
 
 module.exports = router;

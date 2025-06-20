@@ -65,7 +65,7 @@ const UnitDetails = () => {
               description: course.description,
             },
             lessons: unit.lessons || [],
-            assessments: unit.quizzes || [],
+            assessments: unit.assessments || [],
             exams: unit.exams || [],
             studyMaterials: unit.studyMaterials || [],
             discussions: unit.discussions || [],
@@ -123,12 +123,12 @@ const UnitDetails = () => {
         <CourseHeader course={unitData} />
         <CourseTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">         
           {activeTab === 'overview' && <OverviewTab course={unitData} />}
           {activeTab === 'lessons' && (
             <LessonsTab lessons={unitData.lessons} setLessons={setLessons} />
           )}
-          {activeTab === 'Quizes' && <AssessmentsTab assessments={unitData.assessments} />}
+          {activeTab === 'Quizes' && <AssessmentsTab assessments={unitData.assessments} unitId={unitData.id} />}
           {activeTab === 'exams' && <ExamsTab exams={unitData.exams} />}
           {activeTab === 'materials' && <MaterialsTab studyMaterials={unitData.studyMaterials} />}
           {/* {activeTab === 'discussions' && <DiscussionsTab discussions={unitData.discussions} />} */}

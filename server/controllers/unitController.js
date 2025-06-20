@@ -45,7 +45,7 @@ const populateOptions = [
     { path: 'course', select: 'title description' },
     { path: 'subUnits', select: 'title order' },
     { path: 'lessons', select: 'title content doc lectureLink duration completed' },
-    { path: 'assessments', select: 'title type' },
+    { path: 'assessments', select: 'title type quizList questionsCount duration passPercentage totalMarks description status dueDate' },
     { path: 'exams', select: 'title date' },
     { path: 'instructor', select: 'name email' }
 ];
