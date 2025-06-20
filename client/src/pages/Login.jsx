@@ -64,7 +64,7 @@ const Login = () => {
         if(result.data.user.role == "Student"){
           navigate("/dashboard");
         }else if(result.data.user.role == "Instructor"){
-          navigate("/courses");
+          navigate("/dashboard/lecture");
         }else if(result.data.user.role == "SuperAdmin"){
           navigate("/dashboard/admin");
         }
