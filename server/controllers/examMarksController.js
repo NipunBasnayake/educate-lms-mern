@@ -50,7 +50,7 @@ exports.createExam = async (req, res) => {
         }
 
         // Calculate adjusted marks
-        const adjustedMarks = (marks / maxMarks) * 100 / weight;
+        const adjustedMarks = (marks / maxMarks) *  weight;
 
         // Create exam marks document
         const examMark = new ExamMarks({
@@ -64,24 +64,20 @@ exports.createExam = async (req, res) => {
         });
 
         // Save exam marks
-        await examMark.save();
+        const response = await examMark.save();
+        console.log(response);
 
         // Update Marks collection
         let marksDoc = await Marks.findOne({ student });
+        console.log(marksDoc);
         if (marksDoc) {
-            // Update existing Marks document
             marksDoc.examMarks = (marksDoc.examMarks || 0) + adjustedMarks;
             marksDoc.totalMarks = (marksDoc.totalMarks || 0) + adjustedMarks;
+            marksDoc.maxMarks = (marksDoc.maxMarks || 0) + weight;
             marksDoc.updatedAt = Date.now();
-            // Validate totalMarks
-            if (marksDoc.totalMarks > marksDoc.maxMarks) {
-                await examMark.deleteOne(); // Rollback
-                return res.status(400).json({
-                    success: false,
-                    message: 'Total marks in Marks collection cannot exceed maxMarks',
-                });
-            }
-            await marksDoc.save();
+
+            const response = await marksDoc.save();
+            console.log(response);
         } else {
             // Create new Marks document
             marksDoc = new Marks({
@@ -92,7 +88,8 @@ exports.createExam = async (req, res) => {
                 createdAt: Date.now(),
                 updatedAt: Date.now(),
             });
-            await marksDoc.save();
+            const response = await marksDoc.save();
+            console.log(response);
         }
 
         res.status(201).json({ success: true, data: examMark });
