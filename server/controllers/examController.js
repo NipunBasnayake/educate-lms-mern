@@ -5,10 +5,10 @@ const mongoose = require('mongoose');
 
 exports.createExam = async (req, res) => {
   try {
-    const { title, unit, course, description, date, maxScore } = req.body;
+    const { title, unit, course, description, date, location, duration, maxScore } = req.body;
 
-    if (!title || !unit || !course || !maxScore) {
-      return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
+    if (!title || !unit || !course || !duration || !maxScore) {
+      return res.status(400).json({ success: false, message: 'Title, unit, course, duration, and maxScore are required' });
     }
 
     const unitExists = await Unit.findById(unit);
@@ -31,9 +31,9 @@ exports.createExam = async (req, res) => {
       course,
       description,
       date,
-      maxScore,
-      createdBy: req.user.id,
-      updatedBy: req.user.id
+      location,
+      duration,
+      maxScore
     });
 
     await exam.save();
@@ -66,9 +66,9 @@ exports.getExams = async (req, res) => {
     }
 
     const exams = await Exam.find(query)
-      .populate('unit', 'title')
-      .populate('course', 'title')
-      .sort({ createdAt: -1 });
+        .populate('unit', 'title')
+        .populate('course', 'title')
+        .sort({ createdAt: 1 });
 
     res.status(200).json({ success: true, data: exams });
   } catch (error) {
@@ -79,8 +79,8 @@ exports.getExams = async (req, res) => {
 exports.getExamById = async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id)
-      .populate('unit', 'title')
-      .populate('course', 'title');
+        .populate('unit', 'title')
+        .populate('course', 'title');
 
     if (!exam) {
       return res.status(404).json({ success: false, message: 'Exam not found' });
@@ -92,9 +92,9 @@ exports.getExamById = async (req, res) => {
   }
 };
 
-exports.updateExam = async (req, res) => {
+exports.updateExamById = async (req, res) => {
   try {
-    const { title, unit, course, description, date, maxScore } = req.body;
+    const { title, unit, course, description, date, location, duration, maxScore } = req.body;
 
     if (unit) {
       const unitExists = await Unit.findById(unit);
@@ -123,15 +123,16 @@ exports.updateExam = async (req, res) => {
       ...(course && { course }),
       ...(description && { description }),
       ...(date && { date }),
+      ...(location && { location }),
+      ...(duration && { duration }),
       ...(maxScore && { maxScore }),
-      updatedBy: req.user.id,
       updatedAt: Date.now()
     };
 
     const exam = await Exam.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateData },
-      { new: true, runValidators: true }
+        req.params.id,
+        { $set: updateData },
+        { new: true, runValidators: true }
     );
 
     if (!exam) {
