@@ -22,6 +22,12 @@ const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
 const quizRoutes = require("./routes/quizRoutes");
+const discussionRoutes = require("./routes/discussionRoutes");
+const marksRoutes = require("./routes/markRoutes");
+const assessmentMarkRoutes = require("./routes/assessmentMarksRoutes");
+const assignmentRoutes = require("./routes/assignmentRoutes");
+const assignmentMarkRoutes = require("./routes/assignmentMarksRoutes");
+const examMarkRoutes = require("./routes/examMarksRoutes");
 const responseFormatter = require("./middleware/responseFormatter");
 const { default: mongoose } = require("mongoose");
 
@@ -36,12 +42,11 @@ const app = express();
 connectDB();
 mongoose.set('debug', true);
 app.use(express.json());
-/*app.use(cookieParser());
+app.use(cookieParser());
 app.use(cors({
-    origin: process.env.FRONTEND_ORIGIN,
-    credentials: true,
-}));*/
-app.use(cors())
+  origin: process.env.FRONTEND_ORIGIN,
+  credentials: true,
+}));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(responseFormatter())
@@ -61,6 +66,12 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/discussion", discussionRoutes);
+app.use("/api/marks", marksRoutes);
+app.use("/api/assessmentMarks", assessmentMarkRoutes);
+app.use("/api/assignment", assignmentRoutes);
+app.use("/api/assignmentMarks", assignmentMarkRoutes);
+app.use("/api/examMarks", examMarkRoutes);
 
 app.use(require("./middleware/errorHandler"));
 

@@ -3,7 +3,7 @@ const router = express.Router();
 const assessmentController = require('../controllers/assessmentController');
 const authMiddleware = require('../middleware/auth');
 
-router.post('/', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.createAssessment);
+router.post('/', authMiddleware(['Instructor', 'SuperAdmin','Student']), assessmentController.createAssessment);
 router.get('/', authMiddleware(['Student', 'Instructor', 'SuperAdmin']), assessmentController.getAssessments);
 router.get('/:id', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.getAssessmentById);
 router.put('/:id', authMiddleware(['Instructor', 'SuperAdmin']), assessmentController.updateAssessment);

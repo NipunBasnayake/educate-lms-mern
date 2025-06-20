@@ -1,7 +1,8 @@
+// src/pages/UnitDetails.jsx (partial update)
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import CourseHeader from '../components/course/CourseHeaders'; // Reused as UnitHeader
+import CourseHeader from '../components/course/CourseHeaders';
 import CourseTabs from '../components/course/CourseTabs';
 import OverviewTab from '../components/course/tabs/OverviewTabs';
 import LessonsTab from '../components/course/tabs/LessonsTabs';
@@ -12,38 +13,42 @@ import DiscussionsTab from '../components/course/tabs/DiscussionsTab';
 import AssignmentsTab from '../components/course/tabs/AssignmentsTab';
 import OnlineSessionTab from '../components/course/tabs/OnlineSessionTabs';
 import { getUnitById } from '../service/unitsService';
+import StudentDiscussionsTab from '../components/course/tabs/StudentDiscussionTab';
 
 const UnitDetails = () => {
-  const { id } = useParams(); // Unit ID from URL
+  const { id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [unitData, setUnitData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [assignments, setAssignments] = useState([]);
-  const [submissionStatus] = useState({});
 
-  // Common format function
+  // Function to update lessons
+  const setLessons = (newLessons) => {
+    setUnitData((prev) => ({
+      ...prev,
+      lessons: newLessons,
+    }));
+  };
+
   const formatDateTime = (dateString) => {
     if (!dateString) return 'Not submitted';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
 
-  // Fetch unit data
   useEffect(() => {
     const fetchUnitData = async () => {
       try {
         setLoading(true);
-        const response = await getUnitById(id); // Fetch unit by ID
-        const unit = response.data; // Assuming response.data is the unit object
+        const response = await getUnitById(id);
+        const unit = response.data;
 
         if (!unit) {
           throw new Error('Unit not found');
         }
 
-        // Generate unitData for rendering
         const generateUnitData = () => {
-          // Use course data from unit's populated course field
           const course = unit.course || {
             id: 'unknown',
             title: 'Unknown Course',
@@ -60,17 +65,17 @@ const UnitDetails = () => {
               description: course.description,
             },
             lessons: unit.lessons || [],
-            assessments: unit.quizzes || [], // Map quizzes to assessments for Quizes tab
+            assessments: unit.assessments || [],
             exams: unit.exams || [],
             studyMaterials: unit.studyMaterials || [],
             discussions: unit.discussions || [],
-            assignments: [], // Placeholder
-            onlineSessions: [], // Placeholder
+            assignments: [],
+            onlineSessions: [],
             subUnits: unit.subUnits || [],
             image: unit.image || '',
             credits: unit.credits || '',
-            instructor: unit.instructor ? unit.instructor.name : 'No Instructor', // Transform instructor to string
-            instructorDetails: unit.instructor || null, // Keep full object for components needing it
+            instructor: unit.instructor ? unit.instructor.name : 'No Instructor',
+            instructorDetails: unit.instructor || null,
             timePeriod: unit.timePeriod || 0,
             order: unit.order || 0,
             createdAt: unit.createdAt,
@@ -90,9 +95,8 @@ const UnitDetails = () => {
     };
 
     fetchUnitData();
-  }, [id]);
+  }, [id]);  
 
-  // Handle loading and error states
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -116,21 +120,24 @@ const UnitDetails = () => {
       </aside>
 
       <main className="flex-1 h-full overflow-y-auto p-6 pt-10 ml-0 md:ml-64">
-        <CourseHeader course={unitData} /> {/* Pass unitData */}
+        <CourseHeader course={unitData} />
         <CourseTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">         
           {activeTab === 'overview' && <OverviewTab course={unitData} />}
-          {activeTab === 'lessons' && <LessonsTab lessons={unitData.lessons} />}
-          {activeTab === 'Quizes' && <AssessmentsTab assessments={unitData.assessments} />}
+          {activeTab === 'lessons' && (
+            <LessonsTab lessons={unitData.lessons} setLessons={setLessons} />
+          )}
+          {activeTab === 'Quizes' && <AssessmentsTab assessments={unitData.assessments} unitId={unitData.id} />}
           {activeTab === 'exams' && <ExamsTab exams={unitData.exams} />}
           {activeTab === 'materials' && <MaterialsTab studyMaterials={unitData.studyMaterials} />}
-          {activeTab === 'discussions' && <DiscussionsTab discussions={unitData.discussions} />}
+          {/* {activeTab === 'discussions' && <DiscussionsTab discussions={unitData.discussions} />} */}
+          {activeTab === 'discussions' && <StudentDiscussionsTab unitId={unitData.id} />}
           {activeTab === 'assignments' && (
             <AssignmentsTab
               assignments={assignments}
               setAssignments={setAssignments}
-              submissionStatus={submissionStatus}
+              submissionStatus={{}} // Adjust as needed
               formatDateTime={formatDateTime}
             />
           )}

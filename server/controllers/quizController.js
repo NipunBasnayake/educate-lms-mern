@@ -1,21 +1,24 @@
 const Quiz = require('../models/Quiz');
-const Unit = require('../models/Unit');
+const Assessment = require('../models/Assessment');
 const mongoose = require('mongoose');
 
 // Create a new quiz
 exports.createQuiz = async (req, res) => {
   try {
-    const { question, options, answer, unit } = req.body;
+    const { question, options, answer, assessment, mark } = req.body;
 
     // Validate required fields
-    if (!question || !options || answer === undefined || !unit) {
-      return res.status(400).json({ success: false, message: 'Question, options, answer, and unit are required' });
+    if (!question || !options || answer === undefined || !assessment || mark === undefined) {
+      return res.status(400).json({ success: false, message: 'Question, options, answer, assessment, and mark are required' });
     }
 
-    // Validate unit exists
-    const unitExists = await Unit.findById(unit);
-    if (!unitExists) {
-      return res.status(404).json({ success: false, message: 'Unit not found' });
+    // Validate assessment exists
+    if (!mongoose.Types.ObjectId.isValid(assessment)) {
+      return res.status(400).json({ success: false, message: 'Invalid assessment ID' });
+    }
+    const assessmentExists = await Assessment.findById(assessment);
+    if (!assessmentExists) {
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
     }
 
     // Validate options array and answer index
@@ -26,45 +29,55 @@ exports.createQuiz = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Answer must be a valid index of the options array' });
     }
 
+    // Check for unique question
+    const existingQuiz = await Quiz.findOne({ question });
+    if (existingQuiz) {
+      return res.status(400).json({ success: false, message: 'Question must be unique' });
+    }
+
     // Create quiz
     const quiz = new Quiz({
       question,
       options,
       answer,
-      unit,
+      assessment,
+      mark,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     });
 
     // Save quiz
-    const response =  await quiz.save();
-    console.log(response);
-    // Add quiz to unit's quizzes array
-    const response1 =   await Unit.findByIdAndUpdate(unit, { $push: { quizzes: quiz._id } });
-    console.log(response1);
-    
+    const response = await quiz.save();
+
+    // Add quiz to assessment's quizzes array
+    await Assessment.findByIdAndUpdate(assessment, { $push: { quizzes: quiz._id } });
+
     res.status(201).json({ success: true, data: quiz });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error creating quiz', error: error.message });
   }
 };
 
-// Get quizzes (with optional unit filter)
+// Get quizzes by assessment ID from path parameter
 exports.getQuizzes = async (req, res) => {
   try {
-    const { unitId } = req.query;
-    let query = {};
+    const { id: assessmentId } = req.params;
 
-    // Filter by unitId if provided
-    if (unitId) {
-      if (!mongoose.Types.ObjectId.isValid(unitId)) {
-        return res.status(400).json({ success: false, message: 'Invalid unit ID' });
-      }
-      query.unit = unitId;
+    // Validate assessment ID
+    if (!mongoose.Types.ObjectId.isValid(assessmentId)) {
+      return res.status(400).json({ success: false, message: 'Invalid assessment ID' });
     }
 
-    // Fetch quizzes with populated unit
-    const quizzes = await Quiz.find(query)
-      .populate('unit', 'title')
-      .sort({ createdAt: -1 });
+    // Verify assessment exists
+    const assessmentExists = await Assessment.findById(assessmentId);
+    if (!assessmentExists) {
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
+    }
+
+    // Fetch quizzes for the specified assessment
+    const quizzes = await Quiz.find({ assessment: assessmentId })
+        .populate('assessment', 'title')
+        .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: quizzes });
   } catch (error) {
@@ -76,7 +89,7 @@ exports.getQuizzes = async (req, res) => {
 exports.getQuizById = async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id)
-      .populate('unit', 'title');
+        .populate('assessment', 'title');
 
     if (!quiz) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
@@ -91,13 +104,16 @@ exports.getQuizById = async (req, res) => {
 // Update a quiz
 exports.updateQuiz = async (req, res) => {
   try {
-    const { question, options, answer, unit } = req.body;
+    const { question, options, answer, assessment, mark } = req.body;
 
-    // Validate unit if provided
-    if (unit) {
-      const unitExists = await Unit.findById(unit);
-      if (!unitExists) {
-        return res.status(404).json({ success: false, message: 'Unit not found' });
+    // Validate assessment if provided
+    if (assessment) {
+      if (!mongoose.Types.ObjectId.isValid(assessment)) {
+        return res.status(400).json({ success: false, message: 'Invalid assessment ID' });
+      }
+      const assessmentExists = await Assessment.findById(assessment);
+      if (!assessmentExists) {
+        return res.status(404).json({ success: false, message: 'Assessment not found' });
       }
     }
 
@@ -108,9 +124,24 @@ exports.updateQuiz = async (req, res) => {
       }
     }
     if (answer !== undefined) {
-      if (!Number.isInteger(answer) || answer < 0 || (options && answer >= options.length)) {
+      const currentQuiz = await Quiz.findById(req.params.id);
+      const optionArray = options || currentQuiz.options;
+      if (!Number.isInteger(answer) || answer < 0 || answer >= optionArray.length) {
         return res.status(400).json({ success: false, message: 'Answer must be a valid index of the options array' });
       }
+    }
+
+    // Check for unique question if changed
+    if (question) {
+      const existingQuiz = await Quiz.findOne({ question, _id: { $ne: req.params.id } });
+      if (existingQuiz) {
+        return res.status(400).json({ success: false, message: 'Question must be unique' });
+      }
+    }
+
+    // Validate mark if provided
+    if (mark === undefined && !Object.keys(req.body).length) {
+      return res.status(400).json({ success: false, message: 'At least one field must be provided for update' });
     }
 
     // Prepare update data
@@ -118,31 +149,30 @@ exports.updateQuiz = async (req, res) => {
       ...(question && { question }),
       ...(options && { options }),
       ...(answer !== undefined && { answer }),
-      ...(unit && { unit }),
-      // updatedBy: req.user.id, // Uncomment if you add updatedBy to QuizSchema
-      updatedAt: Date.now()
+      ...(assessment && { assessment }),
+      ...(mark !== undefined && { mark }),
+      updatedAt: Date.now(),
     };
 
     // Update quiz
     const quiz = await Quiz.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateData },
-      { new: true, runValidators: true }
+        req.params.id,
+        { $set: updateData },
+        { new: true, runValidators: true }
     );
 
     if (!quiz) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
 
-    // Update unit references if unit has changed
-    if (unit && unit !== quiz.unit.toString()) {
-      await Unit.findByIdAndUpdate(quiz.unit, { $pull: { quizzes: quiz._id } });
-      await Unit.findByIdAndUpdate(unit, { $push: { quizzes: quiz._id } });
+    // Update assessment reference if assessment has changed
+    if (assessment && assessment !== quiz.assessment.toString()) {
+      await Assessment.findByIdAndUpdate(quiz.assessment, { $pull: { quizzes: quiz._id } });
+      await Assessment.findByIdAndUpdate(assessment, { $push: { quizzes: quiz._id } });
     }
 
     res.status(200).json({ success: true, data: quiz });
   } catch (error) {
-
     res.status(500).json({ success: false, message: 'Error updating quiz', error: error.message });
   }
 };
@@ -156,8 +186,8 @@ exports.deleteQuiz = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
 
-    // Remove quiz from unit's quizzes array
-    await Unit.findByIdAndUpdate(quiz.unit, { $pull: { quizzes: quiz._id } });
+    // Remove quiz from assessment's quizzes array
+    await Assessment.findByIdAndUpdate(quiz.assessment, { $pull: { quizzes: quiz._id } });
 
     // Delete quiz
     await quiz.deleteOne();

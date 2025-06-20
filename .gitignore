@@ -40,10 +40,14 @@ dump/
 # React (Client) specific
 client/node_modules/
 client/build/
+client/.env
+client/.env.development
+client/package-lock.json/
 
 # Server specific
 server/node_modules/
 server/dist/
+server/package-lock.json/
 
 # Optional: testing outputs
 jest-html-reporters-*.html

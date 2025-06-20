@@ -1,11 +1,12 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Footer from "../components/Footer";
 import { useAppDispatch, useAppSelector } from "../redux/store-config/store";
-import { loginUserAPI } from "../redux/features/authSlice";
+import {
+  loginUserAPI,} from "../redux/features/authSlice";
 
 
 const Login = () => {
@@ -14,7 +15,13 @@ const Login = () => {
     (state) => state.auth
   );
 
+  console.log("logging page auth data", data);
+  
+
   const navigate = useNavigate();
+
+  console.log("auth state", isAuthenticated, data);
+  
 
   // Validation Schema using Yup
   const validationSchema = Yup.object({
@@ -32,24 +39,39 @@ const Login = () => {
     password: "",
   };
 
+/*   useEffect(() => {
+    //if alreadyautheitcated..redirect to dashboard
+    if(isAuthenticated){
+      navigate("/dashboard");
+    }
+  },[]); */
+
   // Handle Form Submission
   const handleLogin = async (values, { setSubmitting, setErrors }) => {
     setSubmitting(true);
     try {
       // Login API
       const result = await dispatch(loginUserAPI(values)).unwrap();
+      localStorage.setItem("user", result.data.user.id)
+      localStorage.setItem("userRole", result.data.user.role)
+      localStorage.setItem("userName", result.data.user.name)
       console.log("Login user Result ", result);
 
-      if (result.success) {
+      console.log("after login authh state", isAuthenticated, data);
+      
+
+        if (result.success) {
         if(result.data.user.role == "Student"){
           navigate("/dashboard");
         }else if(result.data.user.role == "Instructor"){
-          navigate("/dashboard/lecture");
+          navigate("/courses");
         }else if(result.data.user.role == "SuperAdmin"){
           navigate("/dashboard/admin");
         }
       }
     } catch (error) {
+      console.log(error);
+      
       setErrors({ form: "Login failed. Please try again.", error });
     } finally {
       setSubmitting(false);

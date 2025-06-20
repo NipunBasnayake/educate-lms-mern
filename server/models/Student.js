@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
 const StudentSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  refreshToken: {type: String},
   profile: {
     phone: { type: String },
     address: { type: String },
@@ -42,5 +42,4 @@ const StudentSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
-
 module.exports = mongoose.model('Student', StudentSchema);

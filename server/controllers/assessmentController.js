@@ -1,41 +1,46 @@
 const Assessment = require('../models/Assessment');
 const Unit = require('../models/Unit');
-const Course = require('../models/Course');
 const mongoose = require('mongoose');
 
 exports.createAssessment = async (req, res) => {
   try {
-    const { title, unit, course, description, dueDate, maxScore } = req.body;
+    const { title, unit, description, dueDate, totalMarks, questionsCount, duration, passPercentage, caMarksPercetage, status } = req.body;
 
-    if (!title || !unit || !course || !maxScore) {
-      return res.status(400).json({ success: false, message: 'Title, unit, course, and maxScore are required' });
+    // Validate required fields
+    if (!title || !unit || totalMarks === undefined || questionsCount === undefined || duration === undefined || passPercentage === undefined || caMarksPercetage === undefined) {
+      return res.status(400).json({ success: false, message: 'Title, unit, totalMarks, questionsCount, duration, passPercentage, and caMarksPercetage are required' });
     }
 
+    // Validate unit exists
+    if (!mongoose.Types.ObjectId.isValid(unit)) {
+      return res.status(400).json({ success: false, message: 'Invalid unit ID' });
+    }
     const unitExists = await Unit.findById(unit);
     if (!unitExists) {
       return res.status(404).json({ success: false, message: 'Unit not found' });
     }
 
-    const courseExists = await Course.findById(course);
-    if (!courseExists) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
+    // Validate status if provided
+    if (status && !['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Status must be either "active" or "inactive"' });
     }
 
-    if (unitExists.course.toString() !== course) {
-      return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
-    }
-
-    const assessment = new Assessment({
+    const assessmentData = {
       title,
       unit,
-      course,
-      description,
-      dueDate,
-      maxScore,
-      createdBy: req.user.id,
-      updatedBy: req.user.id
-    });
+      ...(description && { description }),
+      ...(dueDate && { dueDate }),
+      totalMarks,
+      questionsCount,
+      duration,
+      passPercentage,
+      caMarksPercetage,
+      ...(status && { status }),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
 
+    const assessment = new Assessment(assessmentData);
     await assessment.save();
 
     await Unit.findByIdAndUpdate(unit, { $push: { assessments: assessment._id } });
@@ -48,7 +53,7 @@ exports.createAssessment = async (req, res) => {
 
 exports.getAssessments = async (req, res) => {
   try {
-    const { unitId, courseId } = req.query;
+    const { unitId } = req.query;
     let query = {};
 
     if (unitId) {
@@ -58,17 +63,9 @@ exports.getAssessments = async (req, res) => {
       query.unit = unitId;
     }
 
-    if (courseId) {
-      if (!mongoose.Types.ObjectId.isValid(courseId)) {
-        return res.status(400).json({ success: false, message: 'Invalid course ID' });
-      }
-      query.course = courseId;
-    }
-
     const assessments = await Assessment.find(query)
-      .populate('unit', 'title')
-      .populate('course', 'title')
-      .sort({ createdAt: -1 });
+        .populate('unit', 'title')
+        .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, data: assessments });
   } catch (error) {
@@ -79,8 +76,7 @@ exports.getAssessments = async (req, res) => {
 exports.getAssessmentById = async (req, res) => {
   try {
     const assessment = await Assessment.findById(req.params.id)
-      .populate('unit', 'title')
-      .populate('course', 'title');
+        .populate('unit', 'title');
 
     if (!assessment) {
       return res.status(404).json({ success: false, message: 'Assessment not found' });
@@ -94,44 +90,47 @@ exports.getAssessmentById = async (req, res) => {
 
 exports.updateAssessment = async (req, res) => {
   try {
-    const { title, unit, course, description, dueDate, maxScore } = req.body;
+    const { title, unit, description, dueDate, totalMarks, questionsCount, duration, passPercentage, caMarksPercetage, status } = req.body;
 
+    // Validate unit if provided
     if (unit) {
+      if (!mongoose.Types.ObjectId.isValid(unit)) {
+        return res.status(400).json({ success: false, message: 'Invalid unit ID' });
+      }
       const unitExists = await Unit.findById(unit);
       if (!unitExists) {
         return res.status(404).json({ success: false, message: 'Unit not found' });
       }
     }
 
-    if (course) {
-      const courseExists = await Course.findById(course);
-      if (!courseExists) {
-        return res.status(404).json({ success: false, message: 'Course not found' });
-      }
+    // Validate status if provided
+    if (status && !['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Status must be either "active" or "inactive"' });
     }
 
-    if (unit && course) {
-      const unitDoc = await Unit.findById(unit);
-      if (unitDoc.course.toString() !== course) {
-        return res.status(400).json({ success: false, message: 'Unit does not belong to the specified course' });
-      }
+    // Ensure at least one field is provided for update
+    if (!Object.keys(req.body).length) {
+      return res.status(400).json({ success: false, message: 'At least one field must be provided for update' });
     }
 
     const updateData = {
       ...(title && { title }),
       ...(unit && { unit }),
-      ...(course && { course }),
       ...(description && { description }),
       ...(dueDate && { dueDate }),
-      ...(maxScore && { maxScore }),
-      updatedBy: req.user.id,
-      updatedAt: Date.now()
+      ...(totalMarks !== undefined && { totalMarks }),
+      ...(questionsCount !== undefined && { questionsCount }),
+      ...(duration !== undefined && { duration }),
+      ...(passPercentage !== undefined && { passPercentage }),
+      ...(caMarksPercetage !== undefined && { caMarksPercetage }),
+      ...(status && { status }),
+      updatedAt: Date.now(),
     };
 
     const assessment = await Assessment.findByIdAndUpdate(
-      req.params.id,
-      { $set: updateData },
-      { new: true, runValidators: true }
+        req.params.id,
+        { $set: updateData },
+        { new: true, runValidators: true }
     );
 
     if (!assessment) {

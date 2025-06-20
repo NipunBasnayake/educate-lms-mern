@@ -4,17 +4,25 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import Card from "../components/Card";
+import { useAppDispatch } from "../redux/store-config/store";
+import { logout } from "../redux/features/authSlice";
 
 const Logout = () => {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [countdown, setCountdown] = React.useState(10);
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+
+
+  
 
   // Handle the logout process
   const handleLogout = () => {
     setIsLoggingOut(true);
     
     // Simulate logout API call
+    sessionStorage.removeItem("lastPath");
+    dispatch(logout());    
     setTimeout(() => {
       // Clear user session
       localStorage.removeItem("authToken");

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Card from "../components/card";
 import { Link } from "react-router-dom";
-import { getAllunits } from "../service/unitsService";
+import { useAppDispatch } from "../redux/store-config/store";
+import { getAllUnitsAPI } from "../redux/features/unitsSlice";
 
 const Institution = () => {
+  const dispatch = useAppDispatch();
   const [enrolledUnits, setEnrolledUnits] = useState({});
   const [progressData, setProgressData] = useState({});
   const [totalCredits, setTotalCredits] = useState(0);
@@ -14,6 +16,7 @@ const Institution = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  //const {allunits,getAllUnits, getCourseId, getUnitById } = useUnits();
   // Calculate progress metrics
   const calculateProgress = (enrolled, progress) => {
     const enrolledUnits = units.filter((unit) => enrolled[unit.unitId]);
@@ -47,14 +50,14 @@ const Institution = () => {
     const fetchUnits = async () => {
       try {
         setLoading(true);
-        const response = await getAllunits();
-        console.log("Response from getAllunits:", response);
+         const response = await dispatch(getAllUnitsAPI()).unwrap();
+         console.log("Unit Response ",response);
+         
 
         let fetchedUnits = [];
         if (Array.isArray(response)) {
-          console.log(response.data._id)
+          //console.log(response.data._id);
           fetchedUnits = response.map((unit, index) => ({
-            
             title: unit.title || "Untitled",
             unitId: unit._id || `unit-${index}`,
             credits: unit.credits || 0,
@@ -67,7 +70,7 @@ const Institution = () => {
             credits: unit.credits || 0,
             image: unit.image || "default-image.jpg",
           }));
-        } else {
+        }else {
           throw new Error("Unexpected response format");
         }
 
@@ -83,7 +86,7 @@ const Institution = () => {
         setEnrolledUnits(initialEnrolled);
         calculateProgress(initialEnrolled, initialProgress);
       } catch (err) {
-        setError("Failed to fetch units. Please try again later.");
+        setError(err.message || "Failed to fetch units. Please try again later.");
         console.error("fetchUnits error:", err.message);
       } finally {
         setLoading(false);
@@ -91,7 +94,7 @@ const Institution = () => {
     };
 
     fetchUnits();
-  }, []);
+  }, [dispatch]);
 
   const ProgressBar = ({ progress }) => {
     return (
@@ -126,7 +129,7 @@ const Institution = () => {
         <Sidebar />
       </aside>
       <main className="flex-1 h-full overflow-y-auto p-6 pt-10 ml-0 md:ml-64">
-        {/* Progress Summary Card */}
+        {/* Progress Summary Card
         <Card className="mb-6">
           <div className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
@@ -151,7 +154,7 @@ const Institution = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </Card> */}
 
         {/* Units Card */}
         <Card>
@@ -190,13 +193,13 @@ const Institution = () => {
                       </p>
                     </div>
 
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>Progress</span>
                         <span>{progressData[unit.unitId] || 0}%</span>
                       </div>
                       <ProgressBar progress={progressData[unit.unitId] || 0} />
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-between items-center mt-auto">
                       <Link
