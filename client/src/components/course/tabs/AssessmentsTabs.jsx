@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { getQuizByUnitId } from "../../../service/quizService";
+import { getQuizByUnitId, postAssessmentMarks } from "../../../service/quizService";
 
-// Define QuizInstructions first
+// Define QuizInstructions
 const QuizInstructions = ({
   assessment,
   onStart,
@@ -30,7 +30,7 @@ const QuizInstructions = ({
                 </li>
               )}
               <li>Total {assessment.totalMarks || "N/A"} marks</li>
-              <li>CA Marks Percentage: {assessment.caMarksPercetage}%</li>
+              <li>CA Marks Percentage: {assessment.caMarksPercentage}%</li>
             </ul>
           </div>
         </div>
@@ -61,8 +61,8 @@ QuizInstructions.propTypes = {
   attemptsLeft: PropTypes.number.isRequired,
 };
 
-// Define Quiz next
-const Quiz = ({ questions, timeLimit, onComplete, onCancel }) => {
+// Define Quiz
+const Quiz = ({ questions, timeLimit, onComplete, onCancel, studentId, assessmentId }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
   const [timeLeft, setTimeLeft] = useState(timeLimit * 60);
@@ -119,11 +119,31 @@ const Quiz = ({ questions, timeLimit, onComplete, onCancel }) => {
     setIsSubmitting(true);
     setTimerActive(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const score = calculateScore();
+      const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
 
-    const score = calculateScore();
-    onComplete(score, answers);
-    setIsSubmitting(false);
+      // Post assessment marks to API
+      const response = await postAssessmentMarks({
+        student: localStorage.getItem("user"),
+        assessment: assessmentId,
+        maxMarks: totalMarks,
+        weight: 10, // Hardcoded as per request body example
+        marks: score,
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to submit assessment marks");
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      onComplete(score, answers);
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+      alert("Failed to submit quiz. Please try again.");
+      setIsSubmitting(false);
+      setTimerActive(true); // Re-enable timer if submission fails
+    }
   };
 
   const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
@@ -276,9 +296,11 @@ Quiz.propTypes = {
   timeLimit: PropTypes.number.isRequired,
   onComplete: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
+  studentId: PropTypes.string.isRequired,
+  assessmentId: PropTypes.string.isRequired,
 };
 
-// Define QuizResults next
+// Define QuizResults
 const QuizResults = ({ attempt, assessment, onClose, onRetry }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -376,8 +398,7 @@ const QuizResults = ({ attempt, assessment, onClose, onRetry }) => {
                         <span className="font-mono bg-gray-100 px-1 rounded">
                           {attempt.answers[index] !== null
                             ? question.options?.[attempt.answers[index]] ||
-                              attempt.answers[index] ||
-                              "No answer"
+                              attempt.answers[index] || "No answer"
                             : "No answer"}
                         </span>
                       </p>
@@ -446,9 +467,8 @@ QuizResults.propTypes = {
   onRetry: PropTypes.func.isRequired,
 };
 
-// Define QuizApp last
-function QuizApp({ assessments, unitId }) {
-  console.log("QuizApp rendered with assessments:", unitId);
+// Define QuizApp
+function QuizApp({ assessments, unitId, studentId }) {
   const [activeAssessment, setActiveAssessment] = useState(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -711,6 +731,8 @@ function QuizApp({ assessments, unitId }) {
           timeLimit={activeAssessment.duration}
           onComplete={handleQuizComplete}
           onCancel={() => setActiveAssessment(null)}
+          studentId={studentId}
+          assessmentId={activeAssessment.id}
         />
       )}
 
@@ -742,13 +764,14 @@ QuizApp.propTypes = {
       duration: PropTypes.number.isRequired,
       passPercentage: PropTypes.number.isRequired,
       totalMarks: PropTypes.number.isRequired,
-      caMarksPercetage: PropTypes.number.isRequired,
+      caMarksPercentage: PropTypes.number.isRequired,
       description: PropTypes.string,
       status: PropTypes.oneOf(["active", "inactive"]),
       dueDate: PropTypes.string,
     })
   ).isRequired,
   unitId: PropTypes.string.isRequired,
+  studentId: PropTypes.string.isRequired,
 };
 
 export default QuizApp;
