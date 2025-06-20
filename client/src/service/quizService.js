@@ -14,3 +14,20 @@ export async function getQuizByUnitId(id) {
     throw error;
   }
 }
+
+export async function postAssessmentMarks(data) {
+  console.log("postAssessmentMarks data:", data);
+  try {
+    const apiObject = {
+      method: "POST",
+      withCredentials: true,
+      prefix: "",
+      endpoint: "assessmentMarks",
+      body:data,
+    };
+    return await ApiService.callApi(apiObject);
+  } catch (error) {
+    console.error("postAssessmentMarks error:", error.message);
+    throw error;
+  }
+}
