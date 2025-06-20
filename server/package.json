@@ -12,6 +12,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "debug": "^4.3.7",
     "dotenv": "^16.4.5",
@@ -21,6 +22,7 @@
     "joi": "^17.13.3",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
+    "moment-timezone": "^0.6.0",
     "mongo-sanitize": "^1.1.0",
     "mongodb": "^6.9.0",
     "mongoose": "^8.15.0",

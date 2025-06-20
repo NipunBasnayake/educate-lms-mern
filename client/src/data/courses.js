@@ -8,7 +8,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Understand market forces and develop competitive strategies.",
     instructor: "Prof. James Wilson",
@@ -19,13 +19,13 @@ export const courses = [
     syllabus: [
       "Industry analysis frameworks",
       "Competitive advantage strategies",
-      "Corporate-level strategy"
+      "Corporate-level strategy",
     ],
     learningOutcomes: [
       "Analyze market forces",
       "Develop strategic plans",
-      "Evaluate competitive positioning"
-    ]
+      "Evaluate competitive positioning",
+    ],
   },
   {
     id: "BUS205",
@@ -36,7 +36,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Explore ethical decision-making in corporate environments.",
     instructor: "Dr. Sarah Chen",
@@ -47,13 +47,13 @@ export const courses = [
     syllabus: [
       "Ethical theories in business",
       "Corporate social responsibility",
-      "Whistleblowing cases"
+      "Whistleblowing cases",
     ],
     learningOutcomes: [
       "Identify ethical dilemmas",
       "Apply ethical frameworks",
-      "Design compliance programs"
-    ]
+      "Design compliance programs",
+    ],
   },
   {
     id: "MKT310",
@@ -64,7 +64,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Use data to drive marketing decisions and measure impact.",
     instructor: "Prof. Alan Ruiz",
@@ -75,13 +75,13 @@ export const courses = [
     syllabus: [
       "Customer segmentation models",
       "Marketing ROI analysis",
-      "Digital marketing metrics"
+      "Digital marketing metrics",
     ],
     learningOutcomes: [
       "Interpret marketing data",
       "Optimize campaign performance",
-      "Measure customer lifetime value"
-    ]
+      "Measure customer lifetime value",
+    ],
   },
   {
     id: "OPS320",
@@ -92,24 +92,21 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
-    description: "Model business processes for better efficiency and productivity.",
+    description:
+      "Model business processes for better efficiency and productivity.",
     instructor: "Dr. Michael Johnson",
     department: "Operations Management",
     schedule: "Wed/Fri 09:00-10:30",
     duration: "12 weeks",
     prerequisites: ["MATH250"],
-    syllabus: [
-      "Linear programming",
-      "Inventory models",
-      "Queuing theory"
-    ],
+    syllabus: ["Linear programming", "Inventory models", "Queuing theory"],
     learningOutcomes: [
       "Formulate optimization problems",
       "Apply simulation techniques",
-      "Improve process flows"
-    ]
+      "Improve process flows",
+    ],
   },
   {
     id: "HRM210",
@@ -120,9 +117,10 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
-    description: "Analyze how individuals and groups impact organizational dynamics.",
+    description:
+      "Analyze how individuals and groups impact organizational dynamics.",
     instructor: "Dr. Emily Park",
     department: "Human Resources",
     schedule: "Tue/Thu 11:00-12:30",
@@ -131,13 +129,13 @@ export const courses = [
     syllabus: [
       "Motivation theories",
       "Team dynamics",
-      "Organizational culture"
+      "Organizational culture",
     ],
     learningOutcomes: [
       "Diagnose workplace behavior",
       "Design effective teams",
-      "Manage organizational change"
-    ]
+      "Manage organizational change",
+    ],
   },
   {
     id: "ACC101",
@@ -148,27 +146,24 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
-    description: "Interpret financial statements and track business performance.",
+    description:
+      "Interpret financial statements and track business performance.",
     instructor: "Prof. Robert Kim",
     department: "Accounting",
     schedule: "Mon/Wed/Fri 08:00-09:00",
     duration: "15 weeks",
     prerequisites: [],
-    syllabus: [
-      "Balance sheets",
-      "Income statements",
-      "Cash flow analysis"
-    ],
+    syllabus: ["Balance sheets", "Income statements", "Cash flow analysis"],
     learningOutcomes: [
       "Prepare financial statements",
       "Analyze financial ratios",
-      "Apply GAAP principles"
-    ]
+      "Apply GAAP principles",
+    ],
   },
   {
-    id: "HRM315",
+    id: "684fae7639d36d10c5619d83",
     name: "Leadership & Influence",
     credits: 2,
     grade: "A",
@@ -176,7 +171,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Develop skills to lead teams and manage change.",
     instructor: "Dr. Lisa Wong",
@@ -184,19 +179,15 @@ export const courses = [
     schedule: "Thu 18:00-20:30",
     duration: "8 weeks",
     prerequisites: ["HRM210"],
-    syllabus: [
-      "Leadership styles",
-      "Influence tactics",
-      "Change management"
-    ],
+    syllabus: ["Leadership styles", "Influence tactics", "Change management"],
     learningOutcomes: [
       "Assess leadership approaches",
       "Build influence networks",
-      "Lead organizational transitions"
-    ]
+      "Lead organizational transitions",
+    ],
   },
   {
-    id: "ENT302",
+    id: "684a59a641510d80c8f8bcb6",
     name: "Innovation Management",
     credits: 2,
     grade: "A+",
@@ -204,7 +195,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Foster creativity and bring new products to market.",
     instructor: "Prof. David Miller",
@@ -215,13 +206,13 @@ export const courses = [
     syllabus: [
       "Ideation techniques",
       "Product development",
-      "Commercialization"
+      "Commercialization",
     ],
     learningOutcomes: [
       "Generate innovative ideas",
       "Manage development pipelines",
-      "Launch new ventures"
-    ]
+      "Launch new ventures",
+    ],
   },
   {
     id: "OPS410",
@@ -232,7 +223,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Coordinate logistics and inventory across global networks.",
     instructor: "Prof. Angela Lopez",
@@ -243,13 +234,13 @@ export const courses = [
     syllabus: [
       "Logistics optimization",
       "Inventory control",
-      "Supplier relationships"
+      "Supplier relationships",
     ],
     learningOutcomes: [
       "Design supply chain networks",
       "Implement lean principles",
-      "Mitigate supply risks"
-    ]
+      "Mitigate supply risks",
+    ],
   },
   {
     id: "BUS350",
@@ -260,7 +251,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Leverage analytics for smarter business strategies.",
     instructor: "Dr. Mark Taylor",
@@ -271,13 +262,13 @@ export const courses = [
     syllabus: [
       "Predictive modeling",
       "Data visualization",
-      "Scenario analysis"
+      "Scenario analysis",
     ],
     learningOutcomes: [
       "Interpret business analytics",
       "Build decision models",
-      "Present data insights"
-    ]
+      "Present data insights",
+    ],
   },
   {
     id: "BUS220",
@@ -288,7 +279,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Navigate global trade, markets, and cultural differences.",
     instructor: "Prof. Sophia Patel",
@@ -299,13 +290,13 @@ export const courses = [
     syllabus: [
       "Global trade systems",
       "Cross-cultural management",
-      "Market entry strategies"
+      "Market entry strategies",
     ],
     learningOutcomes: [
       "Analyze global markets",
       "Adapt business practices",
-      "Evaluate entry modes"
-    ]
+      "Evaluate entry modes",
+    ],
   },
   {
     id: "HRM405",
@@ -316,7 +307,7 @@ export const courses = [
     assessments: {
       midterm: 45,
       project: 40,
-      quizzes: 15
+      quizzes: 15,
     },
     description: "Align HR practices with organizational goals.",
     instructor: "Dr. Emily Park",
@@ -324,17 +315,13 @@ export const courses = [
     schedule: "Wed/Fri 09:00-10:30",
     duration: "12 weeks",
     prerequisites: ["HRM210"],
-    syllabus: [
-      "Talent management",
-      "Workforce planning",
-      "HR metrics"
-    ],
+    syllabus: ["Talent management", "Workforce planning", "HR metrics"],
     learningOutcomes: [
       "Develop HR policies",
       "Align HR with strategy",
-      "Measure HR effectiveness"
-    ]
-  }
+      "Measure HR effectiveness",
+    ],
+  },
 ];
 
 // Shared academic data
@@ -344,10 +331,10 @@ export const academicSummary = {
   examDateRange: "March 2025 - April 2025",
   gradeMeanings: {
     "A+": "Excellent",
-    "A": "Very Good",
+    A: "Very Good",
     "B+": "Good",
-    "B": "Above Average",
+    B: "Above Average",
     "C+": "Average",
-    "C": "Below Average"
-  }
+    C: "Below Average",
+  },
 };

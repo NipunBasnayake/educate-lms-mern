@@ -1,32 +1,108 @@
+const mongoose = require('mongoose');
 const Lesson = require('../models/Lesson');
 const Unit = require('../models/Unit');
 
+
+
+class ApiError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
+const validateObjectId = (id, name = 'ID') => {
+  if (id && !mongoose.isValidObjectId(id)) {
+    throw new ApiError(400, `Invalid ${name}`);
+  }
+};
+
+const validateRequiredFields = (fields, data) => {
+  for (const field of fields) {
+    if (data[field] === undefined || data[field] === null) {
+      throw new ApiError(400, `${field} is required`);
+    }
+  }
+};
+
 exports.createLesson = async (req, res) => {
   try {
-    const { title, unit, content, order } = req.body;
+    const { title, unit, content, order, doc, lectureLink, duration, completed } = req.body;
 
-    if (!title || !unit || order == null) {
-      return res.status(400).json({ success: false, message: 'Title, unit, and order are required' });
-    }
+    // Validate required fields
+    validateRequiredFields(['title', 'unit', 'order'], { title, unit, order });
+    validateObjectId(unit, 'unit ID');
 
-    const unitExists = await Unit.findById(unit);
+    // Validate unit exists
+    const unitExists = await Unit.findById(unit).lean();
     if (!unitExists) {
-      return res.status(404).json({ success: false, message: 'Unit not found' });
+      throw new ApiError(404, 'Unit not found');
     }
 
-    const orderExists = await Lesson.findOne({ unit, order });
+    // Validate order uniqueness for the unit
+    const orderExists = await Lesson.findOne({ unit, order }).lean();
     if (orderExists) {
-      return res.status(400).json({ success: false, message: 'Order already exists for this unit' });
+      throw new ApiError(400, 'Order already exists for this unit');
     }
 
-    const lesson = new Lesson({ title, unit, content, order });
+    // Validate optional fields
+    if (duration !== undefined && (typeof duration !== 'number' || duration <= 0)) {
+      throw new ApiError(400, 'Duration must be a positive number');
+    }
+    if (completed !== undefined && typeof completed !== 'boolean') {
+      throw new ApiError(400, 'Completed must be a boolean');
+    }
+    if (doc !== undefined && typeof doc !== 'string') {
+      throw new ApiError(400, 'Doc must be a string');
+    }
+    if (lectureLink !== undefined && typeof lectureLink !== 'string') {
+      throw new ApiError(400, 'Lecture link must be a string');
+    }
+
+    // Create lesson
+    const lesson = new Lesson({
+      title,
+      unit,
+      content: content || '',
+      order,
+      doc: doc || '',
+      lectureLink: lectureLink || '',
+      duration: duration || 0,
+      completed: completed || false,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
     await lesson.save();
 
+    // Update unit's lessons array
     await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
 
-    res.status(201).json({ success: true, data: lesson });
+    
+
+    return res.status(201).json({
+      success: true,
+      message: 'Lesson created successfully',
+      data: {
+        id: lesson._id,
+        title: lesson.title,
+        unit: lesson.unit,
+        content: lesson.content,
+        order: lesson.order,
+        doc: lesson.doc,
+        lectureLink: lesson.lectureLink,
+        duration: lesson.duration,
+        completed: lesson.completed,
+        createdAt: lesson.createdAt,
+        updatedAt: lesson.updatedAt,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error creating lesson', error: error.message });
+      return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
   }
 };
 
@@ -34,91 +110,237 @@ exports.getLessons = async (req, res) => {
   try {
     const filter = {};
     if (req.query.unit) {
+      validateObjectId(req.query.unit, 'unit ID');
       filter.unit = req.query.unit;
     }
 
     const lessons = await Lesson.find(filter)
       .populate('unit', 'title')
-      .sort({ order: 1 });
+      .sort({ order: 1 })
+      .lean();
 
-    res.status(200).json({ success: true, data: lessons });
+
+    return res.status(200).json({
+      success: true,
+      data: lessons.map((lesson) => ({
+        ...lesson,
+        id: lesson._id,
+      })),
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching lessons', error: error.message });
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
   }
 };
 
 exports.getLessonById = async (req, res) => {
   try {
-    const lesson = await Lesson.findById(req.params.id).populate('unit', 'title');
+    validateObjectId(req.params.id, 'lesson ID');
+
+    const lesson = await Lesson.findById(req.params.id)
+      .populate('unit', 'title')
+      .lean();
 
     if (!lesson) {
-      return res.status(404).json({ success: false, message: 'Lesson not found' });
+      throw new ApiError(404, 'Lesson not found');
     }
 
-    res.status(200).json({ success: true, data: lesson });
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...lesson,
+        id: lesson._id,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error fetching lesson', error: error.message });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
   }
 };
 
 exports.updateLesson = async (req, res) => {
   try {
-    const { title, unit, content, order } = req.body;
+    const { title, unit, content, order, doc, lectureLink, duration, completed } = req.body;
+
+    validateObjectId(req.params.id, 'lesson ID');
+
     const lesson = await Lesson.findById(req.params.id);
     if (!lesson) {
-      return res.status(404).json({ success: false, message: 'Lesson not found' });
+      throw new ApiError(404, 'Lesson not found');
     }
 
+    // Validate unit if provided
+    let newUnit = lesson.unit;
     if (unit && unit !== lesson.unit.toString()) {
-      const newUnit = await Unit.findById(unit);
-      if (!newUnit) {
-        return res.status(404).json({ success: false, message: 'New unit not found' });
+      validateObjectId(unit, 'unit ID');
+      const unitExists = await Unit.findById(unit).lean();
+      if (!unitExists) {
+        throw new ApiError(404, 'New unit not found');
       }
-
-      await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
-      await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
-
-      lesson.unit = unit;
+      newUnit = unit;
     }
 
-    if ((order != null && order !== lesson.order) || (unit && unit !== lesson.unit.toString())) {
+    // Validate order uniqueness if changed
+    if ((order !== undefined && order !== lesson.order) || (unit && unit !== lesson.unit.toString())) {
       const duplicateOrder = await Lesson.findOne({
         _id: { $ne: lesson._id },
-        unit: lesson.unit,
-        order: order != null ? order : lesson.order,
-      });
+        unit: unit || lesson.unit,
+        order: order !== undefined ? order : lesson.order,
+      }).lean();
 
       if (duplicateOrder) {
-        return res.status(400).json({ success: false, message: 'Order already exists for this unit' });
+        throw new ApiError(400, 'Order already exists for this unit');
       }
-
-      if (order != null) lesson.order = order;
     }
 
-    if (title) lesson.title = title;
-    if (content !== undefined) lesson.content = content;
-    lesson.updatedAt = Date.now();
+    // Validate optional fields
+    if (duration !== undefined && (typeof duration !== 'number' || duration <= 0)) {
+      throw new ApiError(400, 'Duration must be a positive number');
+    }
+    if (completed !== undefined && typeof completed !== 'boolean') {
+      throw new ApiError(400, 'Completed must be a boolean');
+    }
+    if (doc !== undefined && typeof doc !== 'string') {
+      throw new ApiError(400, 'Doc must be a string');
+    }
+    if (lectureLink !== undefined && typeof lectureLink !== 'string') {
+      throw new ApiError(400, 'Lecture link must be a string');
+    }
 
-    await lesson.save();
+    // Prepare update data
+    const updateData = {
+      ...(title && { title }),
+      ...(unit && { unit }),
+      ...(content !== undefined && { content }),
+      ...(order !== undefined && { order }),
+      ...(doc !== undefined && { doc }),
+      ...(lectureLink !== undefined && { lectureLink }),
+      ...(duration !== undefined && { duration }),
+      ...(completed !== undefined && { completed }),
+      updatedAt: Date.now(),
+    };
 
-    res.status(200).json({ success: true, data: lesson });
+    // Update unit references if unit changed
+    if (unit && unit !== lesson.unit.toString()) {
+      await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
+      await Unit.findByIdAndUpdate(unit, { $push: { lessons: lesson._id } });
+    }
+
+    // Update lesson
+    const updatedLesson = await Lesson.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).lean();
+
+
+    return res.status(200).json({
+      success: true,
+      message: 'Lesson updated successfully',
+      data: {
+        id: updatedLesson._id,
+        title: updatedLesson.title,
+        unit: updatedLesson.unit,
+        content: updatedLesson.content,
+        order: updatedLesson.order,
+        doc: updatedLesson.doc,
+        lectureLink: updatedLesson.lectureLink,
+        duration: updatedLesson.duration,
+        completed: updatedLesson.completed,
+        createdAt: updatedLesson.createdAt,
+        updatedAt: updatedLesson.updatedAt,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error updating lesson', error: error.message });
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
   }
 };
 
 exports.deleteLesson = async (req, res) => {
   try {
+    validateObjectId(req.params.id, 'lesson ID');
+
     const lesson = await Lesson.findById(req.params.id);
     if (!lesson) {
-      return res.status(404).json({ success: false, message: 'Lesson not found' });
+      throw new ApiError(404, 'Lesson not found');
     }
 
+    // Remove lesson from unit's lessons array
     await Unit.findByIdAndUpdate(lesson.unit, { $pull: { lessons: lesson._id } });
+
+    // Delete lesson
     await lesson.deleteOne();
 
-    res.status(200).json({ success: true, message: 'Lesson deleted successfully' });
+    return res.status(200).json({
+      success: true,
+      message: 'Lesson deleted successfully',
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting lesson', error: error.message });
+      return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
+  }
+};
+
+exports.updateLessonCompleted = async (req, res) => {
+  try {
+    const { completed } = req.body;
+
+    validateObjectId(req.params.id, 'lesson ID');
+
+    validateRequiredFields(['completed'], { completed });
+    if (typeof completed !== 'boolean') {
+      throw new ApiError(400, 'Completed must be a boolean');
+    }
+
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) {
+      throw new ApiError(404, 'Lesson not found');
+    }
+
+    const updatedLesson = await Lesson.findByIdAndUpdate(
+      req.params.id,
+      { $set: { completed, updatedAt: Date.now() } },
+      { new: true, runValidators: true }
+    )
+      .populate('unit', 'title')
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Lesson completed status updated successfully',
+      data: {
+        id: updatedLesson._id,
+        title: updatedLesson.title,
+        unit: updatedLesson.unit,
+        content: updatedLesson.content,
+        order: updatedLesson.order,
+        doc: updatedLesson.doc,
+        lectureLink: updatedLesson.lectureLink,
+        duration: updatedLesson.duration,
+        completed: updatedLesson.completed,
+        createdAt: updatedLesson.createdAt,
+        updatedAt: updatedLesson.updatedAt,
+      },
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message,
+      error: error.message,
+    });
   }
 };

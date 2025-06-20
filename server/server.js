@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const connectDB = require("./config/db");
@@ -20,7 +21,15 @@ const lessonRoutes = require("./routes/lessonRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const submissionRoutes = require("./routes/submissionRoutes");
 const studentRoutes = require("./routes/studentRoutes");
-const responseFormatter = require("./middleware/responseFormatter")
+const quizRoutes = require("./routes/quizRoutes");
+const discussionRoutes = require("./routes/discussionRoutes");
+const marksRoutes = require("./routes/markRoutes");
+const assessmentMarkRoutes = require("./routes/assessmentMarksRoutes");
+const assignmentRoutes = require("./routes/assignmentRoutes");
+const assignmentMarkRoutes = require("./routes/assignmentMarksRoutes");
+const examMarkRoutes = require("./routes/examMarksRoutes");
+const responseFormatter = require("./middleware/responseFormatter");
+const { default: mongoose } = require("mongoose");
 
 console.log("Environment Variables:");
 console.log("EMAIL_USER:", process.env.EMAIL_USER);
@@ -31,11 +40,15 @@ console.log("PORT:", process.env.PORT);
 
 const app = express();
 connectDB();
-
-app.use(cors());
+mongoose.set('debug', true);
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: process.env.FRONTEND_ORIGIN,
+  credentials: true,
+}));
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(express.json());
 app.use(responseFormatter())
 
 app.use("/api/courses", courseRoutes);
@@ -52,15 +65,22 @@ app.use("/api/lessons", lessonRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/submissions", submissionRoutes);
 app.use("/api/students", studentRoutes);
+app.use("/api/quiz", quizRoutes);
+app.use("/api/discussion", discussionRoutes);
+app.use("/api/marks", marksRoutes);
+app.use("/api/assessmentMarks", assessmentMarkRoutes);
+app.use("/api/assignment", assignmentRoutes);
+app.use("/api/assignmentMarks", assignmentMarkRoutes);
+app.use("/api/examMarks", examMarkRoutes);
 
 app.use(require("./middleware/errorHandler"));
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err.stack);
+    res.status(500).json({message: "Server error", error: err.message});
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });

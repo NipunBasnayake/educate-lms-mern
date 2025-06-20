@@ -1,14 +1,15 @@
-import React from "react";
+
 
 const CourseTabs = ({ activeTab, setActiveTab }) => {
   const tabs = [
     "overview",
     "lessons",
-    "assessments",
+    "Quizes",
     "exams",
     "materials",
     "discussions",
     "assignments",
+    "online-session",
   ];
 
   return (

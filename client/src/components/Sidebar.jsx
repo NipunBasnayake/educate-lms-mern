@@ -12,6 +12,7 @@ import {
   ScrollText,
   Accessibility,
   Landmark,
+  User,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -66,7 +67,7 @@ const Sidebar = () => {
             },
             {
               icon: <Package size={20} />,
-              label: "Courses",
+              label: "Units",
               to: "/units",
             },
             {
@@ -90,10 +91,16 @@ const Sidebar = () => {
               to: "/tools",
             },
             {
+              icon: <User size={20} />,
+              label: "profile",
+              to: "/profile",
+            },
+            {
               icon: <LogOut size={20} />,
               label: "Logout",
               to: "/logout",
             },
+            
           ].map((item, idx) => (
             <li key={idx}>
               <Link
